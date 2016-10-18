@@ -20,9 +20,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A menu icon that supports the checkable state.
- */
 public class PickerCategoryView extends RelativeLayout {
     private Context mContext;
     private PickerAdapter mPickerAdapter;
@@ -82,7 +79,7 @@ public class PickerCategoryView extends RelativeLayout {
         if (files.length == 0) {
             setVisibility(View.GONE);
         } else {
-            for (int i = 0; i < files.length && i < maxPhotos; i++) {
+            for (int i = 0; i < files.length; i++) {
                 //Log.d("Files", "FileName2:" + fullPath + "/" + files[i].getName());
                 pickerBitmaps.add(new PickerBitmap(fullPath + "/" + files[i].getName()));
             }

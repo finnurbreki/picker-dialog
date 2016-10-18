@@ -80,7 +80,7 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
                 paint.setTextSize(textHeight);
 
                 // Calculate where to place the overlay.
-                String overlayText = Integer.toString(mParent.getItemCount()) + " >";
+                String overlayText = Integer.toString(pickerBitmaps.size() - mMaxBitmaps) + " >";
                 Rect textBounds = new Rect();
                 paint.getTextBounds(overlayText, 0, overlayText.length(), textBounds);
 
@@ -124,6 +124,6 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
 
     @Override
     public int getItemCount() {
-        return pickerBitmaps.size();
+        return Math.min(pickerBitmaps.size(), mMaxBitmaps);
     }
 }
