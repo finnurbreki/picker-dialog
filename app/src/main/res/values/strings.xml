@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Finnur\'s PhotoPicker</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="photo_picker_dialog_title">Select</string>
+    <string name="color_picker_button_cancel">Cancel</string>
+    <string name="clear_cookies_and_site_data_title">(Placeholder)</string>
+    <string name="category_title">Category title</string>
+</resources>
