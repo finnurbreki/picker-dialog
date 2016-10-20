@@ -4,6 +4,7 @@
 
 package com.example.finnur.finnursphotopicker;
 
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -65,11 +66,13 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
         @Override
         public void onThumbnailRetrieved(String filePath, Bitmap thumbnail) {
             //Log.d("***** ", "onThumbnailRetrieved " + filePath);
+            Boolean isSelected = false;
+
+            Canvas canvas = new Canvas(thumbnail);
+            canvas.drawBitmap(thumbnail, new Matrix(), null);
 
             if (mIsExpandTitle) {
                 // Start with a slightly darkened thumbnail.
-                Canvas canvas = new Canvas(thumbnail);
-                canvas.drawBitmap(thumbnail, new Matrix(), null);
                 canvas.drawARGB(120, 0, 0, 0);
 
                 // Prepare the paint object.
@@ -79,7 +82,7 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
                 float textHeight = 96;
                 paint.setTextSize(textHeight);
 
-                // Calculate where to place the overlay.
+                // Calculate where to place the text overlay.
                 String overlayText = Integer.toString(pickerBitmaps.size() - mMaxBitmaps) + " >";
                 Rect textBounds = new Rect();
                 paint.getTextBounds(overlayText, 0, overlayText.length(), textBounds);
@@ -88,6 +91,10 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
                 float x = (mParent.mPhotoSize - textBounds.width()) / 2;
                 float y = (mParent.mPhotoSize - textBounds.height()) / 2;
                 canvas.drawText(overlayText, x, y, paint);
+            } else {
+                Bitmap selectionCircle = BitmapFactory.decodeResource(
+                     mResources, isSelected ? R.mipmap.selected : R.mipmap.unselected);
+                canvas.drawBitmap(selectionCircle, 15, 10, null);
             }
 
             mImageView.setImageBitmap(thumbnail);
