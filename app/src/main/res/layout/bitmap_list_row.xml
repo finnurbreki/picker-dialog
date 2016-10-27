@@ -5,7 +5,7 @@
      found in the LICENSE file.
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:focusable="true"
@@ -18,9 +18,26 @@
         android:id="@+id/bitmap"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingEnd="4px"
-        android:paddingStart="4px"
+        android:paddingBottom="2dp"
+        android:paddingStart="2dp"
         android:contentDescription="@string/clear_cookies_and_site_data_title"
         android:scaleType="centerCrop" />
 
-</LinearLayout>
+    <ImageView
+        android:id="@+id/selected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="10dp"
+        android:paddingTop="10dp"
+        android:contentDescription="@string/clear_cookies_and_site_data_title"
+        android:visibility="gone" />
+    <ImageView
+        android:id="@+id/unselected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="10dp"
+        android:paddingTop="10dp"
+        android:contentDescription="@string/clear_cookies_and_site_data_title"
+        android:visibility="gone" />
+
+</RelativeLayout>

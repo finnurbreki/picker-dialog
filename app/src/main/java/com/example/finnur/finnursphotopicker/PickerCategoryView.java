@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+//package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
@@ -12,6 +13,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -19,11 +21,19 @@ import android.widget.TextView;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+// Chrome-specific:
+/*
+FLIP
+import org.chromium.chrome.R;
+import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
+*/
 
 public class PickerCategoryView extends RelativeLayout {
     private Context mContext;
     private PickerAdapter mPickerAdapter;
-    private List<PickerBitmap> pickerBitmaps = new ArrayList<>();
+    private List<PickerBitmap> mPickerBitmaps = new ArrayList<>();
 
     private RecyclerView mRecyclerView;
     private TextView mTitle;
@@ -50,18 +60,15 @@ public class PickerCategoryView extends RelativeLayout {
         inflate(mContext, R.layout.picker_category_view, this);
     }
 
-    public void setInitialState(String header, String path) {
+    public void setInitialState(String path, SelectionDelegate<String> selectionDelegate) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        mTitle = (TextView) findViewById(R.id.title);
 
-        mTitle.setText(header);
-
-        int columns = 4;
-        mMaxImages = 2 * columns;  // Show two rows of images.
+        int columns = 3;
+        mMaxImages = 3 * columns;
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
         int widthPerColumn = metrics.widthPixels / columns;
 
-        mPickerAdapter = new PickerAdapter(pickerBitmaps, mContext.getResources(), widthPerColumn, mMaxImages);
+        mPickerAdapter = new PickerAdapter(mPickerBitmaps, mContext.getResources(), widthPerColumn, mMaxImages, selectionDelegate);
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(mContext, columns);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -71,20 +78,28 @@ public class PickerCategoryView extends RelativeLayout {
     }
 
     private void prepareBitmaps(String path, int maxPhotos) {
+        long startTime = System.nanoTime();
         String fullPath = Environment.getExternalStorageDirectory().toString() + path;
-        //Log.d("Files", "Path: " + fullPath);
+
+        //Log.e("chromium", "Path: " + fullPath);
         File directory = new File(fullPath);
         File[] files = directory.listFiles();
-        //Log.d("Files", "Size: "+ files.length);
+        //Log.e("chromium", "Size: "+ files.length);
         if (files.length == 0) {
             setVisibility(View.GONE);
         } else {
             for (int i = 0; i < files.length; i++) {
-                //Log.d("Files", "FileName2:" + fullPath + "/" + files[i].getName());
-                pickerBitmaps.add(new PickerBitmap(fullPath + "/" + files[i].getName()));
+                //Log.e("chromium", "FileName2:" + fullPath + "/" + files[i].getName());
+                //if (files[i].length() < 10000)
+                    mPickerBitmaps.add(new PickerBitmap(fullPath + "/" + files[i].getName()));
+                //else
+                //    Log.e("chromium", "Skipping file " + files[i].getName() + " " + files[i].length());
             }
         }
 
+        long endTime = System.nanoTime();
+        long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
+        Log.e("chromium", "Enumerated " + mPickerAdapter.getItemCount() + " files: " + durationInMs + " ms");
         mPickerAdapter.notifyDataSetChanged();
     }
 }
