@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// FLIP
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
@@ -58,11 +59,11 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     // The listener for the photo changed event.
     private final OnPhotoChangedListener mListener;
 
+    static int s_folder = 1;
+
     // FLIP
-    /*
     // The toolbar at the top of the dialog.
-    private final PhotoPickerToolbar mToolbar;
-*/
+    //private PhotoPickerToolbar mToolbar;  // TODOf make final once inside in ctor?
 
     private SelectionDelegate<String> mSelectionDelegate;
 
@@ -85,7 +86,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
 
         mSelectionDelegate = new SelectionDelegate<String>();
 
-        initializeChromeSpecificStuff();
+        initializeChromeSpecificStuff(title);
 
         // Note that with the color picker there's not really any such thing as
         // "cancelled".
@@ -117,23 +118,25 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         LinearLayout parentLayout = (LinearLayout) content.findViewById(R.id.layout);
         LayoutInflater layoutInflater = getLayoutInflater();
 
-        /*
         PickerCategoryView categoryCamera = new PickerCategoryView(context);
-        categoryCamera.setInitialState("/DCIM/Camera", mSelectionDelegate);
-        parentLayout.addView(categoryCamera);
-*/
-
         PickerCategoryView categoryScreenshots = new PickerCategoryView(context);
-        categoryScreenshots.setInitialState("/Pictures/Screenshots", mSelectionDelegate);
-        parentLayout.addView(categoryScreenshots);
-/*
         PickerCategoryView categoryDownloads = new PickerCategoryView(context);
-        categoryDownloads.setInitialState("/Download", mSelectionDelegate);
-        parentLayout.addView(categoryDownloads);
-*/
-        boolean hasItems = true; /* categoryCamera.getVisibility() == View.VISIBLE
+
+        if (++s_folder == 1) {
+            categoryCamera.setInitialState("/DCIM/Camera", mSelectionDelegate);
+            parentLayout.addView(categoryCamera);
+        } else if (s_folder == 2) {
+            categoryScreenshots.setInitialState("/Pictures/Screenshots", mSelectionDelegate);
+            parentLayout.addView(categoryScreenshots);
+        } else {
+            categoryDownloads.setInitialState("/Download", mSelectionDelegate);
+            parentLayout.addView(categoryDownloads);
+            s_folder = 0;
+        }
+
+        boolean hasItems = categoryCamera.getVisibility() == View.VISIBLE
                 || categoryScreenshots.getVisibility() == View.VISIBLE
-                || categoryDownloads.getVisibility() == View.VISIBLE; */
+                || categoryDownloads.getVisibility() == View.VISIBLE;
         if (!hasItems) {
             Log.e("chromium", "Show empty message");
         }
@@ -169,7 +172,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         if (mListener != null) mListener.onPhotoChanged(photos);
     }
 
-    private void initializeChromeSpecificStuff() {
+    private void initializeChromeSpecificStuff(View title) {
         // FLIP
         /*
         mToolbar = (PhotoPickerToolbar) title.findViewById(R.id.action_bar);
@@ -183,7 +186,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         mToolbar.initialize(mSelectionDelegate, 0, drawerLayout,
                 R.id.normal_menu_group, R.id.selection_mode_menu_group);
         mToolbar.setTitle(R.string.menu_downloads);
-    */
         //addObserver(mToolbar);  // REMOVE?
+    */
     }
 }

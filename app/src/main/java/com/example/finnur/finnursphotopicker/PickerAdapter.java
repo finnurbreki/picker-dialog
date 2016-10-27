@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// FLIP
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
@@ -19,6 +20,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 // Chrome-specific:
 /*
@@ -79,7 +82,9 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
             mParent = parent;
             mImageView = (ImageView) view.findViewById(R.id.bitmap);
             mImageView.setOnClickListener(this);
-            // mImageView.setScaleType(ScaleType.CENTER);
+            mImageView.setLayoutParams(
+                    new RelativeLayout.LayoutParams(mParent.mPhotoSize, mParent.mPhotoSize));
+            //mImageView.setScaleType(ImageView.ScaleType.CENTER);
             mSelectedView = (ImageView) view.findViewById(R.id.selected);
             mSelectedView.setImageBitmap(mParent.mOverlaySelected);
             mUnselectedView = (ImageView) view.findViewById(R.id.unselected);
@@ -127,8 +132,11 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
 
         mThumbnailProvider = new ThumbnailProviderImpl(widthPerColumn);
 
+        // FLIP
         mOverlaySelected = BitmapFactory.decodeResource(mResources, R.mipmap.selected);
         mOverlayUnselected = BitmapFactory.decodeResource(mResources, R.mipmap.unselected);
+        //mOverlaySelected = BitmapFactory.decodeResource(mResources, R.drawable.ic_share_white_24dp);
+        //mOverlayUnselected = BitmapFactory.decodeResource(mResources, R.drawable.ic_arrow_back_white_24dp);
     }
 
     // RecyclerView.Adapter:
@@ -157,8 +165,12 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
         holder.mStartFetchImage = System.nanoTime();
 
         if (payloads.size() == 0) {
-            Bitmap newBitmap = mThumbnailProvider.getThumbnail(holder);
-            setBitmapWithOverlay(holder, newBitmap);
+            if (isImageExtension(holder.mFilePath)) {
+                Bitmap newBitmap = mThumbnailProvider.getThumbnail(holder);
+                setBitmapWithOverlay(holder, newBitmap);
+            } else {
+                setTextWithOverlay(holder);
+            }
         } else {
             holder.mIsSelected = !holder.mIsSelected;
             holder.updateSelectionOverlays();
@@ -168,6 +180,10 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
     @Override
     public int getItemCount() {
         return Math.min(mPickerBitmaps.size(), mMaxBitmaps);
+    }
+
+    private boolean isImageExtension(String filePath) {
+        return filePath.endsWith(".jpg") || filePath.endsWith(".gif") || filePath.endsWith(".png");
     }
 
     private void setBitmapWithOverlay(MyViewHolder holder, Bitmap thumbnailOriginal) {
@@ -207,6 +223,22 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
         }
 
         holder.mImageView.setImageBitmap(thumbnail);
+        holder.updateSelectionOverlays();
+    }
+
+    private void setTextWithOverlay(MyViewHolder holder) {
+        Bitmap bitmap = Bitmap.createBitmap(mPhotoSize, mPhotoSize, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint();
+        int textSize = 72;
+        paint.setTextSize(textSize);
+        paint.setTextScaleX(1);
+        int dot = holder.mFilePath.lastIndexOf(".");
+        Log.e("chromium", "Index: " + dot + " Path: " + holder.mFilePath);
+        String extension = dot > -1 ? holder.mFilePath.substring(dot) : "(no ext)";
+        float width = paint.measureText(extension);
+        canvas.drawText(extension, (mPhotoSize - width) / 2, (mPhotoSize - textSize) / 2, paint);
+        holder.mImageView.setImageBitmap(bitmap);
         holder.updateSelectionOverlays();
     }
 }

@@ -64,7 +64,7 @@ public class PickerCategoryView extends RelativeLayout {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
         int columns = 3;
-        mMaxImages = 3 * columns;
+        mMaxImages = 5 * columns;
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
         int widthPerColumn = metrics.widthPixels / columns;
 
@@ -89,7 +89,7 @@ public class PickerCategoryView extends RelativeLayout {
             setVisibility(View.GONE);
         } else {
             for (int i = 0; i < files.length; i++) {
-                //Log.e("chromium", "FileName2:" + fullPath + "/" + files[i].getName());
+                //Log.e("chromium", "FileName:" + fullPath + "/" + files[i].getName());
                 //if (files[i].length() < 10000)
                     mPickerBitmaps.add(new PickerBitmap(fullPath + "/" + files[i].getName()));
                 //else
