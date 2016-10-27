@@ -33,6 +33,7 @@ import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
 
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHolder> {
@@ -183,7 +184,8 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
     }
 
     private boolean isImageExtension(String filePath) {
-        return filePath.endsWith(".jpg") || filePath.endsWith(".gif") || filePath.endsWith(".png");
+        String file = filePath.toLowerCase(Locale.US);
+        return file.endsWith(".jpg") || file.endsWith(".gif") || file.endsWith(".png");
     }
 
     private void setBitmapWithOverlay(MyViewHolder holder, Bitmap thumbnailOriginal) {
