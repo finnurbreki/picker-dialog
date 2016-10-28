@@ -173,13 +173,23 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
                 setTextWithOverlay(holder);
             }
         } else {
-            holder.mIsSelected = !holder.mIsSelected;
-            holder.updateSelectionOverlays();
+            if (holder.mIsExpandTitle) {
+                mMaxBitmaps = -1;
+                holder.mIsExpandTitle = false;
+                Bitmap newBitmap = mThumbnailProvider.getThumbnail(holder);
+                setBitmapWithOverlay(holder, newBitmap);
+                //notifyDataSetChanged();
+            } else {
+                holder.mIsSelected = !holder.mIsSelected;
+                holder.updateSelectionOverlays();
+            }
         }
     }
 
     @Override
     public int getItemCount() {
+        if (mMaxBitmaps == -1)
+            return mPickerBitmaps.size();
         return Math.min(mPickerBitmaps.size(), mMaxBitmaps);
     }
 
