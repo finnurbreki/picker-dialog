@@ -22,7 +22,8 @@ class BitmapUtils {
         options.inSampleSize = calculateInSampleSize(options, 480, 480);
         options.inJustDecodeBounds = false;
         Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
-
+        if (bitmap == null)
+            return null;
         /*
         bitmap = ThumbnailUtils.extractThumbnail(bitmap, mIconSizePx, mIconSizePx);
         Log.e("chromium", "Bitmap size (bytes): " + bitmap.getByteCount());

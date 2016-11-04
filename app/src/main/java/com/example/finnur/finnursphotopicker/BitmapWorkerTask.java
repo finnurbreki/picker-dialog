@@ -3,6 +3,7 @@ package com.example.finnur.finnursphotopicker;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.ImageView;
 
 import java.lang.ref.WeakReference;
@@ -32,7 +33,11 @@ class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
             final ImageView imageView = imageViewReference.get();
             if (imageView != null) {
                 imageView.setImageBitmap(bitmap);
+            } else {
+                Log.e("chromium", "dead reference");
             }
+        } else {
+            Log.e("chromium", "dead reference or no bitmap");
         }
     }
 }

@@ -49,6 +49,8 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
     // The list of bitmaps to show.
     private List<PickerBitmap> mPickerBitmaps;
 
+    private Bitmap mClearTileBitmap;
+
     // Maximum number of bitmaps to show.
     private int mMaxBitmaps;
 
@@ -136,6 +138,9 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
 
         mThumbnailProvider = new ThumbnailProviderImpl(widthPerColumn);
 
+        mClearTileBitmap = Bitmap.createBitmap(480, 480, Bitmap.Config.ARGB_8888);
+        mClearTileBitmap.eraseColor(Color.LTGRAY);
+
         // FLIP
         mOverlaySelected = BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.selected);
         mOverlayUnselected = BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.unselected);
@@ -162,10 +167,10 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position, List payloads) {
         Log.e("chromium", "onBindViewHolder2 pos " + position);
+        holder.mImageView.setImageBitmap(mClearTileBitmap);
         PickerBitmap bitmap = mPickerBitmaps.get(position);
         holder.mFilePath = bitmap.getFilePath();
         holder.mIsExpandTitle = position == mMaxBitmaps - 1;
-        holder.mImageView.setMaxHeight(mPhotoSize);
         holder.mStartFetchImage = System.nanoTime();
 
         if (payloads.size() == 0) {
