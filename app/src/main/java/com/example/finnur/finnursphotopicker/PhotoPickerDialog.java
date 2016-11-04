@@ -59,7 +59,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     // The listener for the photo changed event.
     private final OnPhotoChangedListener mListener;
 
-    static int s_folder = 1;
+    static int s_folder = 2;
 
     // FLIP
     // The toolbar at the top of the dialog.

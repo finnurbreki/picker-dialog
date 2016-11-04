@@ -4,7 +4,9 @@
 
 package com.example.finnur.finnursphotopicker;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -37,12 +39,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onPhotoChanged(String[] photos) {
                         mDialog.dismiss();
+                        //Debug.stopMethodTracing();
                         if (photos != null) {
                             Log.e("***** ", "**** Photo selected: " + photos.length);
                         }
                     }
                 };
 
+                //Debug.startMethodTracing("showDlg");
                 mDialog = new PhotoPickerDialog(getWindow().getContext(), listener);
                 mDialog.show();
             }

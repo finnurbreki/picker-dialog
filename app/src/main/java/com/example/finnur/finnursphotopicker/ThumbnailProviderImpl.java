@@ -108,11 +108,7 @@ public class ThumbnailProviderImpl implements ThumbnailProvider {
         if (cachedBitmap == null) {
             // Asynchronously process the file to make a thumbnail.
             // nativeRetrieveThumbnail(mNativeThumbnailProvider, currentFilePath, mIconSizePx);
-
-            //Log.d("ThumbnailProvider", "Loading bitmap manually " + currentFilePath);
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            Bitmap bitmap = BitmapFactory.decodeFile(currentFilePath, options);
-            bitmap = ThumbnailUtils.extractThumbnail(bitmap, mIconSizePx, mIconSizePx);
+            Bitmap bitmap = BitmapUtils.retrieveBitmap(null, currentFilePath);
             onThumbnailRetrieved(currentFilePath, bitmap);
         } else {
             // Send back the already-processed file.

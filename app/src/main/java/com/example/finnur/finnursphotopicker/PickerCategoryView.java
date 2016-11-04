@@ -65,12 +65,13 @@ public class PickerCategoryView extends RelativeLayout {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
         int columns = 3;
-        mMaxImages = 5 * columns;
+        mMaxImages = 30 * columns;
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
         int widthPerColumn = metrics.widthPixels / columns;
 
-        mPickerAdapter = new PickerAdapter(mPickerBitmaps, mContext.getResources(), widthPerColumn, mMaxImages, selectionDelegate);
+        mPickerAdapter = new PickerAdapter(mPickerBitmaps, mContext, widthPerColumn, mMaxImages, selectionDelegate);
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(mContext, columns);
+        mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.setAdapter(mPickerAdapter);
@@ -86,11 +87,11 @@ public class PickerCategoryView extends RelativeLayout {
         File directory = new File(fullPath);
         File[] files = directory.listFiles();
         //Log.e("chromium", "Size: "+ files.length);
-        if (files.length == 0) {
+        if (files == null || files.length == 0) {
             setVisibility(View.GONE);
         } else {
             for (int i = 0; i < files.length; i++) {
-                //Log.e("chromium", "FileName:" + fullPath + "/" + files[i].getName());
+                //Log.e("chromium", "FileName:" + fullPath + "/" + files[i].getName() + " size: " + files[i].length());
                 //if (files[i].length() < 10000)
                     mPickerBitmaps.add(new PickerBitmap(fullPath + "/" + files[i].getName()));
                 //else
