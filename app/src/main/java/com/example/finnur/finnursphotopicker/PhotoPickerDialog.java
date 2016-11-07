@@ -21,10 +21,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 // Android Studio-specific:
 
@@ -59,7 +55,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     // The listener for the photo changed event.
     private final OnPhotoChangedListener mListener;
 
-    static int s_folder = 2;
+    static int s_folder = 0;
 
     // FLIP
     // The toolbar at the top of the dialog.

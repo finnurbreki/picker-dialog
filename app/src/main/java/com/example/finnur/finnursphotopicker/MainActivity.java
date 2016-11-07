@@ -4,7 +4,6 @@
 
 package com.example.finnur.finnursphotopicker;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Debug;
 import android.support.design.widget.FloatingActionButton;

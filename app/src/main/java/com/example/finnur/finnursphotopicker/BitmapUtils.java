@@ -1,16 +1,14 @@
 package com.example.finnur.finnursphotopicker;
 
-import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import java.util.concurrent.TimeUnit;
 
 class BitmapUtils {
-    public static Bitmap retrieveBitmap(Context context, String filePath) {
+    public static Bitmap retrieveBitmap(Context context, String filePath, int width) {
         Runtime info = Runtime.getRuntime();
         long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
 
@@ -19,7 +17,7 @@ class BitmapUtils {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(filePath, options);
-        options.inSampleSize = calculateInSampleSize(options, 480, 480);
+        options.inSampleSize = calculateInSampleSize(options, width, width);
         options.inJustDecodeBounds = false;
         Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
         if (bitmap == null)
@@ -31,11 +29,11 @@ class BitmapUtils {
 
         int w = bitmap.getWidth();
         int h = bitmap.getHeight();
-        int size = bitmap.getByteCount()/1024;
-        bitmap = ensureMinSize(bitmap, 480);
-        int sizeEnlarged = bitmap.getByteCount()/1024;
-        bitmap = cropToSquare(bitmap, 480);
-        int sizeCropped = bitmap.getByteCount()/1024;
+        int size = bitmap.getByteCount() / 1024;
+        bitmap = ensureMinSize(bitmap, width);
+        int sizeEnlarged = bitmap.getByteCount() / 1024;
+        bitmap = cropToSquare(bitmap, width);
+        int sizeCropped = bitmap.getByteCount() / 1024;
         Log.e("chromium", "Bitmap decoded size: " + size + " KB, enlarged: " + sizeEnlarged + " KB, cropped: " + sizeCropped + " KB");
         long endTime = System.nanoTime();
         long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
@@ -44,7 +42,7 @@ class BitmapUtils {
         long diff2 = (info.maxMemory() - info.totalMemory()) / 1024;
         String memory = "Mem delta: " + diff1 + " KB -> " + diff2 + " KB";
 
-        Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount()/1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
+        Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
         return bitmap;
     }
 

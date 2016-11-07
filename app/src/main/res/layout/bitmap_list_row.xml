@@ -23,7 +23,7 @@
         android:contentDescription="@string/clear_cookies_and_site_data_title"
         android:scaleType="centerCrop" />
 
-    <!--ImageView
+    <ImageView
         android:id="@+id/selected"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,6 +38,6 @@
         android:paddingStart="10dp"
         android:paddingTop="10dp"
         android:contentDescription="@string/clear_cookies_and_site_data_title"
-        android:visibility="gone" /-->
+        android:visibility="gone" />
 
 </RelativeLayout>

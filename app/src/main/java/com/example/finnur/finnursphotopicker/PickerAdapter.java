@@ -64,9 +64,11 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
     private SelectionDelegate<String> mSelectionDelegate;
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements
-            ThumbnailProvider.ThumbnailRequest, View.OnClickListener {
+            ThumbnailProvider.ThumbnailRequest, View.OnClickListener, BitmapWorkerRequest.ImageDecodedCallback {
         // The parent of this holder.
         private PickerAdapter mParent;
+
+        private BitmapWorkerTask mWorkerTask;
 
         // The path to the bitmap to load.
         public String mFilePath;
@@ -91,10 +93,10 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
             //Log.e("chromium", "Size: " + mParent.mPhotoSize + " x " + mParent.mPhotoSize);
             mImageView.setLayoutParams(
                     new RelativeLayout.LayoutParams(mParent.mPhotoSize, mParent.mPhotoSize));
-            //mSelectedView = (ImageView) view.findViewById(R.id.selected);
-            //mSelectedView.setImageBitmap(mParent.mOverlaySelected);
-            //mUnselectedView = (ImageView) view.findViewById(R.id.unselected);
-            //mUnselectedView.setImageBitmap(mParent.mOverlayUnselected);
+            mSelectedView = (ImageView) view.findViewById(R.id.selected);
+            mSelectedView.setImageBitmap(mParent.mOverlaySelected);
+            mUnselectedView = (ImageView) view.findViewById(R.id.unselected);
+            mUnselectedView.setImageBitmap(mParent.mOverlayUnselected);
         }
 
         // ThumbnailProvider.ThumbnailRequest:
@@ -115,6 +117,20 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
         }
 
         @Override
+        public void imageDecodedCallback(String filePath, Bitmap bitmap) {
+            if (filePath != mFilePath) {
+                Log.e("chromium", "Wrong holder");
+                return;
+            }
+
+            long endTime = System.nanoTime();
+            long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - mStartFetchImage, TimeUnit.NANOSECONDS);
+            Log.e("chromium", "Time since image fetching started: " + durationInMs + " ms");
+
+            mParent.setBitmapWithOverlay(this, bitmap);
+        }
+
+        @Override
         public void onClick(View view) {
             int position = getLayoutPosition();
 
@@ -123,8 +139,8 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
         }
 
         private void updateSelectionOverlays() {
-            //mSelectedView.setVisibility(mIsSelected ? View.VISIBLE : View.GONE);
-            //mUnselectedView.setVisibility(!mIsSelected ? View.VISIBLE : View.GONE);
+            mSelectedView.setVisibility(mIsSelected ? View.VISIBLE : View.GONE);
+            mUnselectedView.setVisibility(!mIsSelected ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -164,23 +180,34 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
         onBindViewHolder(holder, position, null);
     }
 
+    private void getImageForHolder(MyViewHolder holder) {
+        // Bitmap newBitmap = mThumbnailProvider.getThumbnail(holder);
+        // setBitmapWithOverlay(holder, newBitmap);
+        if (holder.mWorkerTask != null)
+            holder.mWorkerTask.cancel(true);
+
+        BitmapWorkerRequest request =
+                new BitmapWorkerRequest(mContext, holder.mFilePath, mPhotoSize, holder);
+        holder.mWorkerTask = new BitmapWorkerTask(request);
+        holder.mWorkerTask.execute(holder.mFilePath);
+    }
+
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position, List payloads) {
-        Log.e("chromium", "onBindViewHolder2 pos " + position);
-        holder.mImageView.setImageBitmap(mClearTileBitmap);
+        boolean initialLoad = payloads.size() == 0;
+        Log.e("chromium", "onBindViewHolder2 pos " + position + " initial? " + initialLoad);
         PickerBitmap bitmap = mPickerBitmaps.get(position);
+        if (initialLoad) {
+            Log.e("chromium", "CACHE FETCHING " + bitmap.getFilePath());
+            holder.mImageView.setImageBitmap(mClearTileBitmap);
+        }
         holder.mFilePath = bitmap.getFilePath();
         holder.mIsExpandTitle = position == mMaxBitmaps - 1;
         holder.mStartFetchImage = System.nanoTime();
 
-        if (payloads.size() == 0) {
+        if (initialLoad) {
             if (isImageExtension(holder.mFilePath)) {
-                // Bitmap newBitmap = mThumbnailProvider.getThumbnail(holder);
-                // setBitmapWithOverlay(holder, newBitmap);
-                BitmapWorkerRequest request =
-                        new BitmapWorkerRequest(mContext, holder.mFilePath, holder.mImageView, mPhotoSize);
-                BitmapWorkerTask task = new BitmapWorkerTask(request);
-                task.execute(holder.mFilePath);
+                getImageForHolder(holder);
             } else {
                 setTextWithOverlay(holder);
             }
@@ -188,9 +215,7 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHold
             if (holder.mIsExpandTitle) {
                 mMaxBitmaps = -1;
                 holder.mIsExpandTitle = false;
-                Bitmap newBitmap = mThumbnailProvider.getThumbnail(holder);
-                setBitmapWithOverlay(holder, newBitmap);
-                //notifyDataSetChanged();
+                getImageForHolder(holder);
             } else {
                 holder.mIsSelected = !holder.mIsSelected;
                 holder.updateSelectionOverlays();

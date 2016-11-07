@@ -1,24 +1,27 @@
 package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
-import android.widget.ImageView;
+import android.graphics.Bitmap;
 
 public class BitmapWorkerRequest {
+    public interface ImageDecodedCallback {
+        void imageDecodedCallback(String filePath, Bitmap bitmap);
+    }
+
     private Context mContext;
     private String mFilePath;
-    private ImageView mImageView;
     private int mWidthPerColumn;
+    private ImageDecodedCallback mCallback;
 
-    public BitmapWorkerRequest(Context context, String filePath, ImageView imageView, int widthPerColumn) {
+    public BitmapWorkerRequest(Context context, String filePath, int widthPerColumn, ImageDecodedCallback callback) {
         mContext = context;
         mFilePath = filePath;
-        mImageView = imageView;
         mWidthPerColumn = widthPerColumn;
+        mCallback = callback;
     }
 
     public Context getContext() { return mContext; }
     public String getFilePath() { return mFilePath; }
-    public ImageView getImageView() { return mImageView; }
     public int getWidthPerColumn() { return mWidthPerColumn; }
-
+    public ImageDecodedCallback getCallback() { return mCallback; }
 }
