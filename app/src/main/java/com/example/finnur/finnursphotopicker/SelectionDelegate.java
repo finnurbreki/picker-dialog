@@ -31,7 +31,7 @@ public class SelectionDelegate<E> {
     }
 
     private Set<E> mSelectedItems = new HashSet<>();
-    //private ObserverList<SelectionObserver<E>> mObservers = new ObserverList<>();
+    private ObserverList<SelectionObserver<E>> mObservers = new ObserverList<>();
 
     /**
      * Toggles the selected state for the given item.
@@ -83,7 +83,7 @@ public class SelectionDelegate<E> {
      * @param observer The SelectionObserver to add.
      */
     public void addObserver(SelectionObserver<E> observer) {
-        //mObservers.addObserver(observer);
+        mObservers.addObserver(observer);
     }
 
     /**
@@ -91,16 +91,13 @@ public class SelectionDelegate<E> {
      * @param observer The SelectionObserver to remove.
      */
     public void removeObserver(SelectionObserver<E> observer) {
-        //mObservers.removeObserver(observer);
+        mObservers.removeObserver(observer);
     }
 
     private void notifyObservers() {
-        /*
         List<E> selectedItems = getSelectedItems();
         for (SelectionObserver<E> observer : mObservers) {
             observer.onSelectionStateChange(selectedItems);
         }
-        */
     }
-
 }

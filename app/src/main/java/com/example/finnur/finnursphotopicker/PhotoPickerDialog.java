@@ -61,7 +61,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     // The toolbar at the top of the dialog.
     //private PhotoPickerToolbar mToolbar;  // TODOf make final once inside in ctor?
 
-    private SelectionDelegate<String> mSelectionDelegate;
+    private SelectionDelegate<PickerBitmap> mSelectionDelegate;
 
     /**
      * @param context The context the dialog is to run in.
@@ -80,7 +80,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         View title = inflater.inflate(R.layout.photo_picker_dialog_title, null);
         setCustomTitle(title);
 
-        mSelectionDelegate = new SelectionDelegate<String>();
+        mSelectionDelegate = new SelectionDelegate<PickerBitmap>();
 
         initializeChromeSpecificStuff(title);
 

@@ -34,7 +34,7 @@ class BitmapUtils {
         int sizeEnlarged = bitmap.getByteCount() / 1024;
         bitmap = cropToSquare(bitmap, width);
         int sizeCropped = bitmap.getByteCount() / 1024;
-        Log.e("chromium", "Bitmap decoded size: " + size + " KB, enlarged: " + sizeEnlarged + " KB, cropped: " + sizeCropped + " KB");
+        //Log.e("chromium", "Bitmap decoded size: " + size + " KB, enlarged: " + sizeEnlarged + " KB, cropped: " + sizeCropped + " KB");
         long endTime = System.nanoTime();
         long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
 
@@ -42,7 +42,7 @@ class BitmapUtils {
         long diff2 = (info.maxMemory() - info.totalMemory()) / 1024;
         String memory = "Mem delta: " + diff1 + " KB -> " + diff2 + " KB";
 
-        Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
+        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
         return bitmap;
     }
 

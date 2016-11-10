@@ -18,8 +18,6 @@
         android:id="@+id/bitmap"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="2dp"
-        android:paddingStart="2dp"
         android:contentDescription="@string/clear_cookies_and_site_data_title"
         android:scaleType="centerCrop" />
 

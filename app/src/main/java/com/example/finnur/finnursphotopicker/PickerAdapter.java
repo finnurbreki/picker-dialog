@@ -6,287 +6,51 @@
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
-import android.app.ActivityManager;
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.Bitmap;
-import android.os.Debug;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-
-// Chrome-specific:
-/*
-FLIP
-import org.chromium.chrome.R;
-import org.chromium.chrome.browser.download.ui.ThumbnailProvider;
-import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
-import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
-*/
 
 import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
-public class PickerAdapter extends RecyclerView.Adapter<PickerAdapter.MyViewHolder> {
-
+public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> {
     private Context mContext;
 
-    // The thumbnail provider service.
-    private ThumbnailProvider mThumbnailProvider;
+    private PickerCategoryView mCategoryView;
 
-    // The list of bitmaps to show.
-    private List<PickerBitmap> mPickerBitmaps;
-
-    private Bitmap mClearTileBitmap;
-
-    // Maximum number of bitmaps to show.
-    private int mMaxBitmaps;
-
-    // The size of the bitmaps (equal length for width and height).
-    private int mPhotoSize;
-
-    private Bitmap mOverlaySelected;
-    private Bitmap mOverlayUnselected;
-
-    // Our photo selection delegate.
-    private SelectionDelegate<String> mSelectionDelegate;
-
-    public class MyViewHolder extends RecyclerView.ViewHolder implements
-            ThumbnailProvider.ThumbnailRequest, View.OnClickListener, BitmapWorkerRequest.ImageDecodedCallback {
-        // The parent of this holder.
-        private PickerAdapter mParent;
-
-        private BitmapWorkerTask mWorkerTask;
-
-        // The path to the bitmap to load.
-        public String mFilePath;
-
-        // The imageview for showing the bitmap.
-        public ImageView mImageView;
-        public ImageView mSelectedView;
-        public ImageView mUnselectedView;
-
-        // Whether this bitmap represent the last bitmap of a set, signaling that more bitmaps are
-        // available.
-        public boolean mIsExpandTitle;
-        private boolean mIsSelected = false;
-
-        long mStartFetchImage;
-
-        public MyViewHolder(View view, ThumbnailProvider provider, PickerAdapter parent) {
-            super(view);
-            mParent = parent;
-            mImageView = (ImageView) view.findViewById(R.id.bitmap);
-            mImageView.setOnClickListener(this);
-            //Log.e("chromium", "Size: " + mParent.mPhotoSize + " x " + mParent.mPhotoSize);
-            mImageView.setLayoutParams(
-                    new RelativeLayout.LayoutParams(mParent.mPhotoSize, mParent.mPhotoSize));
-            mSelectedView = (ImageView) view.findViewById(R.id.selected);
-            mSelectedView.setImageBitmap(mParent.mOverlaySelected);
-            mUnselectedView = (ImageView) view.findViewById(R.id.unselected);
-            mUnselectedView.setImageBitmap(mParent.mOverlayUnselected);
-        }
-
-        // ThumbnailProvider.ThumbnailRequest:
-
-        @Override
-        public String getFilePath() {
-            //Log.e("chromium", "Requested file: " + mFilePath);
-            return mFilePath;
-        }
-
-        @Override
-        public void onThumbnailRetrieved(String filePath, Bitmap thumbnail) {
-            long endTime = System.nanoTime();
-            long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - mStartFetchImage, TimeUnit.NANOSECONDS);
-            Log.e("chromium", "Time since image fetching started: " + durationInMs + " ms");
-
-            mParent.setBitmapWithOverlay(this, thumbnail);
-        }
-
-        @Override
-        public void imageDecodedCallback(String filePath, Bitmap bitmap) {
-            if (filePath != mFilePath) {
-                Log.e("chromium", "Wrong holder");
-                return;
-            }
-
-            long endTime = System.nanoTime();
-            long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - mStartFetchImage, TimeUnit.NANOSECONDS);
-            Log.e("chromium", "Time since image fetching started: " + durationInMs + " ms");
-
-            mParent.setBitmapWithOverlay(this, bitmap);
-        }
-
-        @Override
-        public void onClick(View view) {
-            int position = getLayoutPosition();
-
-            mParent.mSelectionDelegate.toggleSelectionForItem(mFilePath);
-            mParent.notifyItemChanged(position, true);  // true=Payload (no data needed)
-        }
-
-        private void updateSelectionOverlays() {
-            mSelectedView.setVisibility(mIsSelected ? View.VISIBLE : View.GONE);
-            mUnselectedView.setVisibility(!mIsSelected ? View.VISIBLE : View.GONE);
-        }
-    }
-
-    public PickerAdapter(List<PickerBitmap> pickerBitmaps, Context context, int widthPerColumn,
-                         int maxBitmaps, SelectionDelegate<String> selectionDelegate) {
-        mPickerBitmaps = pickerBitmaps;
+    public PickerAdapter(Context context, PickerCategoryView categoryView) {
         mContext = context;
-        mSelectionDelegate = selectionDelegate;
-        mPhotoSize = widthPerColumn;
-        mMaxBitmaps = maxBitmaps;
-
-        mThumbnailProvider = new ThumbnailProviderImpl(widthPerColumn);
-
-        mClearTileBitmap = Bitmap.createBitmap(480, 480, Bitmap.Config.ARGB_8888);
-        mClearTileBitmap.eraseColor(Color.LTGRAY);
-
-        // FLIP
-        mOverlaySelected = BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.selected);
-        mOverlayUnselected = BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.unselected);
-        //mOverlaySelected = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_share_white_24dp);
-        //mOverlayUnselected = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_arrow_back_white_24dp);
+        mCategoryView = categoryView;
     }
 
     // RecyclerView.Adapter:
 
     @Override
-    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public PickerBitmapViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.bitmap_list_row, parent, false);
-        // TODOf set the view's size, margins, paddings and layout parameters
-        return new MyViewHolder(itemView, mThumbnailProvider, this);
+                .inflate(R.layout.picker_bitmap_view, parent, false);
+        PickerBitmapView bitmapView = (PickerBitmapView) itemView;
+        bitmapView.initialize(mCategoryView);
+        return new PickerBitmapViewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
-        Log.e("chromium", "onBindViewHolder1 pos " + position);
+    public void onBindViewHolder(PickerBitmapViewHolder holder, int position) {
         onBindViewHolder(holder, position, null);
     }
 
-    private void getImageForHolder(MyViewHolder holder) {
-        // Bitmap newBitmap = mThumbnailProvider.getThumbnail(holder);
-        // setBitmapWithOverlay(holder, newBitmap);
-        if (holder.mWorkerTask != null)
-            holder.mWorkerTask.cancel(true);
-
-        BitmapWorkerRequest request =
-                new BitmapWorkerRequest(mContext, holder.mFilePath, mPhotoSize, holder);
-        holder.mWorkerTask = new BitmapWorkerTask(request);
-        holder.mWorkerTask.execute(holder.mFilePath);
-    }
-
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position, List payloads) {
-        boolean initialLoad = payloads.size() == 0;
-        Log.e("chromium", "onBindViewHolder2 pos " + position + " initial? " + initialLoad);
-        PickerBitmap bitmap = mPickerBitmaps.get(position);
-        if (initialLoad) {
-            Log.e("chromium", "CACHE FETCHING " + bitmap.getFilePath());
-            holder.mImageView.setImageBitmap(mClearTileBitmap);
-        }
-        holder.mFilePath = bitmap.getFilePath();
-        holder.mIsExpandTitle = position == mMaxBitmaps - 1;
-        holder.mStartFetchImage = System.nanoTime();
-
-        if (initialLoad) {
-            if (isImageExtension(holder.mFilePath)) {
-                getImageForHolder(holder);
-            } else {
-                setTextWithOverlay(holder);
-            }
-        } else {
-            if (holder.mIsExpandTitle) {
-                mMaxBitmaps = -1;
-                holder.mIsExpandTitle = false;
-                getImageForHolder(holder);
-            } else {
-                holder.mIsSelected = !holder.mIsSelected;
-                holder.updateSelectionOverlays();
-            }
-        }
+    public void onBindViewHolder(PickerBitmapViewHolder holder, int position, List payloads) {
+        holder.displayItem(mContext, mCategoryView, position);
     }
 
     @Override
     public int getItemCount() {
-        if (mMaxBitmaps == -1)
-            return mPickerBitmaps.size();
-        return Math.min(mPickerBitmaps.size(), mMaxBitmaps);
-    }
-
-    private boolean isImageExtension(String filePath) {
-        String file = filePath.toLowerCase(Locale.US);
-        return file.endsWith(".jpg") || file.endsWith(".gif") || file.endsWith(".png");
-    }
-
-    private void setBitmapWithOverlay(MyViewHolder holder, Bitmap thumbnailOriginal) {
-        if (thumbnailOriginal == null) {
-            holder.mImageView.setImageBitmap(null);
-            return;
-        }
-
-        Boolean isSelected = mSelectionDelegate.isItemSelected(holder.mFilePath);
-
-        Bitmap thumbnail = thumbnailOriginal.copy(thumbnailOriginal.getConfig(), true);
-
-        Log.e("chromium", "onThumbnailRetrieved  " + isSelected + " " + holder.mFilePath);
-        Canvas canvas = new Canvas(thumbnail);
-        canvas.drawBitmap(thumbnail, new Matrix(), null);
-
-        if (holder.mIsExpandTitle) {
-            // Start with a slightly darkened thumbnail.
-            canvas.drawARGB(120, 0, 0, 0);
-
-            // Prepare the paint object.
-            Paint paint = new Paint();
-            paint.setAlpha(255);
-            paint.setColor(Color.WHITE);
-            float textHeight = 96;
-            paint.setTextSize(textHeight);
-
-            // Calculate where to place the text overlay.
-            String overlayText = Integer.toString(mPickerBitmaps.size() - mMaxBitmaps) + " >";
-            Rect textBounds = new Rect();
-            paint.getTextBounds(overlayText, 0, overlayText.length(), textBounds);
-
-            // Add the number.
-            float x = (mPhotoSize - textBounds.width()) / 2;
-            float y = (mPhotoSize - textBounds.height()) / 2;
-            canvas.drawText(overlayText, x, y, paint);
-        }
-
-        holder.mImageView.setImageBitmap(thumbnail);
-        holder.updateSelectionOverlays();
-    }
-
-    private void setTextWithOverlay(MyViewHolder holder) {
-        Bitmap bitmap = Bitmap.createBitmap(mPhotoSize, mPhotoSize, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        Paint paint = new Paint();
-        int textSize = 72;
-        paint.setTextSize(textSize);
-        paint.setTextScaleX(1);
-        int dot = holder.mFilePath.lastIndexOf(".");
-        String extension = dot > -1 ? holder.mFilePath.substring(dot) : "(no ext)";
-        float width = paint.measureText(extension);
-        canvas.drawText(extension, (mPhotoSize - width) / 2, (mPhotoSize - textSize) / 2, paint);
-        holder.mImageView.setImageBitmap(bitmap);
-        holder.updateSelectionOverlays();
+        List<PickerBitmap> pickerBitmaps = mCategoryView.getPickerBitmaps();
+        int maxBitmaps = mCategoryView.getMaxImagesShown();
+        if (maxBitmaps == -1)
+            return pickerBitmaps.size();
+        return Math.min(pickerBitmaps.size(), maxBitmaps);
     }
 }

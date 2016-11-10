@@ -8,6 +8,9 @@ package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.os.Environment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
@@ -16,6 +19,7 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -37,9 +41,38 @@ public class PickerCategoryView extends RelativeLayout {
     private List<PickerBitmap> mPickerBitmaps = new ArrayList<>();
 
     private RecyclerView mRecyclerView;
-    private TextView mTitle;
 
-    private int mMaxImages;
+    private SelectionDelegate<PickerBitmap> mSelectionDelegate;
+
+    private int mColumns = 3;
+
+    // Maximum number of bitmaps to show.
+    private int mMaxImages = 1;
+
+    // The size of the bitmaps (equal length for width and height).
+    private int mImageSize = 10;
+
+    private Bitmap mBitmapSelected;
+    private Bitmap mBitmapUnselected;
+
+
+    private class RecyclerViewItemDecoration extends RecyclerView.ItemDecoration {
+        private static final int PADDING = 18;
+
+        @Override
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent,
+                                   RecyclerView.State state) {
+            int position = parent.getChildAdapterPosition(view);
+
+            if (position % mColumns != 0) {
+                outRect.left = PADDING;
+            }
+
+            if (position < parent.getAdapter().getItemCount() - mColumns) {
+                outRect.bottom = PADDING;
+            }
+        }
+    }
 
     public PickerCategoryView(Context context) {
         super(context);
@@ -61,41 +94,55 @@ public class PickerCategoryView extends RelativeLayout {
         inflate(mContext, R.layout.picker_category_view, this);
     }
 
-    public void setInitialState(String path, SelectionDelegate<String> selectionDelegate) {
+    public int getMaxImagesShown() { return mMaxImages; }
+    public int getImageSize() { return mImageSize; }
+    public SelectionDelegate<PickerBitmap> getSelectionDelegate() { return mSelectionDelegate; }
+    public List<PickerBitmap> getPickerBitmaps() { return mPickerBitmaps; }
+
+    public Bitmap getSelectionBitmap(boolean selected) {
+        if (selected)
+            return mBitmapSelected;
+        else
+            return mBitmapUnselected;
+    }
+
+    public void setInitialState(String path, SelectionDelegate<PickerBitmap> selectionDelegate) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mRecyclerView.addItemDecoration(new RecyclerViewItemDecoration());
+        mSelectionDelegate = selectionDelegate;
 
-        int columns = 3;
-        mMaxImages = 30 * columns;
+        // FLIP
+        mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.ic_check_circle_black_24dp);
+        mBitmapUnselected = BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.ic_donut_large_black_24dp);
+        //mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_share_white_24dp);
+        //mBitmapUnselected = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_arrow_back_white_24dp);
+
+        mMaxImages = 5 * mColumns;
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        int widthPerColumn = metrics.widthPixels / columns;
+        mImageSize = metrics.widthPixels / mColumns;
 
-        mPickerAdapter = new PickerAdapter(mPickerBitmaps, mContext, widthPerColumn, mMaxImages, selectionDelegate);
-        RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(mContext, columns);
+        mPickerAdapter = new PickerAdapter(mContext, this);
+        RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(mContext, mColumns);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.setAdapter(mPickerAdapter);
 
-        prepareBitmaps(path, mMaxImages);
+        prepareBitmaps(path);
     }
 
-    private void prepareBitmaps(String path, int maxPhotos) {
+    private void prepareBitmaps(String path) {
         long startTime = System.nanoTime();
         String fullPath = Environment.getExternalStorageDirectory().toString() + path;
 
-        //Log.e("chromium", "Path: " + fullPath);
         File directory = new File(fullPath);
         File[] files = directory.listFiles();
-        //Log.e("chromium", "Size: "+ files.length);
         if (files == null || files.length == 0) {
             setVisibility(View.GONE);
         } else {
             for (int i = 0; i < files.length; i++) {
                 //Log.e("chromium", "FileName:" + fullPath + "/" + files[i].getName() + " size: " + files[i].length());
-                //if (files[i].length() < 10000)
-                    mPickerBitmaps.add(new PickerBitmap(fullPath + "/" + files[i].getName()));
-                //else
-                //    Log.e("chromium", "Skipping file " + files[i].getName() + " " + files[i].length());
+                mPickerBitmaps.add(new PickerBitmap(fullPath + "/" + files[i].getName()));
             }
         }
 

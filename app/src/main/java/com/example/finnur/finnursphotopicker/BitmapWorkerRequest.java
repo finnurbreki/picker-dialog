@@ -9,19 +9,16 @@ public class BitmapWorkerRequest {
     }
 
     private Context mContext;
-    private String mFilePath;
-    private int mWidthPerColumn;
+    private int mImageSize;
     private ImageDecodedCallback mCallback;
 
-    public BitmapWorkerRequest(Context context, String filePath, int widthPerColumn, ImageDecodedCallback callback) {
+    public BitmapWorkerRequest(Context context, int imageSize, ImageDecodedCallback callback) {
         mContext = context;
-        mFilePath = filePath;
-        mWidthPerColumn = widthPerColumn;
+        mImageSize = imageSize;
         mCallback = callback;
     }
 
     public Context getContext() { return mContext; }
-    public String getFilePath() { return mFilePath; }
-    public int getWidthPerColumn() { return mWidthPerColumn; }
+    public int getImageSize() { return mImageSize; }
     public ImageDecodedCallback getCallback() { return mCallback; }
 }
