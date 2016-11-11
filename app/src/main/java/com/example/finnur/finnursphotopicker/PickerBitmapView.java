@@ -78,11 +78,12 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
      * @param item      The item represented by this DownloadItemView.
      * @param thumbnail The Bitmap to use for the thumbnail or null.
      */
-    public void initialize(PickerBitmap item, @Nullable Bitmap thumbnail) {
+    public void initialize(PickerBitmap item, @Nullable Bitmap thumbnail, boolean placeholder) {
         mItem = item;
         setItem(item);
         setThumbnailBitmap(thumbnail);
-        mImageLoaded = false;
+        mImageLoaded = !placeholder;
+        updateSelectionOverlays();
     }
 
     public void initialize(PickerCategoryView categoryView) {

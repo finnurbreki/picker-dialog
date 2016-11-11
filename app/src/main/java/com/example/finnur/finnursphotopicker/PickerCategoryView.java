@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -46,6 +47,9 @@ public class PickerCategoryView extends RelativeLayout {
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
 
     private ThumbnailProviderImpl mThumbnailProvider;
+
+    // TODOf Convert to LRU
+    private HashMap<String, Bitmap> mUglyBitmaps = new HashMap<String, Bitmap>();
 
     private int mColumns = 3;
 
@@ -102,6 +106,7 @@ public class PickerCategoryView extends RelativeLayout {
     public SelectionDelegate<PickerBitmap> getSelectionDelegate() { return mSelectionDelegate; }
     public List<PickerBitmap> getPickerBitmaps() { return mPickerBitmaps; }
     public ThumbnailProviderImpl getThumbnailProvider() { return mThumbnailProvider; }
+    public HashMap<String, Bitmap> getUglyBitmaps() { return mUglyBitmaps; }
 
     public Bitmap getSelectionBitmap(boolean selected) {
         if (selected)

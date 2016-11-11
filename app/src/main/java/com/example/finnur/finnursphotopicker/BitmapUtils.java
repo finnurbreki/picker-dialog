@@ -72,6 +72,15 @@ class BitmapUtils {
         return inSampleSize;
     }
 
+    public static Bitmap scale(Bitmap bitmap, float scaleMaxSize, boolean filter) {
+        float ratio = Math.min((float) scaleMaxSize / bitmap.getWidth(),
+                (float) scaleMaxSize / bitmap.getHeight());
+        int height = Math.round(ratio * bitmap.getHeight());
+        int width = Math.round(ratio * bitmap.getWidth());
+
+        return Bitmap.createScaledBitmap(bitmap, width, height, filter);
+    }
+
     // TODOf can we make this and next private?
     public static Bitmap ensureMinSize(Bitmap bitmap, int size) {
         int width = bitmap.getWidth();

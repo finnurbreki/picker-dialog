@@ -79,12 +79,18 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
 
     @Override
     public void imageDecodedCallback(String filePath, Bitmap bitmap) {
-        if (!TextUtils.equals(getFilePath(), filePath)) {
-            Log.e("chromium", "Wrong holder");
-            return;
-        }
         if (bitmap == null || bitmap.getWidth() == 0 || bitmap.getHeight() == 0) {
             Log.e("chromium", "Missing bitmap");
+            return;
+        }
+
+        if (mCategoryView.getUglyBitmaps().get(filePath) == null) {
+            Bitmap ugly = BitmapUtils.scale(bitmap, 40, false);
+            mCategoryView.getUglyBitmaps().put(filePath, ugly);
+        }
+
+        if (!TextUtils.equals(getFilePath(), filePath)) {
+            Log.e("chromium", "Wrong holder");
             return;
         }
 
@@ -105,29 +111,36 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
 
         Log.e("chromium", "PickerBitmapViewHolder::displayItem position: " + position + " expandTile: " + expandTile);
 
-        if (isImageExtension(mItem.getFilePath())) {
+        String filePath = mItem.getFilePath();
+        if (isImageExtension(filePath)) {
             int size = mCategoryView.getImageSize();
-            Bitmap placeholder = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-            placeholder.eraseColor(Color.LTGRAY);
-            mItemView.initialize(mItem, placeholder);
+            Bitmap placeholder = mCategoryView.getUglyBitmaps().get(filePath);
+            if (placeholder != null) {
+                placeholder = BitmapUtils.scale(placeholder, size, false);
+                mItemView.initialize(mItem, placeholder, false);
+            } else {
+                placeholder = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+                placeholder.eraseColor(Color.LTGRAY);
+                mItemView.initialize(mItem, placeholder, true);
+            }
 
+            // FLIP
             boolean useThumbnailProvider = false;
             if (useThumbnailProvider) {
                 Bitmap cachedBitmap = mCategoryView.getThumbnailProvider().getThumbnail(this);
                 if (cachedBitmap != null)
-                    imageDecodedCallback(mItem.getFilePath(), cachedBitmap);
+                    imageDecodedCallback(filePath, cachedBitmap);
             } else {
                 if (mWorkerTask != null)
                     mWorkerTask.cancel(true);
 
-                String filePath = mItem.getFilePath();
                 mStartFetchImage = System.nanoTime();
                 BitmapWorkerRequest request = new BitmapWorkerRequest(context, size, this);
                 mWorkerTask = new BitmapWorkerTask(request);
                 mWorkerTask.execute(filePath);
             }
         } else {
-            mItemView.initialize(mItem, null);
+            mItemView.initialize(mItem, null, false);
             mItemView.setTextWithOverlay();
         }
 
