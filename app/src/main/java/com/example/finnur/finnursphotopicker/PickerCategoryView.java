@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 /*
 FLIP
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
 
@@ -43,6 +44,8 @@ public class PickerCategoryView extends RelativeLayout {
     private RecyclerView mRecyclerView;
 
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
+
+    private ThumbnailProviderImpl mThumbnailProvider;
 
     private int mColumns = 3;
 
@@ -98,6 +101,7 @@ public class PickerCategoryView extends RelativeLayout {
     public int getImageSize() { return mImageSize; }
     public SelectionDelegate<PickerBitmap> getSelectionDelegate() { return mSelectionDelegate; }
     public List<PickerBitmap> getPickerBitmaps() { return mPickerBitmaps; }
+    public ThumbnailProviderImpl getThumbnailProvider() { return mThumbnailProvider; }
 
     public Bitmap getSelectionBitmap(boolean selected) {
         if (selected)
@@ -117,9 +121,13 @@ public class PickerCategoryView extends RelativeLayout {
         //mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_share_white_24dp);
         //mBitmapUnselected = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_arrow_back_white_24dp);
 
-        mMaxImages = 5 * mColumns;
+        mMaxImages = 8 * mColumns;
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
         mImageSize = metrics.widthPixels / mColumns;
+
+        // The thumbnail clamps the maximum of the smaller side, we need to clamp
+        // down the maximum of the larger side, so we flip the sizes.
+        mThumbnailProvider = new ThumbnailProviderImpl(mImageSize * 3 / 4);
 
         mPickerAdapter = new PickerAdapter(mContext, this);
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(mContext, mColumns);

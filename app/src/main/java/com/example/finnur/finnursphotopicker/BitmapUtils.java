@@ -72,7 +72,8 @@ class BitmapUtils {
         return inSampleSize;
     }
 
-    private static Bitmap ensureMinSize(Bitmap bitmap, int size) {
+    // TODOf can we make this and next private?
+    public static Bitmap ensureMinSize(Bitmap bitmap, int size) {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
         if (width < size) {
@@ -90,7 +91,7 @@ class BitmapUtils {
         return Bitmap.createScaledBitmap(bitmap, width, height, true);
     }
 
-    private static Bitmap cropToSquare(Bitmap bitmap, int size) {
+    public static Bitmap cropToSquare(Bitmap bitmap, int size) {
         int x = 0;
         int y = 0;
         int width = bitmap.getWidth();

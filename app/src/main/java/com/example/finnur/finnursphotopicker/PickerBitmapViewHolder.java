@@ -58,11 +58,20 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
 
     @Override
     public void onThumbnailRetrieved(String filePath, Bitmap thumbnail) {
-        // TODOf merge this with other callback
-        Log.e("chromium", "PickerBitmapViewHolder onThumbnailRetrieved");
-        if (TextUtils.equals(getFilePath(), filePath) && thumbnail != null
-                && thumbnail.getWidth() != 0 && thumbnail.getHeight() != 0) {
-            mItemView.setThumbnailBitmap(thumbnail);
+        // TODOf don't crop on the UI thread...
+        if (thumbnail != null) {
+            Log.e("chromium", "w x h precrop: " + thumbnail.getWidth() + " x " + thumbnail.getHeight() + " size: " + thumbnail.getByteCount());
+
+            long startTime = System.nanoTime();
+
+            int size = mCategoryView.getImageSize();
+            Bitmap bitmap = BitmapUtils.ensureMinSize(thumbnail, size);
+            bitmap = BitmapUtils.cropToSquare(bitmap, size);
+            imageDecodedCallback(filePath, bitmap);
+
+            long endTime = System.nanoTime();
+            long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
+            Log.e("chromium", "Time since image cropping started: " + durationInMs + " ms");
         }
     }
 
@@ -70,11 +79,16 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
 
     @Override
     public void imageDecodedCallback(String filePath, Bitmap bitmap) {
-        if (filePath != mItem.getFilePath()) {
+        if (!TextUtils.equals(getFilePath(), filePath)) {
             Log.e("chromium", "Wrong holder");
             return;
         }
+        if (bitmap == null || bitmap.getWidth() == 0 || bitmap.getHeight() == 0) {
+            Log.e("chromium", "Missing bitmap");
+            return;
+        }
 
+        Log.e("chromium", "w x h: " + bitmap.getWidth() + " x " + bitmap.getHeight() + " size: " + bitmap.getByteCount());
         long endTime = System.nanoTime();
         long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - mStartFetchImage, TimeUnit.NANOSECONDS);
         //Log.e("chromium", "Time since image fetching started: " + durationInMs + " ms");
@@ -99,8 +113,9 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
 
             boolean useThumbnailProvider = false;
             if (useThumbnailProvider) {
-                // Bitmap newBitmap = mThumbnailProvider.getThumbnail(holder);
-                // setBitmapWithOverlay(holder, newBitmap);
+                Bitmap cachedBitmap = mCategoryView.getThumbnailProvider().getThumbnail(this);
+                if (cachedBitmap != null)
+                    imageDecodedCallback(mItem.getFilePath(), cachedBitmap);
             } else {
                 if (mWorkerTask != null)
                     mWorkerTask.cancel(true);
