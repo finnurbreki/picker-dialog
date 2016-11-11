@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 // FLIP
-//package org.chromium.chrome.browser.download.ui;
+//package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 /*
 FLIP
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.download.ui.ThumbnailProvider;
 */
 
 /** Holds onto a View that displays information about a picker bitmap. */

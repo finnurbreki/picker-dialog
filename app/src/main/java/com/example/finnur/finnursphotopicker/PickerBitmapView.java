@@ -1,3 +1,9 @@
+// Copyright 2016 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// FLIP
+//package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
@@ -12,6 +18,15 @@ import android.view.View;
 import android.widget.ImageView;
 
 import java.util.List;
+
+// Chrome-specific:
+/*
+FLIP
+import org.chromium.chrome.R;
+import org.chromium.chrome.browser.widget.selection.SelectableItemView;
+import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
+import org.chromium.chrome.browser.widget.TintedImageView;
+*/
 
 public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     private Context mContext;
