@@ -84,6 +84,10 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             return;
         }
 
+        if (mCategoryView.getPrettyBitmaps().get(filePath) == null) {
+            mCategoryView.getPrettyBitmaps().put(filePath, bitmap);
+        }
+
         if (mCategoryView.getUglyBitmaps().get(filePath) == null) {
             Bitmap ugly = BitmapUtils.scale(bitmap, 40, false);
             mCategoryView.getUglyBitmaps().put(filePath, ugly);
@@ -113,6 +117,12 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
 
         String filePath = mItem.getFilePath();
         if (isImageExtension(filePath)) {
+            Bitmap original = mCategoryView.getPrettyBitmaps().get(filePath);
+            if (original != null) {
+                mItemView.initialize(mItem, original, false);
+                return;
+            }
+
             int size = mCategoryView.getImageSize();
             Bitmap placeholder = mCategoryView.getUglyBitmaps().get(filePath);
             if (placeholder != null) {

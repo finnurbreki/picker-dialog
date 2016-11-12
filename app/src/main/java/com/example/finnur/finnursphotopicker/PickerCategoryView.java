@@ -18,6 +18,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.LruCache;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -48,8 +49,8 @@ public class PickerCategoryView extends RelativeLayout {
 
     private ThumbnailProviderImpl mThumbnailProvider;
 
-    // TODOf Convert to LRU
-    private HashMap<String, Bitmap> mUglyBitmaps = new HashMap<String, Bitmap>();
+    private LruCache<String, Bitmap> mUglyBitmaps;
+    private LruCache<String, Bitmap> mPrettyBitmaps;
 
     private int mColumns = 3;
 
@@ -106,7 +107,8 @@ public class PickerCategoryView extends RelativeLayout {
     public SelectionDelegate<PickerBitmap> getSelectionDelegate() { return mSelectionDelegate; }
     public List<PickerBitmap> getPickerBitmaps() { return mPickerBitmaps; }
     public ThumbnailProviderImpl getThumbnailProvider() { return mThumbnailProvider; }
-    public HashMap<String, Bitmap> getUglyBitmaps() { return mUglyBitmaps; }
+    public LruCache<String, Bitmap> getUglyBitmaps() { return mUglyBitmaps; }
+    public LruCache<String, Bitmap> getPrettyBitmaps() { return mPrettyBitmaps; }
 
     public Bitmap getSelectionBitmap(boolean selected) {
         if (selected)
@@ -126,13 +128,30 @@ public class PickerCategoryView extends RelativeLayout {
         //mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_share_white_24dp);
         //mBitmapUnselected = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_arrow_back_white_24dp);
 
-        mMaxImages = 8 * mColumns;
+        mMaxImages = 40 * mColumns;
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
         mImageSize = metrics.widthPixels / mColumns;
 
         // The thumbnail clamps the maximum of the smaller side, we need to clamp
         // down the maximum of the larger side, so we flip the sizes.
         mThumbnailProvider = new ThumbnailProviderImpl(mImageSize * 3 / 4);
+
+        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+        final int cacheSizeLarge = maxMemory / 2; // 1/2th of the available memory.
+        final int cacheSizeSmall = maxMemory / 8; // 1/8th of the available memory.
+        Log.e("chromium", "Cache sizes: " + cacheSizeLarge + " " + cacheSizeSmall);
+        mUglyBitmaps = new LruCache<String, Bitmap>(cacheSizeSmall) {
+            @Override
+            protected int sizeOf(String key, Bitmap bitmap) {
+                return bitmap.getByteCount() / 1024;
+            }
+        };
+        mPrettyBitmaps = new LruCache<String, Bitmap>(cacheSizeLarge) {
+            @Override
+            protected int sizeOf(String key, Bitmap bitmap) {
+                return bitmap.getByteCount() / 1024;
+            }
+        };
 
         mPickerAdapter = new PickerAdapter(mContext, this);
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(mContext, mColumns);
@@ -145,6 +164,7 @@ public class PickerCategoryView extends RelativeLayout {
     }
 
     private void prepareBitmaps(String path) {
+        // TODOf do this on another thread.
         long startTime = System.nanoTime();
         String fullPath = Environment.getExternalStorageDirectory().toString() + path;
 
