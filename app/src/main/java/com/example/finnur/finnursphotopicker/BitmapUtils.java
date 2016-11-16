@@ -15,10 +15,10 @@ import java.util.concurrent.TimeUnit;
 
 class BitmapUtils {
     public static Bitmap retrieveBitmap(Context context, String filePath, int width) {
-        Runtime info = Runtime.getRuntime();
-        long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
+        //long startTime = System.nanoTime();
 
-        long startTime = System.nanoTime();
+        //Runtime info = Runtime.getRuntime();
+        //long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
 
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
@@ -28,10 +28,6 @@ class BitmapUtils {
         Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
         if (bitmap == null)
             return null;
-        /*
-        bitmap = ThumbnailUtils.extractThumbnail(bitmap, mIconSizePx, mIconSizePx);
-        Log.e("chromium", "Bitmap size (bytes): " + bitmap.getByteCount());
-        */
 
         int w = bitmap.getWidth();
         int h = bitmap.getHeight();
@@ -41,12 +37,12 @@ class BitmapUtils {
         bitmap = cropToSquare(bitmap, width);
         int sizeCropped = bitmap.getByteCount() / 1024;
         //Log.e("chromium", "Bitmap decoded size: " + size + " KB, enlarged: " + sizeEnlarged + " KB, cropped: " + sizeCropped + " KB");
-        long endTime = System.nanoTime();
-        long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
+        //long endTime = System.nanoTime();
+        //long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
 
-        info = Runtime.getRuntime();
-        long diff2 = (info.maxMemory() - info.totalMemory()) / 1024;
-        String memory = "Mem delta: " + diff1 + " KB -> " + diff2 + " KB";
+        //info = Runtime.getRuntime();
+        //long diff2 = (info.maxMemory() - info.totalMemory()) / 1024;
+        //String memory = "Mem delta: " + diff1 + " KB -> " + diff2 + " KB";
 
         //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
         return bitmap;

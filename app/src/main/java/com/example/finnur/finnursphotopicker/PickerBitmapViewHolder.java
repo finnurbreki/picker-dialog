@@ -26,7 +26,7 @@ import org.chromium.chrome.browser.download.ui.ThumbnailProvider;
 
 /** Holds onto a View that displays information about a picker bitmap. */
 public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
-        implements ThumbnailProvider.ThumbnailRequest, BitmapWorkerRequest.ImageDecodedCallback {
+        implements ThumbnailProvider.ThumbnailRequest, BitmapWorkerTask.ImageDecodedCallback {
     // Our parent category.
     private PickerCategoryView mCategoryView;
 
@@ -38,9 +38,6 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
 
     // A worker task for asynchronously decoding images off the main thread.
     private BitmapWorkerTask mWorkerTask;
-
-    // The timestap for when this class started decoding the image.
-    private long mStartFetchImage;
 
     public PickerBitmapViewHolder(View itemView) {
         super(itemView);
@@ -67,7 +64,7 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             int size = mCategoryView.getImageSize();
             Bitmap bitmap = BitmapUtils.ensureMinSize(thumbnail, size);
             bitmap = BitmapUtils.cropToSquare(bitmap, size);
-            imageDecodedCallback(filePath, bitmap);
+            imageDecodedCallback(filePath, bitmap, 0);  // TODOf figure out 0
 
             long endTime = System.nanoTime();
             long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
@@ -78,7 +75,7 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
     // BitmapWorkerRequest.ImageDecodedCallback
 
     @Override
-    public void imageDecodedCallback(String filePath, Bitmap bitmap) {
+    public void imageDecodedCallback(String filePath, Bitmap bitmap, long requestStartTime) {
         if (bitmap == null || bitmap.getWidth() == 0 || bitmap.getHeight() == 0) {
             Log.e("chromium", "Missing bitmap");
             return;
@@ -100,8 +97,8 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
 
         Log.e("chromium", "w x h: " + bitmap.getWidth() + " x " + bitmap.getHeight() + " size: " + bitmap.getByteCount());
         long endTime = System.nanoTime();
-        long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - mStartFetchImage, TimeUnit.NANOSECONDS);
-        //Log.e("chromium", "Time since image fetching started: " + durationInMs + " ms");
+        long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - requestStartTime, TimeUnit.NANOSECONDS);
+        //Log.e("chromium", "Time spent fetching images: " + durationInMs + " ms");
 
         mItemView.setThumbnailBitmap(bitmap);
     }
@@ -139,12 +136,11 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             if (useThumbnailProvider) {
                 Bitmap cachedBitmap = mCategoryView.getThumbnailProvider().getThumbnail(this);
                 if (cachedBitmap != null)
-                    imageDecodedCallback(filePath, cachedBitmap);
+                    imageDecodedCallback(filePath, cachedBitmap, 0);  // TODOf figure out 0
             } else {
                 if (mWorkerTask != null)
                     mWorkerTask.cancel(true);
 
-                mStartFetchImage = System.nanoTime();
                 BitmapWorkerRequest request = new BitmapWorkerRequest(context, size, this);
                 mWorkerTask = new BitmapWorkerTask(request);
                 mWorkerTask.execute(filePath);

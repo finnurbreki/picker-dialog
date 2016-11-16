@@ -3,10 +3,10 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
         config {
-            storeFile file('/home/finnur/code/FinnursPhotoPicker3.jks')
-            keyAlias 'Alias'
-            keyPassword 'Pass2300!'
-            storePassword 'Pass2300!'
+            storeFile file('../../SigningKeys/FinnurMasterKey.jks')
+            keyAlias 'PickerKey'
+            keyPassword 'Key2300!'
+            storePassword 'Key2300!'
         }
     }
     compileSdkVersion 24

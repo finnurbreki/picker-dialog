@@ -11,15 +11,17 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
 class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
-    private Context mContext;
+    public interface ImageDecodedCallback {
+        void imageDecodedCallback(String filePath, Bitmap bitmap, long requestStartTime);
+    }
+
+    private BitmapWorkerRequest mRequest;
     private String mFilePath;
-    private int mImageSize;
-    private BitmapWorkerRequest.ImageDecodedCallback mCallback;
+    private ImageDecodedCallback mCallback;
 
     public BitmapWorkerTask(BitmapWorkerRequest request) {
-        mContext = request.getContext();
+        mRequest = request;
         mCallback = request.getCallback();
-        mImageSize = request.getImageSize();
     }
 
     // Decode image in background.
@@ -30,7 +32,9 @@ class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
         }
 
         mFilePath = params[0];
-        return BitmapUtils.retrieveBitmap(mContext, mFilePath, mImageSize);
+
+        return BitmapUtils.retrieveBitmap(
+                mRequest.getContext(), mFilePath, mRequest.getImageSize());
     }
 
     // Once complete, see if ImageView is still around and set bitmap.
@@ -40,6 +44,6 @@ class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
             return;
         }
 
-        mCallback.imageDecodedCallback(mFilePath, bitmap);
+        mCallback.imageDecodedCallback(mFilePath, bitmap, mRequest.getRequestStartTime());
     }
 }

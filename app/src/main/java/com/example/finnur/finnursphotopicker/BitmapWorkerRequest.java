@@ -10,21 +10,23 @@ import android.content.Context;
 import android.graphics.Bitmap;
 
 public class BitmapWorkerRequest {
-    public interface ImageDecodedCallback {
-        void imageDecodedCallback(String filePath, Bitmap bitmap);
-    }
-
     private Context mContext;
     private int mImageSize;
-    private ImageDecodedCallback mCallback;
+    private BitmapWorkerTask.ImageDecodedCallback mCallback;
 
-    public BitmapWorkerRequest(Context context, int imageSize, ImageDecodedCallback callback) {
+    // The timestap for when this class started decoding the image.
+    private long mRequestStartTime;
+
+    public BitmapWorkerRequest(
+            Context context, int imageSize, BitmapWorkerTask.ImageDecodedCallback callback) {
         mContext = context;
         mImageSize = imageSize;
         mCallback = callback;
+        mRequestStartTime = System.nanoTime();
     }
 
     public Context getContext() { return mContext; }
     public int getImageSize() { return mImageSize; }
-    public ImageDecodedCallback getCallback() { return mCallback; }
+    public BitmapWorkerTask.ImageDecodedCallback getCallback() { return mCallback; }
+    public long getRequestStartTime() { return mRequestStartTime; }
 }

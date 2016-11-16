@@ -38,10 +38,10 @@ import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
 
-public class PickerCategoryView extends RelativeLayout {
+public class PickerCategoryView extends RelativeLayout implements FileEnumWorkerTask.FilesEnumeratedCallback {
     private Context mContext;
     private PickerAdapter mPickerAdapter;
-    private List<PickerBitmap> mPickerBitmaps = new ArrayList<>();
+    private List<PickerBitmap> mPickerBitmaps;
 
     private RecyclerView mRecyclerView;
 
@@ -63,6 +63,8 @@ public class PickerCategoryView extends RelativeLayout {
     private Bitmap mBitmapSelected;
     private Bitmap mBitmapUnselected;
 
+    // A worker task for asynchronously enumerating files off the main thread.
+    private FileEnumWorkerTask mWorkerTask;
 
     private class RecyclerViewItemDecoration extends RecyclerView.ItemDecoration {
         private static final int PADDING = 18;
@@ -158,30 +160,25 @@ public class PickerCategoryView extends RelativeLayout {
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mRecyclerView.setAdapter(mPickerAdapter);
 
         prepareBitmaps(path);
     }
 
-    private void prepareBitmaps(String path) {
-        // TODOf do this on another thread.
-        long startTime = System.nanoTime();
-        String fullPath = Environment.getExternalStorageDirectory().toString() + path;
-
-        File directory = new File(fullPath);
-        File[] files = directory.listFiles();
-        if (files == null || files.length == 0) {
-            setVisibility(View.GONE);
+    public void filesEnumeratedCallback(List<PickerBitmap> files) {
+        mPickerBitmaps = files;
+        if (files != null && files.size() > 0) {
+            mRecyclerView.setAdapter(mPickerAdapter);
+            //mPickerAdapter.notifyDataSetChanged();
         } else {
-            for (int i = 0; i < files.length; i++) {
-                //Log.e("chromium", "FileName:" + fullPath + "/" + files[i].getName() + " size: " + files[i].length());
-                mPickerBitmaps.add(new PickerBitmap(fullPath + "/" + files[i].getName()));
-            }
+            setVisibility(View.GONE);
         }
+    }
 
-        long endTime = System.nanoTime();
-        long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
-        Log.e("chromium", "Enumerated " + mPickerAdapter.getItemCount() + " files: " + durationInMs + " ms");
-        mPickerAdapter.notifyDataSetChanged();
+    private void prepareBitmaps(String path) {
+        if (mWorkerTask != null)
+            mWorkerTask.cancel(true);
+
+        mWorkerTask = new FileEnumWorkerTask(this);
+        mWorkerTask.execute(path);
     }
 }
