@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Environment;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -54,11 +55,14 @@ public class PickerCategoryView extends RelativeLayout implements FileEnumWorker
 
     private int mColumns = 3;
 
+    // Padding between columns.
+    private int mPadding = 7;
+
     // Maximum number of bitmaps to show.
-    private int mMaxImages = 1;
+    private int mMaxImages;
 
     // The size of the bitmaps (equal length for width and height).
-    private int mImageSize = 10;
+    private int mImageSize;
 
     private Bitmap mBitmapSelected;
     private Bitmap mBitmapUnselected;
@@ -67,19 +71,17 @@ public class PickerCategoryView extends RelativeLayout implements FileEnumWorker
     private FileEnumWorkerTask mWorkerTask;
 
     private class RecyclerViewItemDecoration extends RecyclerView.ItemDecoration {
-        private static final int PADDING = 18;
-
         @Override
         public void getItemOffsets(Rect outRect, View view, RecyclerView parent,
                                    RecyclerView.State state) {
             int position = parent.getChildAdapterPosition(view);
 
             if (position % mColumns != 0) {
-                outRect.left = PADDING;
+                outRect.left = mPadding;
             }
 
             if (position < parent.getAdapter().getItemCount() - mColumns) {
-                outRect.bottom = PADDING;
+                outRect.bottom = mPadding;
             }
         }
     }
@@ -132,7 +134,7 @@ public class PickerCategoryView extends RelativeLayout implements FileEnumWorker
 
         mMaxImages = 40 * mColumns;
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        mImageSize = metrics.widthPixels / mColumns;
+        mImageSize = (metrics.widthPixels / mColumns) - (mPadding * (mColumns - 1));
 
         // The thumbnail clamps the maximum of the smaller side, we need to clamp
         // down the maximum of the larger side, so we flip the sizes.

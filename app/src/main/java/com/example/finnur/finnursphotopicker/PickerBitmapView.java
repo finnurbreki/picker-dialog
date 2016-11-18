@@ -15,8 +15,12 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
+import java.lang.Math;
 import java.util.List;
 
 // Chrome-specific:
@@ -29,13 +33,12 @@ import org.chromium.chrome.browser.widget.TintedImageView;
 */
 
 public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
-    private Context mContext;
-
     // Our parent category.
     private PickerCategoryView mCategoryView;
 
     // The image view we are showing.
     private TintedImageView mIconView;
+    private int mOriginalSize;
 
     // Our selection delegate.
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
@@ -52,12 +55,45 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // Whether the image has been loaded already.
     public boolean mImageLoaded;
 
+    private class ResizeWidthAnimation extends Animation {
+        private View mView;
+
+        private int mStartingSize;
+        private int mTargetSize;
+
+        public ResizeWidthAnimation(View view, int size) {
+            mView = view;
+            mStartingSize = view.getWidth();
+            mTargetSize = size;
+        }
+
+        @Override
+        protected void applyTransformation(float interpolatedTime, Transformation transformation) {
+            int newSize =
+                    mStartingSize + (int) ((mTargetSize - mStartingSize) * interpolatedTime);
+            int borderSize = (Math.max(mStartingSize, mTargetSize) - newSize) / 2;
+
+            mView.getLayoutParams().height = newSize;
+            mView.getLayoutParams().width = newSize;
+            // Create a border around the image.
+            if (mView instanceof TintedImageView) {
+                LinearLayout layout = (LinearLayout) mView.getParent();
+                layout.setPadding(borderSize, borderSize, borderSize, borderSize);
+                layout.requestLayout();
+            }
+        }
+
+        @Override
+        public boolean willChangeBounds() {
+            return true;
+        }
+    }
+
     /**
      * Constructor for inflating from XML.
      */
     public PickerBitmapView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mContext = context;
     }
 
     @Override
@@ -66,10 +102,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mIconView = (TintedImageView) findViewById(R.id.bitmap_view);
         mSelectedView = (ImageView) findViewById(R.id.selected);
         mUnselectedView = (ImageView) findViewById(R.id.unselected);
-
-        // TODOf why is this needed?
-        mIconView.setOnClickListener(this);
-        //mIconView.setOnLongClickListener(this);
     }
 
     /**
@@ -84,6 +116,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         setThumbnailBitmap(thumbnail);
         mImageLoaded = !placeholder;
         updateSelectionOverlays();
+
+        mIconView.setOnClickListener(this);
+        //mIconView.setOnLongClickListener(this);
     }
 
     public void initialize(PickerCategoryView categoryView) {
@@ -99,6 +134,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
      */
     public void setThumbnailBitmap(Bitmap thumbnail) {
         mIconView.setImageBitmap(thumbnail);
+        mOriginalSize = thumbnail != null ? mIconView.getWidth() : 0;
         mImageLoaded = true;
         updateSelectionOverlays();
     }
@@ -117,7 +153,15 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onSelectionStateChange(List<PickerBitmap> selectedItems) {
+        int size = !super.isChecked() && selectedItems.contains(mItem) ? mOriginalSize - 50 : mOriginalSize;
+
         updateSelectionOverlays();
+
+        if (size != mIconView.getWidth()) {
+            ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, size);
+            animation.setDuration(50);
+            mIconView.startAnimation(animation);
+        }
     }
 
     private void updateSelectionOverlays() {

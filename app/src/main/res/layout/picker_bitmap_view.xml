@@ -24,18 +24,24 @@ FLIP
         android:background="?android:attr/selectableItemBackground"
         android:orientation="vertical">
 
-        <!-- FLIP <org.chromium.chrome.browser.widget.TintedImageView -->
-        <com.example.finnur.finnursphotopicker.TintedImageView
-            android:id="@+id/bitmap_view"
+        <LinearLayout
+            android:id="@+id/border"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentBottom="true"
-            android:contentDescription="@null"
-            android:scaleType="center"
-            />
-        <!-- android:background="@color/light_active_color" -->
+            android:background="#cccccc">
+
+            <!-- FLIP <org.chromium.chrome.browser.widget.TintedImageView -->
+            <com.example.finnur.finnursphotopicker.TintedImageView
+                android:id="@+id/bitmap_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentBottom="true"
+                android:contentDescription="@null"
+                />
+            <!-- android:background="@color/light_active_color" -->
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/selected"

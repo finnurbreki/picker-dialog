@@ -4,6 +4,8 @@
 
 package com.example.finnur.finnursphotopicker;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Debug;
 import android.support.design.widget.FloatingActionButton;
@@ -47,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
 
                 //Debug.startMethodTracing("showDlg");
                 mDialog = new PhotoPickerDialog(getWindow().getContext(), listener);
+
+                // This removes the padding around the dialog.
+                mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
                 mDialog.show();
             }
         });
