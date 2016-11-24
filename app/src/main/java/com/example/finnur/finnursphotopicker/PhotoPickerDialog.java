@@ -22,6 +22,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import java.util.List;
+
 // Android Studio-specific:
 
 // Chrome-specific:
@@ -96,14 +98,14 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
                 new Dialog.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        tryNotifyPhotoSet(null);
+                        tryNotifyPhotoSet();
                     }
                 });
 
         setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface arg0) {
-                tryNotifyPhotoSet(null);
+                tryNotifyPhotoSet();
             }
         });
 
@@ -162,10 +164,19 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     }
 
     /**
-     * Tries to notify any listeners that the color has been set.
+     * Tries to notify any listeners that one or more photos have been selected.
      */
-    private void tryNotifyPhotoSet(String[] photos) {
-        if (mListener != null) mListener.onPhotoChanged(photos);
+    private void tryNotifyPhotoSet() {
+        if (mListener == null)
+            return;
+
+        List<PickerBitmap> selectedFiles = mSelectionDelegate.getSelectedItems();
+        String[] photos = new String[selectedFiles.size()];
+        int i = 0;
+        for (PickerBitmap bitmap : selectedFiles)
+            photos[i++] = bitmap.getFilePath();
+
+        mListener.onPhotoChanged(photos);
     }
 
     private void initializeChromeSpecificStuff(View title) {

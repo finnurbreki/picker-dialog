@@ -153,10 +153,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onSelectionStateChange(List<PickerBitmap> selectedItems) {
-        int size = !super.isChecked() && selectedItems.contains(mItem) ? mOriginalSize - 50 : mOriginalSize;
-
         updateSelectionOverlays();
 
+        int size = !super.isChecked() && selectedItems.contains(mItem) ? mOriginalSize - 50 : mOriginalSize;
         if (size != mIconView.getWidth()) {
             ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, size);
             animation.setDuration(50);

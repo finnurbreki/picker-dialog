@@ -42,7 +42,9 @@ public class MainActivity extends AppCompatActivity {
                         mDialog.dismiss();
                         //Debug.stopMethodTracing();
                         if (photos != null) {
-                            Log.e("***** ", "**** Photo selected: " + photos.length);
+                            for (String path : photos) {
+                                Log.e("***** ", "**** Photo selected: " + path);
+                            }
                         }
                     }
                 };
