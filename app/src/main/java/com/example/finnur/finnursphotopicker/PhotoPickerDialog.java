@@ -86,29 +86,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         mSelectionDelegate = new SelectionDelegate<PickerBitmap>();
 
         initializeChromeSpecificStuff(title);
-
-        // Note that with the color picker there's not really any such thing as
-        // "cancelled".
-        // The color picker flow only finishes when we return a color, so we
-        // have to always
-        // return something. The concept of "cancelled" in this case just means
-        // returning
-        // the color that we were initialized with.
-        String negativeButtonText = mContext.getString(R.string.color_picker_button_cancel);
-        setButton(BUTTON_NEGATIVE, negativeButtonText,
-                new Dialog.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        tryNotifyPhotoSet();
-                    }
-                });
-
-        setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface arg0) {
-                tryNotifyPhotoSet();
-            }
-        });
+        initializeNonChromeSpecificStuff();
 
         // Initialize main content view
         View content = inflater.inflate(R.layout.photo_picker_dialog_content, null);
@@ -155,8 +133,10 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     public boolean onMenuItemClick(MenuItem item) {
         // FLIP
         /*
-        if (item.getItemId() == R.id.close_menu_id) {
-            tryNotifyPhotoSet(null);
+        if (item.getItemId() == R.id.close_menu_id ||
+            item.getItemId() == R.id.selection_mode_done_menu_id) {
+            tryNotifyPhotoSet();
+            dismiss();
             return true;
         }
         Log.e("chromium ", "onMenuItemClick");
@@ -192,9 +172,32 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         //    addDrawerListener(drawerLayout);
         //}
         mToolbar.initialize(mSelectionDelegate, 0, drawerLayout,
-                R.id.normal_menu_group, R.id.selection_mode_menu_group);
-        mToolbar.setTitle(R.string.menu_downloads);
+                R.id.file_picker_normal_menu_group,
+                R.id.file_picker_selection_mode_menu_group);
+        mToolbar.setTitle(R.string.file_picker_select_files);
         //addObserver(mToolbar);  // REMOVE?
     */
     }
+
+    private void initializeNonChromeSpecificStuff() {
+        // FLIP
+        /*
+        */
+        String negativeButtonText = mContext.getString(R.string.color_picker_button_cancel);
+        setButton(BUTTON_NEGATIVE, negativeButtonText,
+                new Dialog.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        tryNotifyPhotoSet();
+                    }
+                });
+
+        setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface arg0) {
+                tryNotifyPhotoSet();
+            }
+        });
+    }
+
 }
