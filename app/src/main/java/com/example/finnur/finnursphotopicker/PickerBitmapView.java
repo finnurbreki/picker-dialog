@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -77,7 +78,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             mView.getLayoutParams().width = newSize;
             // Create a border around the image.
             if (mView instanceof TintedImageView) {
-                LinearLayout layout = (LinearLayout) mView.getParent();
+                ViewGroup layout = (ViewGroup) mView.getParent();
                 layout.setPadding(borderSize, borderSize, borderSize, borderSize);
                 layout.requestLayout();
             }

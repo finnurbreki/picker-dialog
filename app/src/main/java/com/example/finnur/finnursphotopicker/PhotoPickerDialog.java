@@ -80,6 +80,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         LayoutInflater inflater = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View title = inflater.inflate(R.layout.photo_picker_dialog_title, null);
+        title.setPadding(0, 0, 0, 0);
         setCustomTitle(title);
 
         mSelectionDelegate = new SelectionDelegate<PickerBitmap>();
