@@ -56,6 +56,14 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // Whether the image has been loaded already.
     public boolean mImageLoaded;
 
+    private int BORDER = 50;
+
+    static private void addPaddingToParent(View view, int padding) {
+        ViewGroup layout = (ViewGroup) view.getParent();
+        layout.setPadding(padding, padding, padding, padding);
+        layout.requestLayout();
+    }
+
     private class ResizeWidthAnimation extends Animation {
         private View mView;
 
@@ -72,16 +80,13 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         protected void applyTransformation(float interpolatedTime, Transformation transformation) {
             int newSize =
                     mStartingSize + (int) ((mTargetSize - mStartingSize) * interpolatedTime);
-            int borderSize = (Math.max(mStartingSize, mTargetSize) - newSize) / 2;
+            int padding = (Math.max(mStartingSize, mTargetSize) - newSize) / 2;
 
             mView.getLayoutParams().height = newSize;
             mView.getLayoutParams().width = newSize;
             // Create a border around the image.
-            if (mView instanceof TintedImageView) {
-                ViewGroup layout = (ViewGroup) mView.getParent();
-                layout.setPadding(borderSize, borderSize, borderSize, borderSize);
-                layout.requestLayout();
-            }
+            if (mView instanceof TintedImageView)
+                addPaddingToParent(mView, padding);
         }
 
         @Override
@@ -136,6 +141,15 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     public void setThumbnailBitmap(Bitmap thumbnail) {
         mIconView.setImageBitmap(thumbnail);
         mOriginalSize = thumbnail != null ? mIconView.getWidth() : 0;
+
+        // If the tile has been selected before the bitmap has loaded, make sure it shows up with
+        // a selection border on load.
+        if (super.isChecked()) {
+            mIconView.getLayoutParams().height = mOriginalSize - BORDER;
+            mIconView.getLayoutParams().width = mOriginalSize - BORDER;
+            addPaddingToParent(mIconView, BORDER / 2);
+        }
+
         mImageLoaded = true;
         updateSelectionOverlays();
     }
@@ -155,8 +169,12 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     @Override
     public void onSelectionStateChange(List<PickerBitmap> selectedItems) {
         updateSelectionOverlays();
+        boolean selected = selectedItems.contains(mItem);
+        boolean checked = super.isChecked();
+        if (!mImageLoaded || selected == checked)
+            return;
 
-        int size = !super.isChecked() && selectedItems.contains(mItem) ? mOriginalSize - 50 : mOriginalSize;
+        int size = selected && !checked ? mOriginalSize - BORDER : mOriginalSize;
         if (size != mIconView.getWidth()) {
             ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, size);
             animation.setDuration(50);
