@@ -10,6 +10,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -34,6 +35,8 @@ import org.chromium.chrome.browser.widget.TintedImageView;
 */
 
 public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
+    private Context mContext;
+
     // Our parent category.
     private PickerCategoryView mCategoryView;
 
@@ -100,6 +103,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
      */
     public PickerBitmapView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
     }
 
     @Override
@@ -108,6 +112,14 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mIconView = (TintedImageView) findViewById(R.id.bitmap_view);
         mSelectedView = (ImageView) findViewById(R.id.selected);
         mUnselectedView = (ImageView) findViewById(R.id.unselected);
+    }
+
+    public void initialize(PickerCategoryView categoryView) {
+        mCategoryView = categoryView;
+        mSelectionDelegate = mCategoryView.getSelectionDelegate();
+        super.setSelectionDelegate(mSelectionDelegate);
+        mSelectedView.setImageBitmap(mCategoryView.getSelectionBitmap(true));
+        mUnselectedView.setImageBitmap(mCategoryView.getSelectionBitmap(false));
     }
 
     /**
@@ -127,12 +139,32 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         //mIconView.setOnLongClickListener(this);
     }
 
-    public void initialize(PickerCategoryView categoryView) {
-        mCategoryView = categoryView;
-        mSelectionDelegate = mCategoryView.getSelectionDelegate();
-        super.setSelectionDelegate(mSelectionDelegate);
-        mSelectedView.setImageBitmap(mCategoryView.getSelectionBitmap(true));
-        mUnselectedView.setImageBitmap(mCategoryView.getSelectionBitmap(false));
+    public void initializeSpecialTile() {
+        int size = mCategoryView.getImageSize();
+        Bitmap tile = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        tile.eraseColor(Color.LTGRAY);
+        Canvas canvas = new Canvas(tile);
+
+        Bitmap icon;
+        if (mItem.type() == PickerBitmap.TileTypes.CAMERA) {
+            icon = BitmapFactory.decodeResource(
+                    // FLIP
+                    mContext.getResources(), R.mipmap.ic_camera_alt_black_24dp);
+                    //mContext.getResources(), R.drawable.ic_photo_camera);
+        } else {
+            icon = BitmapFactory.decodeResource(
+                    // FLIP
+                    mContext.getResources(), R.mipmap.ic_collections_black_24dp);
+                    //mContext.getResources(), R.drawable.ic_collections_black_24dp);
+        }
+        icon = Bitmap.createScaledBitmap(icon, icon.getWidth() * 2, icon.getHeight() * 2, false);
+        canvas.drawBitmap(
+                icon,
+                (tile.getWidth() - icon.getWidth()) / 2,
+                (tile.getHeight() - icon.getHeight()) / 2,
+                null);
+
+        initialize(mItem, tile, false);
     }
 
     /**
@@ -156,18 +188,29 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onClick() {
+        Log.e("chromium", "Tile type clicked: " + mItem.type());
+
+        if (mItem.type() != PickerBitmap.TileTypes.NORMAL)
+            return;
+
         mSelectionDelegate.toggleSelectionForItem(mItem);
         setChecked(!super.isChecked());
     }
 
     @Override
     public void setChecked(boolean checked) {
+        if (mItem.type() != PickerBitmap.TileTypes.NORMAL)
+            return;
+
         super.setChecked(checked);
         updateSelectionOverlays();
     }
 
     @Override
     public void onSelectionStateChange(List<PickerBitmap> selectedItems) {
+        if (mItem.type() != PickerBitmap.TileTypes.NORMAL)
+            return;
+
         updateSelectionOverlays();
         boolean selected = selectedItems.contains(mItem);
         boolean checked = super.isChecked();
@@ -183,6 +226,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     }
 
     private void updateSelectionOverlays() {
+        if (mItem.type() != PickerBitmap.TileTypes.NORMAL)
+            return;
+
         mSelectedView.setVisibility(super.isChecked() ? View.VISIBLE : View.GONE);
 
         // The visibility of the unselected image is a little more complex because we don't want

@@ -39,6 +39,9 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
         long startTime = System.nanoTime();
 
         List<PickerBitmap> pickerBitmaps = new ArrayList<>();
+        pickerBitmaps.add(new PickerBitmap("", PickerBitmap.TileTypes.CAMERA));
+        pickerBitmaps.add(new PickerBitmap("", PickerBitmap.TileTypes.GALLERY));
+
         String filePath = Environment.getExternalStorageDirectory().toString() + params[0];
         File directory = new File(filePath);
         File[] files = directory.listFiles();
@@ -48,7 +51,7 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
             }
 
             //Log.e("chromium", "FileName:" + fullPath + "/" + files[i].getName() + " size: " + files[i].length());
-            pickerBitmaps.add(new PickerBitmap(filePath + "/" + files[i].getName()));
+            pickerBitmaps.add(new PickerBitmap(filePath + "/" + files[i].getName(), PickerBitmap.TileTypes.NORMAL));
         }
 
         long endTime = System.nanoTime();

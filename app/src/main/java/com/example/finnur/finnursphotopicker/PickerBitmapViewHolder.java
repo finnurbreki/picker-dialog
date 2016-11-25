@@ -147,7 +147,10 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             }
         } else {
             mItemView.initialize(mItem, null, false);
-            mItemView.setTextWithOverlay();
+            if (mItem.type() == PickerBitmap.TileTypes.NORMAL)
+                mItemView.setTextWithOverlay();
+            else
+                mItemView.initializeSpecialTile();
         }
 
         // TODOf implement expand tile

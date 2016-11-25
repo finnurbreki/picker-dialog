@@ -9,22 +9,25 @@ package com.example.finnur.finnursphotopicker;
 // TODO(finnur): If this class doesn't get more complex then we can reduce it to a String.
 public class PickerBitmap {
     // The file path to the bitmap to show.
-    private String filePath;
+    private String mFilePath;
+    private TileTypes mType;
 
-    // TODOf rename vars to mSomething
-
-    public PickerBitmap() {
+    public enum TileTypes {
+        NORMAL, CAMERA, GALLERY
     }
 
-    public PickerBitmap(String filePath) {
-        this.filePath = filePath;
+    public PickerBitmap(String filePath, TileTypes type) {
+        mFilePath = filePath;
+        mType = type;
     }
 
     public String getFilePath() {
-        return filePath;
+        return mFilePath;
     }
 
     public void setFilePath(String filePath) {
-        this.filePath = filePath;
+        mFilePath = filePath;
     }
+
+    public TileTypes type() { return mType; }
 }
