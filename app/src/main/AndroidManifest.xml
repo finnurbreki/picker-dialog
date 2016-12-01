@@ -12,6 +12,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!-- TODO(finnur) Review these values, and shorten name to .DecoderService -->
+        <service
+            android:description="@string/decoder_description"
+            android:isolatedProcess="false"
+            android:name="com.example.finnur.finnursphotopicker.DecoderService">
+            <!--
+            android:enabled="true"
+            android:exported="false"
+            android:process=":decoder_service" -->
+        </service>
+
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"

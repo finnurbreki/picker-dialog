@@ -33,8 +33,7 @@ class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
 
         mFilePath = params[0];
 
-        return BitmapUtils.retrieveBitmap(
-                mRequest.getContext(), mFilePath, mRequest.getImageSize());
+        return BitmapUtils.decodeBitmapFromDisk(mFilePath, mRequest.getImageSize());
     }
 
     // Once complete, see if ImageView is still around and set bitmap.

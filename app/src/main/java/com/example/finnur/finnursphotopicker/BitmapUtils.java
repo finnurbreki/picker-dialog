@@ -9,26 +9,17 @@ package com.example.finnur.finnursphotopicker;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.MemoryFile;
 import android.util.Log;
 
+import java.io.FileDescriptor;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 
 class BitmapUtils {
-    public static Bitmap retrieveBitmap(Context context, String filePath, int width) {
-        //long startTime = System.nanoTime();
-
-        //Runtime info = Runtime.getRuntime();
-        //long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
-
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(filePath, options);
-        options.inSampleSize = calculateInSampleSize(options, width, width);
-        options.inJustDecodeBounds = false;
-        Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
-        if (bitmap == null)
-            return null;
-
+    public static Bitmap sizeBitmap(Bitmap bitmap, int width) {
         int w = bitmap.getWidth();
         int h = bitmap.getHeight();
         int size = bitmap.getByteCount() / 1024;
@@ -46,6 +37,78 @@ class BitmapUtils {
 
         //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
         return bitmap;
+    }
+
+    public static Bitmap decodeBitmapFromFileDescriptor(FileDescriptor fd, int width) {
+        //long startTime = System.nanoTime();
+
+        //Runtime info = Runtime.getRuntime();
+        //long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFileDescriptor(fd, null, options);
+        options.inSampleSize = calculateInSampleSize(options, width, width);
+        options.inJustDecodeBounds = false;
+        Bitmap bitmap = BitmapFactory.decodeFileDescriptor(fd, null, options);
+        if (bitmap == null)
+            return null;
+
+        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
+        return sizeBitmap(bitmap, width);
+    }
+
+    public static Bitmap decodeBitmapFromStream(InputStream stream, int width) {
+        //long startTime = System.nanoTime();
+
+        //Runtime info = Runtime.getRuntime();
+        //long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(stream, null, options);
+        options.inSampleSize = calculateInSampleSize(options, width, width);
+        options.inJustDecodeBounds = false;
+        Bitmap bitmap = BitmapFactory.decodeStream(stream, null, options);
+        if (bitmap == null)
+            return null;
+
+        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
+        return sizeBitmap(bitmap, width);
+    }
+
+    public static Bitmap decodeBitmapFromDisk(String filePath, int width) {
+        //long startTime = System.nanoTime();
+
+        //Runtime info = Runtime.getRuntime();
+        //long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, options);
+        options.inSampleSize = calculateInSampleSize(options, width, width);
+        options.inJustDecodeBounds = false;
+        Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
+        if (bitmap == null)
+            return null;
+
+        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
+        return sizeBitmap(bitmap, width);
+    }
+
+    public static Bitmap decodeBitmapFromMemory(byte[] fileContents, int FileLen, int width) {
+        //long startTime = System.nanoTime();
+
+        //Runtime info = Runtime.getRuntime();
+        //long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeByteArray(fileContents, 0, FileLen, options);
+        options.inSampleSize = calculateInSampleSize(options, width, width);
+        options.inJustDecodeBounds = false;
+        Bitmap bitmap = BitmapFactory.decodeByteArray(fileContents, 0, FileLen, options);
+        if (bitmap == null)
+            return null;
+
+        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
+        return sizeBitmap(bitmap, width);
     }
 
     private static int calculateInSampleSize(
