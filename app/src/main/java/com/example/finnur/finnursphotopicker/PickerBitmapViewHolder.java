@@ -34,8 +34,7 @@ import org.chromium.chrome.browser.download.ui.ThumbnailProvider;
 
 /** Holds onto a View that displays information about a picker bitmap. */
 public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
-        implements /*ThumbnailProvider.ThumbnailRequest,*/ FileReaderWorkerTask.FileReadCallback,
-        BitmapWorkerTask.ImageDecodedCallback {
+        implements ThumbnailProvider.ThumbnailRequest, BitmapWorkerTask.ImageDecodedCallback {
     // Our parent category.
     private PickerCategoryView mCategoryView;
 
@@ -45,10 +44,6 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
     // The request we are showing the bitmap for.
     private PickerBitmap mItem;
 
-    // A worker task for asynchronously decoding images off the main thread.
-    //private BitmapWorkerTask mWorkerTask;
-    private FileReaderWorkerTask mWorkerTask;
-
     public PickerBitmapViewHolder(View itemView) {
         super(itemView);
 
@@ -57,8 +52,6 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
     }
 
     // ThumbnailProvider.ThumbnailRequest:
-
-    /*
 
     @Override
     public String getFilePath() {
@@ -83,7 +76,7 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             Log.e("chromium", "Time since image cropping started: " + durationInMs + " ms");
         }
     }
-*/
+
     // BitmapWorkerRequest.ImageDecodedCallback
 
     @Override
@@ -113,33 +106,6 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
         Log.e("chromium", "Time spent fetching this image: " + durationInMs + " ms");
 
         mItemView.setThumbnailBitmap(bitmap);
-    }
-
-    @Override
-    public void fileReadCallback(String filePath, byte[] fileContents, int width, long requestStartTime) {
-        long endTime = System.nanoTime();
-        long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - requestStartTime, TimeUnit.NANOSECONDS);
-        Log.e("chromium", "Time spent reading from disk: " + durationInMs + " ms");
-
-        /*
-        try {
-            long startTime = System.nanoTime();
-                    / *
-                    File file = new File(filePath);
-                    int fileSize = (int) file.length();
-                    FileInputStream inputFile = new FileInputStream(file);
-                    FileDescriptor fd = inputFile.getFD();
-                    * /
-            mCategoryView.getDecodeServiceHost().decodeImage(
-                    filePath, mCategoryView.getImageSize(), this, startTime);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    */
-
-        mCategoryView.getDecodeServiceHost().decodeImage(fileContents, filePath, width, this, requestStartTime);
     }
 
     public void displayItem(Context context, PickerCategoryView categoryView, int position) {
@@ -173,18 +139,12 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             // FLIP
             boolean useThumbnailProvider = false;
             if (useThumbnailProvider) {
-                /*
                 Bitmap cachedBitmap = mCategoryView.getThumbnailProvider().getThumbnail(this);
                 if (cachedBitmap != null)
                     imageDecodedCallback(filePath, cachedBitmap, 0);  // TODOf figure out 0
-                    */
             } else {
-                if (mWorkerTask != null)
-                    mWorkerTask.cancel(true);
-
-                FileReaderWorkerRequest request = new FileReaderWorkerRequest(context, size, this);
-                mWorkerTask = new FileReaderWorkerTask(request);
-                mWorkerTask.execute(filePath);
+                mCategoryView.getDecodeServiceHost().decodeImage(
+                        mItem.getFilePath(), size, this, System.nanoTime());
             }
         } else {
             mItemView.initialize(mItem, null, false);

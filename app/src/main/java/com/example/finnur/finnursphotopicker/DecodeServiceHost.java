@@ -11,22 +11,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.MemoryFile;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.util.Log;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -64,21 +61,31 @@ public class DecodeServiceHost {
         }
     }
 
-    public Bitmap decodeImage(byte[] fileContents, String filePath, int width, BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
+    public void decodeImage(String filePath, int width, BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
         Message payload = Message.obtain(null, DecoderService.MSG_DECODE_IMAGE);
         Bundle bundle = new Bundle();
-        bundle.putByteArray(DecoderService.KEY_IMAGE, fileContents);
-        /*
-        ParcelFileDescriptor pfd;
-        try {
-            pfd = ParcelFileDescriptor.dup(fd);
-            bundle.putParcelable(DecoderService.KEY_FILE_CONTENTS, pfd);
-            bundle.putInt(DecoderService.KEY_FILE_CONTENTS_LEN, fileLen);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
 
+        // Obtain a file descriptor to send over to the sandboxed process.
+        File file = new File(filePath);
+        FileInputStream inputFile = null;
+        try {
+            try {
+                inputFile = new FileInputStream(file);
+                FileDescriptor fd = inputFile.getFD();
+                ParcelFileDescriptor pfd = ParcelFileDescriptor.dup(fd);
+                bundle.putParcelable(DecoderService.KEY_FILE_DESCRIPTOR, pfd);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } finally {
+            try {
+                inputFile.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Prepare and send the data over.
         bundle.putString(DecoderService.KEY_FILE_PATH, filePath);
         bundle.putInt(DecoderService.KEY_WIDTH, width);
         bundle.putLong(DecoderService.KEY_START_TIME, startTime);
@@ -89,8 +96,6 @@ public class DecodeServiceHost {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-
-        return null;
     }
 
     /**
@@ -133,18 +138,41 @@ public class DecodeServiceHost {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case DecoderService.MSG_IMAGE_REPLY:
+                case DecoderService.MSG_IMAGE_DECODED_REPLY:
                     Bundle payload = msg.getData();
-                    byte[] bytes = payload.getByteArray(DecoderService.KEY_IMAGE);
+
+                    // Read the reply back from the service.
+                    ParcelFileDescriptor pfd =
+                            payload.getParcelable(DecoderService.KEY_IMAGE_DESCRIPTOR);
                     String filePath = payload.getString(DecoderService.KEY_FILE_PATH);
                     int width = payload.getInt(DecoderService.KEY_WIDTH);
-                    long startTime = payload.getLong(DecoderService.KEY_START_TIME);
                     int height = width;
+                    long startTime = payload.getLong(DecoderService.KEY_START_TIME);
+                    int byteCount = payload.getInt(DecoderService.KEY_IMAGE_BYTE_COUNT);
 
-                    ByteBuffer buffer = ByteBuffer.wrap(bytes);
-                    Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                    bitmap.copyPixelsFromBuffer(buffer);
+                    // Grab the decoded pixels from memory and construct a bitmap object.
+                    FileInputStream inFile =
+                            new ParcelFileDescriptor.AutoCloseInputStream(pfd);
+                    byte[] pixels = new byte[byteCount];
+                    Bitmap bitmap = null;
+                    try {
+                        try {
+                            inFile.read(pixels, 0, byteCount);
+                            ByteBuffer buffer = ByteBuffer.wrap(pixels);
+                            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                            bitmap.copyPixelsFromBuffer(buffer);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } finally {
+                        try {
+                            inFile.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
+                    // Reply back to the original caller.
                     BitmapWorkerTask.ImageDecodedCallback callback = mCallbacks.get(filePath);
                     callback.imageDecodedCallback(filePath, bitmap, startTime);
                     mCallbacks.remove(filePath);
