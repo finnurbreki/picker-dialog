@@ -33,8 +33,9 @@ public class DecoderService extends Service {
 
     static final String KEY_FILE_DESCRIPTOR = "file_descriptor";
     static final String KEY_FILE_PATH = "file_path";
-    static final String KEY_IMAGE_DESCRIPTOR = "image_descriptor";
+    static final String KEY_IMAGE_BITMAP = "image_bitmap";
     static final String KEY_IMAGE_BYTE_COUNT = "image_byte_count";
+    static final String KEY_IMAGE_DESCRIPTOR = "image_descriptor";
     static final String KEY_START_TIME = "start_time";
     static final String KEY_WIDTH = "width";
 
@@ -42,13 +43,24 @@ public class DecoderService extends Service {
 
     private static final Method sMethodGetFileDescriptor;
     static {
-        sMethodGetFileDescriptor = get("getFileDescriptor");
+        sMethodGetFileDescriptor = getMethod("getFileDescriptor");
+    }
+    private static final Method sMethodCreateAshmemBitmap;
+    static {
+        sMethodCreateAshmemBitmap = getMethod("createAshmemBitmap");
     }
 
-    private static Method get(String name) {
+    private static Method getMethod(String name) {
         try {
-            return MemoryFile.class.getDeclaredMethod(name);
+            if (name.equals("getFileDescriptor"))
+                return MemoryFile.class.getDeclaredMethod(name);
+            if (name.equals("createAshmemBitmap"))
+                return Bitmap.class.getDeclaredMethod(name);
+            return null;
         } catch (NoSuchMethodException e) {
+            if (name.equals("createAshmemBitmap"))
+                return null;  // Expected error on pre-M devices.
+
             throw new RuntimeException(e);
         }
     }
@@ -56,6 +68,16 @@ public class DecoderService extends Service {
     public static FileDescriptor getFileDescriptor(MemoryFile file) {
         try {
             return (FileDescriptor) sMethodGetFileDescriptor.invoke(file);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Bitmap createAshmemBitmap(Bitmap bitmap) {
+        try {
+            return (Bitmap) sMethodCreateAshmemBitmap.invoke(bitmap);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         } catch (InvocationTargetException e) {
@@ -87,46 +109,61 @@ public class DecoderService extends Service {
 
                     ParcelFileDescriptor pfd = payload.getParcelable(KEY_FILE_DESCRIPTOR);
                     FileDescriptor fd = pfd.getFileDescriptor();
-
                     int width = payload.getInt(KEY_WIDTH);
                     long startTime = payload.getLong(KEY_START_TIME);
 
                     Bitmap bitmap = BitmapUtils.decodeBitmapFromFileDescriptor(fd, width);
-                    int byteCount = bitmap.getByteCount();
-
-                    // TODO(finnur): Copy pixels by hand using a smaller buffer to conserve memory.
-                    ByteBuffer buffer = ByteBuffer.allocate(byteCount);
-                    bitmap.copyPixelsToBuffer(buffer);
-                    buffer.rewind();
 
                     MemoryFile imageFile = null;
                     ParcelFileDescriptor imagePfd = null;
-                    try {
-                        imageFile = new MemoryFile(filePath, byteCount);
-                        imageFile.writeBytes(buffer.array(), 0, 0, byteCount);
 
-                        fd = getFileDescriptor(imageFile);
-                        imagePfd = ParcelFileDescriptor.dup(fd);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    Bundle bundle = new Bundle();
+                    // createAshmemBitmap was not available until Marshmallow.
+                    if (sMethodCreateAshmemBitmap != null) {
+                        Bitmap ashmemBitmap = createAshmemBitmap(bitmap);
+                        bitmap.recycle();
+                        bundle.putParcelable(KEY_IMAGE_BITMAP, ashmemBitmap);
+                    } else {
+                        int byteCount = bitmap.getByteCount();
 
-                    try {
-                        Bundle bundle = new Bundle();
-                        bundle.putString(KEY_FILE_PATH, filePath);
+                        // TODO(finnur): Copy pixels by hand using a smaller buffer to conserve memory?
+                        ByteBuffer buffer = ByteBuffer.allocate(byteCount);
+                        bitmap.copyPixelsToBuffer(buffer);
+                        bitmap.recycle();
+                        buffer.rewind();
+
+                        try {
+                            imageFile = new MemoryFile(filePath, byteCount);
+                            imageFile.writeBytes(buffer.array(), 0, 0, byteCount);
+
+                            fd = getFileDescriptor(imageFile);
+                            imagePfd = ParcelFileDescriptor.dup(fd);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
                         bundle.putInt(KEY_WIDTH, width);
                         bundle.putParcelable(KEY_IMAGE_DESCRIPTOR, imagePfd);
                         bundle.putInt(KEY_IMAGE_BYTE_COUNT, byteCount);
+                    }
+
+                    try {
+                        bundle.putString(KEY_FILE_PATH, filePath);
                         bundle.putLong(KEY_START_TIME, startTime);
 
                         Message reply = Message.obtain(null, MSG_IMAGE_DECODED_REPLY);
                         reply.setData(bundle);
                         mClient.send(reply);
-                        imageFile.close();
-                        imagePfd.close();
                     } catch (RemoteException e) {
                         Log.e("chromium", "DEAD CLIENT");
                         mClient = null;  // He's dead, Jim.
+                    }
+
+                    try {
+                        if (imageFile != null)
+                            imageFile.close();
+                        if (imagePfd != null)
+                            imagePfd.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

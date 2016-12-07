@@ -63,13 +63,11 @@ public class DecoderServiceHost {
     }
 
     public void decodeImage(String filePath, int width, BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
-        Message payload = Message.obtain(null, DecoderService.MSG_DECODE_IMAGE);
-        Bundle bundle = new Bundle();
-
         // Obtain a file descriptor to send over to the sandboxed process.
         File file = new File(filePath);
         FileInputStream inputFile = null;
         ParcelFileDescriptor pfd = null;
+        Bundle bundle = new Bundle();
         try {
             try {
                 inputFile = new FileInputStream(file);
@@ -91,6 +89,7 @@ public class DecoderServiceHost {
             return;
 
         // Prepare and send the data over.
+        Message payload = Message.obtain(null, DecoderService.MSG_DECODE_IMAGE);
         bundle.putString(DecoderService.KEY_FILE_PATH, filePath);
         bundle.putInt(DecoderService.KEY_WIDTH, width);
         bundle.putLong(DecoderService.KEY_START_TIME, startTime);
@@ -150,33 +149,39 @@ public class DecoderServiceHost {
                     Bundle payload = msg.getData();
 
                     // Read the reply back from the service.
-                    ParcelFileDescriptor pfd =
-                            payload.getParcelable(DecoderService.KEY_IMAGE_DESCRIPTOR);
-                    String filePath = payload.getString(DecoderService.KEY_FILE_PATH);
-                    int width = payload.getInt(DecoderService.KEY_WIDTH);
-                    int height = width;
                     long startTime = payload.getLong(DecoderService.KEY_START_TIME);
-                    int byteCount = payload.getInt(DecoderService.KEY_IMAGE_BYTE_COUNT);
+                    String filePath = payload.getString(DecoderService.KEY_FILE_PATH);
+                    Bitmap bitmap = payload.getParcelable(DecoderService.KEY_IMAGE_BITMAP);
 
-                    // Grab the decoded pixels from memory and construct a bitmap object.
-                    FileInputStream inFile =
-                            new ParcelFileDescriptor.AutoCloseInputStream(pfd);
-                    byte[] pixels = new byte[byteCount];
-                    Bitmap bitmap = null;
-                    try {
+                    // Direct passing of bitmaps via ashmem became available in Marshmallow. For
+                    // older clients, we manage our own memory file.
+                    if (bitmap == null) {
+                        ParcelFileDescriptor pfd =
+                                payload.getParcelable(DecoderService.KEY_IMAGE_DESCRIPTOR);
+                        int width = payload.getInt(DecoderService.KEY_WIDTH);
+                        int height = width;
+                        int byteCount = payload.getInt(DecoderService.KEY_IMAGE_BYTE_COUNT);
+
+                        // Grab the decoded pixels from memory and construct a bitmap object.
+                        FileInputStream inFile =
+                                new ParcelFileDescriptor.AutoCloseInputStream(pfd);
+                        byte[] pixels = new byte[byteCount];
+
                         try {
-                            inFile.read(pixels, 0, byteCount);
-                            ByteBuffer buffer = ByteBuffer.wrap(pixels);
-                            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                            bitmap.copyPixelsFromBuffer(buffer);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    } finally {
-                        try {
-                            inFile.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            try {
+                                inFile.read(pixels, 0, byteCount);
+                                ByteBuffer buffer = ByteBuffer.wrap(pixels);
+                                bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                                bitmap.copyPixelsFromBuffer(buffer);
+                            } catch (IOException e) {
+                               e.printStackTrace();
+                            }
+                        } finally {
+                            try {
+                                inFile.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
 
