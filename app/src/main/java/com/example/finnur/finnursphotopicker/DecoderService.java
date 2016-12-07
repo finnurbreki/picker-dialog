@@ -100,13 +100,13 @@ public class DecoderService extends Service {
                     buffer.rewind();
 
                     MemoryFile imageFile = null;
-                    ParcelFileDescriptor image_pdf = null;
+                    ParcelFileDescriptor imagePfd = null;
                     try {
                         imageFile = new MemoryFile(filePath, byteCount);
                         imageFile.writeBytes(buffer.array(), 0, 0, byteCount);
 
-                        FileDescriptor result_fd = getFileDescriptor(imageFile);
-                        image_pdf = ParcelFileDescriptor.dup(result_fd);
+                        fd = getFileDescriptor(imageFile);
+                        imagePfd = ParcelFileDescriptor.dup(fd);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -115,15 +115,15 @@ public class DecoderService extends Service {
                         Bundle bundle = new Bundle();
                         bundle.putString(KEY_FILE_PATH, filePath);
                         bundle.putInt(KEY_WIDTH, width);
-                        bundle.putParcelable(KEY_IMAGE_DESCRIPTOR, image_pdf);
+                        bundle.putParcelable(KEY_IMAGE_DESCRIPTOR, imagePfd);
                         bundle.putInt(KEY_IMAGE_BYTE_COUNT, byteCount);
                         bundle.putLong(KEY_START_TIME, startTime);
 
                         Message reply = Message.obtain(null, MSG_IMAGE_DECODED_REPLY);
                         reply.setData(bundle);
                         mClient.send(reply);
-                        image_pdf.close();
                         imageFile.close();
+                        imagePfd.close();
                     } catch (RemoteException e) {
                         Log.e("chromium", "DEAD CLIENT");
                         mClient = null;  // He's dead, Jim.

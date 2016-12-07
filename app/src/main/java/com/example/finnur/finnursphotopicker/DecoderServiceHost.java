@@ -87,6 +87,9 @@ public class DecoderServiceHost {
             }
         }
 
+        if (pfd == null)
+            return;
+
         // Prepare and send the data over.
         bundle.putString(DecoderService.KEY_FILE_PATH, filePath);
         bundle.putInt(DecoderService.KEY_WIDTH, width);
