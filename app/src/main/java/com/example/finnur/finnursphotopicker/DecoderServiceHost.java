@@ -10,6 +10,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,7 +29,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-public class DecodeServiceHost {
+public class DecoderServiceHost {
     /** Messenger for communicating with the service. */
     Messenger mService = null;
 
@@ -43,7 +44,7 @@ public class DecodeServiceHost {
 
     private long mStartTime = System.nanoTime();
 
-    public void DecodeServiceHost() {
+    public void DecoderServiceHost() {
     }
 
     public void onResume(Context context) {
@@ -68,11 +69,12 @@ public class DecodeServiceHost {
         // Obtain a file descriptor to send over to the sandboxed process.
         File file = new File(filePath);
         FileInputStream inputFile = null;
+        ParcelFileDescriptor pfd = null;
         try {
             try {
                 inputFile = new FileInputStream(file);
                 FileDescriptor fd = inputFile.getFD();
-                ParcelFileDescriptor pfd = ParcelFileDescriptor.dup(fd);
+                pfd = ParcelFileDescriptor.dup(fd);
                 bundle.putParcelable(DecoderService.KEY_FILE_DESCRIPTOR, pfd);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -93,7 +95,10 @@ public class DecodeServiceHost {
         try {
             mService.send(payload);
             mCallbacks.put(filePath, callback);
+            pfd.close();
         } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

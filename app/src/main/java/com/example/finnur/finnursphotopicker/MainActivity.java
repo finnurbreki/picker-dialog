@@ -30,9 +30,9 @@ public class MainActivity extends AppCompatActivity {
 
     private PhotoPickerDialog mDialog;
 
-    private DecodeServiceHost mDecodeServiceHost = new DecodeServiceHost();
+    private DecoderServiceHost mDecoderServiceHost = new DecoderServiceHost();
 
-    public DecodeServiceHost getDecodeServiceHost() { return mDecodeServiceHost; }
+    public DecoderServiceHost getDecoderServiceHost() { return mDecoderServiceHost; }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mDecodeServiceHost.onResume(this);
+        mDecoderServiceHost.onResume(this);
     }
 
     /*
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        mDecodeServiceHost.onStop(this);
+        mDecoderServiceHost.onStop(this);
     }
 
     @Override

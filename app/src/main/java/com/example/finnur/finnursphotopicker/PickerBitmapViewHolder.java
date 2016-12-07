@@ -141,9 +141,9 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             if (useThumbnailProvider) {
                 Bitmap cachedBitmap = mCategoryView.getThumbnailProvider().getThumbnail(this);
                 if (cachedBitmap != null)
-                    imageDecodedCallback(filePath, cachedBitmap, 0);  // TODOf figure out 0
+                    imageDecodedCallback(filePath, cachedBitmap, System.nanoTime());
             } else {
-                mCategoryView.getDecodeServiceHost().decodeImage(
+                mCategoryView.getDecoderServiceHost().decodeImage(
                         mItem.getFilePath(), size, this, System.nanoTime());
             }
         } else {

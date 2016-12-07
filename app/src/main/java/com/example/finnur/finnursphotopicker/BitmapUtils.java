@@ -57,24 +57,6 @@ class BitmapUtils {
         return sizeBitmap(bitmap, width);
     }
 
-    public static Bitmap decodeBitmapFromStream(InputStream stream, int width) {
-        //long startTime = System.nanoTime();
-
-        //Runtime info = Runtime.getRuntime();
-        //long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(stream, null, options);
-        options.inSampleSize = calculateInSampleSize(options, width, width);
-        options.inJustDecodeBounds = false;
-        Bitmap bitmap = BitmapFactory.decodeStream(stream, null, options);
-        if (bitmap == null)
-            return null;
-
-        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
-        return sizeBitmap(bitmap, width);
-    }
-
     public static Bitmap decodeBitmapFromDisk(String filePath, int width) {
         //long startTime = System.nanoTime();
 
@@ -86,24 +68,6 @@ class BitmapUtils {
         options.inSampleSize = calculateInSampleSize(options, width, width);
         options.inJustDecodeBounds = false;
         Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
-        if (bitmap == null)
-            return null;
-
-        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
-        return sizeBitmap(bitmap, width);
-    }
-
-    public static Bitmap decodeBitmapFromMemory(byte[] fileContents, int FileLen, int width) {
-        //long startTime = System.nanoTime();
-
-        //Runtime info = Runtime.getRuntime();
-        //long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeByteArray(fileContents, 0, FileLen, options);
-        options.inSampleSize = calculateInSampleSize(options, width, width);
-        options.inJustDecodeBounds = false;
-        Bitmap bitmap = BitmapFactory.decodeByteArray(fileContents, 0, FileLen, options);
         if (bitmap == null)
             return null;
 

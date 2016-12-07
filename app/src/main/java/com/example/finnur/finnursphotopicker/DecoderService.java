@@ -99,9 +99,10 @@ public class DecoderService extends Service {
                     bitmap.copyPixelsToBuffer(buffer);
                     buffer.rewind();
 
+                    MemoryFile imageFile = null;
                     ParcelFileDescriptor image_pdf = null;
                     try {
-                        MemoryFile imageFile = new MemoryFile(filePath, byteCount);
+                        imageFile = new MemoryFile(filePath, byteCount);
                         imageFile.writeBytes(buffer.array(), 0, 0, byteCount);
 
                         FileDescriptor result_fd = getFileDescriptor(imageFile);
@@ -121,9 +122,13 @@ public class DecoderService extends Service {
                         Message reply = Message.obtain(null, MSG_IMAGE_DECODED_REPLY);
                         reply.setData(bundle);
                         mClient.send(reply);
+                        image_pdf.close();
+                        imageFile.close();
                     } catch (RemoteException e) {
                         Log.e("chromium", "DEAD CLIENT");
                         mClient = null;  // He's dead, Jim.
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                     break;
                 default:

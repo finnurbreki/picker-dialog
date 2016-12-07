@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 /*
 FLIP
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.DecoderServiceHost;
 import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
@@ -48,7 +49,7 @@ public class PickerCategoryView extends RelativeLayout implements FileEnumWorker
 
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
 
-    private DecodeServiceHost mDecodeServiceHost;
+    private DecoderServiceHost mDecoderServiceHost;
 
     private ThumbnailProviderImpl mThumbnailProvider;
 
@@ -105,8 +106,11 @@ public class PickerCategoryView extends RelativeLayout implements FileEnumWorker
 
     private void init(Context context) {
         mContext = context;
+        // FLIP
         MainActivity activity = (MainActivity) context;
-        mDecodeServiceHost = activity.getDecodeServiceHost();
+        //ChromeTabbedActivity activity = (ChromeTabbedActivity) context;
+
+        mDecoderServiceHost = activity.getDecoderServiceHost();
 
         inflate(mContext, R.layout.picker_category_view, this);
     }
@@ -116,7 +120,7 @@ public class PickerCategoryView extends RelativeLayout implements FileEnumWorker
     public SelectionDelegate<PickerBitmap> getSelectionDelegate() { return mSelectionDelegate; }
     public List<PickerBitmap> getPickerBitmaps() { return mPickerBitmaps; }
     public ThumbnailProviderImpl getThumbnailProvider() { return mThumbnailProvider; }
-    public DecodeServiceHost getDecodeServiceHost() { return mDecodeServiceHost; }
+    public DecoderServiceHost getDecoderServiceHost() { return mDecoderServiceHost; }
     public LruCache<String, Bitmap> getUglyBitmaps() { return mUglyBitmaps; }
     public LruCache<String, Bitmap> getPrettyBitmaps() { return mPrettyBitmaps; }
 
