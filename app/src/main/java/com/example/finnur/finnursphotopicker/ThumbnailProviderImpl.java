@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.util.LruCache;
 import android.text.TextUtils;
+import android.util.Log;
 
 //import org.chromium.base.ThreadUtils;
 //import org.chromium.base.annotations.CalledByNative;
@@ -19,8 +20,6 @@ import android.text.TextUtils;
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Deque;
-
-import android.util.Log;
 
 /**
  * Concrete implementation of {@link ThumbnailProvider}.

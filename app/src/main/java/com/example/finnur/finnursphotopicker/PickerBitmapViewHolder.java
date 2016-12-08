@@ -53,8 +53,8 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
     public void onThumbnailRetrieved(String filePath, Bitmap thumbnail) {
         // TODOf don't crop on the UI thread...
         if (thumbnail != null) {
-            Log.e("chromium", "w x h precrop: " + thumbnail.getWidth() + " x " +
-                    thumbnail.getHeight() + " size: " + thumbnail.getByteCount());
+            Log.e("chromium", "w x h precrop: " + thumbnail.getWidth() + " x "
+                    + thumbnail.getHeight() + " size: " + thumbnail.getByteCount());
 
             long startTime = System.nanoTime();
 
@@ -93,8 +93,8 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             return;
         }
 
-        Log.e("chromium", "w x h: " + bitmap.getWidth() + " x " + bitmap.getHeight() +
-                " size: " + bitmap.getByteCount());
+        Log.e("chromium", "w x h: " + bitmap.getWidth() + " x " + bitmap.getHeight()
+                + " size: " + bitmap.getByteCount());
         long endTime = System.nanoTime();
         long durationInMs = TimeUnit.MILLISECONDS.convert(
                 endTime - requestStartTime, TimeUnit.NANOSECONDS);
@@ -110,8 +110,8 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
         mItem = pickerBitmaps.get(position);
         boolean expandTile = position == mCategoryView.getMaxImagesShown() - 1;
 
-        Log.e("chromium", "PickerBitmapViewHolder::displayItem position: " +
-                position + " expandTile: " + expandTile);
+        Log.e("chromium", "PickerBitmapViewHolder::displayItem position: "
+                + position + " expandTile: " + expandTile);
 
         String filePath = mItem.getFilePath();
         if (isImageExtension(filePath)) {

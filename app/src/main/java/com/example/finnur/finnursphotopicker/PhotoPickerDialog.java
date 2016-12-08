@@ -6,12 +6,10 @@
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
-import android.app.Dialog;
-import android.content.DialogInterface;
-import android.view.WindowManager;
-import android.view.ViewGroup.LayoutParams;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar.OnMenuItemClickListener;
@@ -19,7 +17,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
+import android.view.WindowManager;
 
 import java.util.List;
 

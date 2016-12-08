@@ -27,9 +27,9 @@ import java.util.List;
 /*
 FLIP
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.widget.TintedImageView;
 import org.chromium.chrome.browser.widget.selection.SelectableItemView;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
-import org.chromium.chrome.browser.widget.TintedImageView;
 */
 
 public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
@@ -57,7 +57,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // Whether the image has been loaded already.
     public boolean mImageLoaded;
 
-    private int sBorder = 50;
+    private int mBorder = 50;
 
     private static void addPaddingToParent(View view, int padding) {
         ViewGroup layout = (ViewGroup) view.getParent();
@@ -176,9 +176,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         // If the tile has been selected before the bitmap has loaded, make sure it shows up with
         // a selection border on load.
         if (super.isChecked()) {
-            mIconView.getLayoutParams().height = mOriginalSize - sBorder;
-            mIconView.getLayoutParams().width = mOriginalSize - sBorder;
-            addPaddingToParent(mIconView, sBorder / 2);
+            mIconView.getLayoutParams().height = mOriginalSize - mBorder;
+            mIconView.getLayoutParams().width = mOriginalSize - mBorder;
+            addPaddingToParent(mIconView, mBorder / 2);
         }
 
         mImageLoaded = true;
@@ -216,10 +216,11 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         updateSelectionOverlays();
         boolean selected = selectedItems.contains(mItem);
         boolean checked = super.isChecked();
-        if (!mImageLoaded || selected == checked)
+        if (!mImageLoaded || selected == checked) {
             return;
+        }
 
-        int size = selected && !checked ? mOriginalSize - sBorder : mOriginalSize;
+        int size = selected && !checked ? mOriginalSize - mBorder : mOriginalSize;
         if (size != mIconView.getWidth()) {
             ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, size);
             animation.setDuration(50);

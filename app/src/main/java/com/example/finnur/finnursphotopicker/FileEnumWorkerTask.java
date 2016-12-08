@@ -51,8 +51,8 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
             //Log.e("chromium", "FileName:" + fullPath + "/" + files[i].getName() +
             //                  " size: " + files[i].length());
             pickerBitmaps.add(
-                new PickerBitmap(filePath + "/" + files[i].getName(),
-                                 PickerBitmap.TileTypes.NORMAL));
+                    new PickerBitmap(filePath + "/" + files[i].getName(),
+                            PickerBitmap.TileTypes.NORMAL));
         }
 
         long endTime = System.nanoTime();
