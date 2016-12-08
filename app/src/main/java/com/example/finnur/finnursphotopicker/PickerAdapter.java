@@ -55,8 +55,9 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> 
     public int getItemCount() {
         List<PickerBitmap> pickerBitmaps = mCategoryView.getPickerBitmaps();
         int maxBitmaps = mCategoryView.getMaxImagesShown();
-        if (maxBitmaps == -1)
+        if (maxBitmaps == -1) {
             return pickerBitmaps.size();
+        }
         return Math.min(pickerBitmaps.size(), maxBitmaps);
     }
 }

@@ -6,7 +6,6 @@
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 

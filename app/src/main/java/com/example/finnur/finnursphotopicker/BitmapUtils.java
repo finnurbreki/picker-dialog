@@ -6,17 +6,10 @@
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.MemoryFile;
-import android.util.Log;
 
 import java.io.FileDescriptor;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.concurrent.TimeUnit;
 
 class BitmapUtils {
     public static Bitmap sizeBitmap(Bitmap bitmap, int width) {
@@ -27,15 +20,20 @@ class BitmapUtils {
         int sizeEnlarged = bitmap.getByteCount() / 1024;
         bitmap = cropToSquare(bitmap, width);
         int sizeCropped = bitmap.getByteCount() / 1024;
-        //Log.e("chromium", "Bitmap decoded size: " + size + " KB, enlarged: " + sizeEnlarged + " KB, cropped: " + sizeCropped + " KB");
+        //Log.e("chromium", "Bitmap decoded size: " + size + " KB, enlarged: " +
+        //      sizeEnlarged + " KB, cropped: " + sizeCropped + " KB");
         //long endTime = System.nanoTime();
-        //long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
+        //long durationInMs = TimeUnit.MILLISECONDS.convert(
+        //      endTime - startTime, TimeUnit.NANOSECONDS);
 
         //info = Runtime.getRuntime();
         //long diff2 = (info.maxMemory() - info.totalMemory()) / 1024;
         //String memory = "Mem delta: " + diff1 + " KB -> " + diff2 + " KB";
 
-        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
+        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size +
+        //        " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() +
+        //        " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +
+        //        durationInMs + " ms. " + memory);
         return bitmap;
     }
 
@@ -50,10 +48,14 @@ class BitmapUtils {
         options.inSampleSize = calculateInSampleSize(options, width, width);
         options.inJustDecodeBounds = false;
         Bitmap bitmap = BitmapFactory.decodeFileDescriptor(fd, null, options);
-        if (bitmap == null)
+        if (bitmap == null) {
             return null;
+        }
 
-        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
+        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now "
+        //        + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " +
+        //        (bitmap.getByteCount() / 1024) + " KB) loaded in " +
+        //        durationInMs + " ms. " + memory);
         return sizeBitmap(bitmap, width);
     }
 
@@ -68,10 +70,15 @@ class BitmapUtils {
         options.inSampleSize = calculateInSampleSize(options, width, width);
         options.inJustDecodeBounds = false;
         Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
-        if (bitmap == null)
+        if (bitmap == null) {
             return null;
+        }
 
-        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +  durationInMs + " ms. " + memory);
+
+        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now "
+        //        + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " +
+        //        (bitmap.getByteCount() / 1024) + " KB) loaded in " +
+        //        durationInMs + " ms. " + memory);
         return sizeBitmap(bitmap, width);
     }
 
@@ -129,10 +136,8 @@ class BitmapUtils {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
 
-        if (width > size)
-            x = (width - size) / 2;
-        if (height > size)
-            y = (height - size) / 2;
+        if (width > size) x = (width - size) / 2;
+        if (height > size) y = (height - size) / 2;
         return Bitmap.createBitmap(bitmap, x, y, size, size);
     }
 }

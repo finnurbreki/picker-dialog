@@ -6,13 +6,12 @@
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
-import android.content.res.Resources;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar.OnMenuItemClickListener;
@@ -24,26 +23,11 @@ import android.widget.LinearLayout;
 
 import java.util.List;
 
-// Android Studio-specific:
-
 // Chrome-specific:
 /*
 FLIP
-import org.chromium.base.ContextUtils;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.download.DownloadManagerService;
-import org.chromium.chrome.browser.download.DownloadInfo;
-import org.chromium.chrome.browser.download.DownloadItem;
-import org.chromium.chrome.browser.download.ui.BackendProvider;
-import org.chromium.chrome.browser.download.ui.DownloadManagerToolbar;
-import org.chromium.chrome.browser.download.ui.DownloadHistoryItemWrapper;
-import org.chromium.chrome.browser.download.ui.DownloadHistoryItemWrapper.DownloadItemWrapper;
-import org.chromium.chrome.browser.download.ui.ThumbnailProvider;
-import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
-import org.chromium.chrome.browser.offlinepages.downloads.OfflinePageDownloadBridge;
-import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
-import org.chromium.ui.base.DeviceFormFactor;
 */
 
 /**
@@ -57,7 +41,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     // The listener for the photo changed event.
     private final OnPhotoChangedListener mListener;
 
-    static int s_folder = 0;
+    static int sFolder = 0;
 
     // FLIP
     // The toolbar at the top of the dialog.
@@ -99,16 +83,16 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         PickerCategoryView categoryScreenshots = new PickerCategoryView(context);
         PickerCategoryView categoryDownloads = new PickerCategoryView(context);
 
-        if (++s_folder == 1) {
+        if (++sFolder == 1) {
             categoryCamera.setInitialState("/DCIM/Camera", mSelectionDelegate);
             parentLayout.addView(categoryCamera);
-        } else if (s_folder == 2) {
+        } else if (sFolder == 2) {
             categoryScreenshots.setInitialState("/Pictures/Screenshots", mSelectionDelegate);
             parentLayout.addView(categoryScreenshots);
         } else {
             categoryDownloads.setInitialState("/Download", mSelectionDelegate);
             parentLayout.addView(categoryDownloads);
-            s_folder = 0;
+            sFolder = 0;
         }
 
         boolean hasItems = categoryCamera.getVisibility() == View.VISIBLE
@@ -133,8 +117,8 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     public boolean onMenuItemClick(MenuItem item) {
         // FLIP
         /*
-        if (item.getItemId() == R.id.close_menu_id ||
-            item.getItemId() == R.id.selection_mode_done_menu_id) {
+        if (item.getItemId() == R.id.close_menu_id
+                || item.getItemId() == R.id.selection_mode_done_menu_id) {
             tryNotifyPhotoSet();
             dismiss();
             return true;
@@ -148,14 +132,16 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
      * Tries to notify any listeners that one or more photos have been selected.
      */
     private void tryNotifyPhotoSet() {
-        if (mListener == null)
+        if (mListener == null) {
             return;
+        }
 
         List<PickerBitmap> selectedFiles = mSelectionDelegate.getSelectedItems();
         String[] photos = new String[selectedFiles.size()];
         int i = 0;
-        for (PickerBitmap bitmap : selectedFiles)
+        for (PickerBitmap bitmap : selectedFiles) {
             photos[i++] = bitmap.getFilePath();
+        }
 
         mListener.onPhotoChanged(photos);
     }

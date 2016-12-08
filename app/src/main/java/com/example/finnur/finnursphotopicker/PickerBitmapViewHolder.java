@@ -6,29 +6,20 @@
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.MemoryFile;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /*
 FLIP
-import org.chromium.chrome.R;
 import org.chromium.chrome.browser.download.ui.ThumbnailProvider;
 */
 
@@ -62,7 +53,8 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
     public void onThumbnailRetrieved(String filePath, Bitmap thumbnail) {
         // TODOf don't crop on the UI thread...
         if (thumbnail != null) {
-            Log.e("chromium", "w x h precrop: " + thumbnail.getWidth() + " x " + thumbnail.getHeight() + " size: " + thumbnail.getByteCount());
+            Log.e("chromium", "w x h precrop: " + thumbnail.getWidth() + " x " +
+                    thumbnail.getHeight() + " size: " + thumbnail.getByteCount());
 
             long startTime = System.nanoTime();
 
@@ -72,7 +64,8 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             imageDecodedCallback(filePath, bitmap, 0);  // TODOf figure out 0
 
             long endTime = System.nanoTime();
-            long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
+            long durationInMs = TimeUnit.MILLISECONDS.convert(
+                    endTime - startTime, TimeUnit.NANOSECONDS);
             Log.e("chromium", "Time since image cropping started: " + durationInMs + " ms");
         }
     }
@@ -100,9 +93,11 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             return;
         }
 
-        Log.e("chromium", "w x h: " + bitmap.getWidth() + " x " + bitmap.getHeight() + " size: " + bitmap.getByteCount());
+        Log.e("chromium", "w x h: " + bitmap.getWidth() + " x " + bitmap.getHeight() +
+                " size: " + bitmap.getByteCount());
         long endTime = System.nanoTime();
-        long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - requestStartTime, TimeUnit.NANOSECONDS);
+        long durationInMs = TimeUnit.MILLISECONDS.convert(
+                endTime - requestStartTime, TimeUnit.NANOSECONDS);
         Log.e("chromium", "Time spent fetching this image: " + durationInMs + " ms");
 
         mItemView.setThumbnailBitmap(bitmap);
@@ -115,7 +110,8 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
         mItem = pickerBitmaps.get(position);
         boolean expandTile = position == mCategoryView.getMaxImagesShown() - 1;
 
-        Log.e("chromium", "PickerBitmapViewHolder::displayItem position: " + position + " expandTile: " + expandTile);
+        Log.e("chromium", "PickerBitmapViewHolder::displayItem position: " +
+                position + " expandTile: " + expandTile);
 
         String filePath = mItem.getFilePath();
         if (isImageExtension(filePath)) {
@@ -140,18 +136,20 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             boolean useThumbnailProvider = false;
             if (useThumbnailProvider) {
                 Bitmap cachedBitmap = mCategoryView.getThumbnailProvider().getThumbnail(this);
-                if (cachedBitmap != null)
+                if (cachedBitmap != null) {
                     imageDecodedCallback(filePath, cachedBitmap, System.nanoTime());
+                }
             } else {
                 mCategoryView.getDecoderServiceHost().decodeImage(
                         mItem.getFilePath(), size, this, System.nanoTime());
             }
         } else {
             mItemView.initialize(mItem, null, false);
-            if (mItem.type() == PickerBitmap.TileTypes.NORMAL)
+            if (mItem.type() == PickerBitmap.TileTypes.NORMAL) {
                 mItemView.setTextWithOverlay();
-            else
+            } else {
                 mItemView.initializeSpecialTile();
+            }
         }
 
         // TODOf implement expand tile

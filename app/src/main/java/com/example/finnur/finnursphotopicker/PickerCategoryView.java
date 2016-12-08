@@ -10,9 +10,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.os.Environment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,26 +19,20 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 // Chrome-specific:
 /*
 FLIP
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.DecoderServiceHost;
 import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
 
-public class PickerCategoryView extends RelativeLayout implements FileEnumWorkerTask.FilesEnumeratedCallback {
+public class PickerCategoryView extends RelativeLayout
+        implements FileEnumWorkerTask.FilesEnumeratedCallback {
     private Context mContext;
     private PickerAdapter mPickerAdapter;
     private List<PickerBitmap> mPickerBitmaps;
@@ -115,20 +107,37 @@ public class PickerCategoryView extends RelativeLayout implements FileEnumWorker
         inflate(mContext, R.layout.picker_category_view, this);
     }
 
-    public int getMaxImagesShown() { return mMaxImages; }
-    public int getImageSize() { return mImageSize; }
-    public SelectionDelegate<PickerBitmap> getSelectionDelegate() { return mSelectionDelegate; }
-    public List<PickerBitmap> getPickerBitmaps() { return mPickerBitmaps; }
-    public ThumbnailProviderImpl getThumbnailProvider() { return mThumbnailProvider; }
-    public DecoderServiceHost getDecoderServiceHost() { return mDecoderServiceHost; }
-    public LruCache<String, Bitmap> getUglyBitmaps() { return mUglyBitmaps; }
-    public LruCache<String, Bitmap> getPrettyBitmaps() { return mPrettyBitmaps; }
+    public int getMaxImagesShown() {
+        return mMaxImages;
+    }
+    public int getImageSize() {
+        return mImageSize;
+    }
+    public SelectionDelegate<PickerBitmap> getSelectionDelegate() {
+        return mSelectionDelegate;
+    }
+    public List<PickerBitmap> getPickerBitmaps() {
+        return mPickerBitmaps;
+    }
+    public ThumbnailProviderImpl getThumbnailProvider() {
+        return mThumbnailProvider;
+    }
+    public DecoderServiceHost getDecoderServiceHost() {
+        return mDecoderServiceHost;
+    }
+    public LruCache<String, Bitmap> getUglyBitmaps() {
+        return mUglyBitmaps;
+    }
+    public LruCache<String, Bitmap> getPrettyBitmaps() {
+        return mPrettyBitmaps;
+    }
 
     public Bitmap getSelectionBitmap(boolean selected) {
-        if (selected)
+        if (selected) {
             return mBitmapSelected;
-        else
+        } else {
             return mBitmapUnselected;
+        }
     }
 
     public void setInitialState(String path, SelectionDelegate<PickerBitmap> selectionDelegate) {
@@ -137,10 +146,12 @@ public class PickerCategoryView extends RelativeLayout implements FileEnumWorker
         mSelectionDelegate = selectionDelegate;
 
         // FLIP
-        mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.ic_check_circle_black_24dp);
-        mBitmapUnselected = BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.ic_donut_large_black_24dp);
-        //mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_share_white_24dp);
-        //mBitmapUnselected = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_arrow_back_white_24dp);
+        mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(),
+                  R.mipmap.ic_check_circle_black_24dp);
+        //          R.drawable.ic_share_white_24dp);
+        mBitmapUnselected = BitmapFactory.decodeResource(mContext.getResources(),
+                  R.mipmap.ic_donut_large_black_24dp);
+        //          R.drawable.ic_arrow_back_white_24dp);
 
         mMaxImages = 40 * mColumns;
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
@@ -187,8 +198,9 @@ public class PickerCategoryView extends RelativeLayout implements FileEnumWorker
     }
 
     private void prepareBitmaps(String path) {
-        if (mWorkerTask != null)
+        if (mWorkerTask != null) {
             mWorkerTask.cancel(true);
+        }
 
         mWorkerTask = new FileEnumWorkerTask(this);
         mWorkerTask.execute(path);

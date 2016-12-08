@@ -7,7 +7,6 @@
 package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 
 public class BitmapWorkerRequest {
     private Context mContext;
@@ -25,8 +24,16 @@ public class BitmapWorkerRequest {
         mRequestStartTime = System.nanoTime();
     }
 
-    public Context getContext() { return mContext; }
-    public int getImageSize() { return mImageSize; }
-    public BitmapWorkerTask.ImageDecodedCallback getCallback() { return mCallback; }
-    public long getRequestStartTime() { return mRequestStartTime; }
+    public Context getContext() {
+        return mContext;
+    }
+    public int getImageSize() {
+        return mImageSize;
+    }
+    public BitmapWorkerTask.ImageDecodedCallback getCallback() {
+        return mCallback;
+    }
+    public long getRequestStartTime() {
+        return mRequestStartTime;
+    }
 }

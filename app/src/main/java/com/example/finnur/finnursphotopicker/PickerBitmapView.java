@@ -20,9 +20,7 @@ import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 
-import java.lang.Math;
 import java.util.List;
 
 // Chrome-specific:
@@ -59,9 +57,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // Whether the image has been loaded already.
     public boolean mImageLoaded;
 
-    private int BORDER = 50;
+    private int sBorder = 50;
 
-    static private void addPaddingToParent(View view, int padding) {
+    private static void addPaddingToParent(View view, int padding) {
         ViewGroup layout = (ViewGroup) view.getParent();
         layout.setPadding(padding, padding, padding, padding);
         layout.requestLayout();
@@ -88,8 +86,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             mView.getLayoutParams().height = newSize;
             mView.getLayoutParams().width = newSize;
             // Create a border around the image.
-            if (mView instanceof TintedImageView)
+            if (mView instanceof TintedImageView) {
                 addPaddingToParent(mView, padding);
+            }
         }
 
         @Override
@@ -177,9 +176,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         // If the tile has been selected before the bitmap has loaded, make sure it shows up with
         // a selection border on load.
         if (super.isChecked()) {
-            mIconView.getLayoutParams().height = mOriginalSize - BORDER;
-            mIconView.getLayoutParams().width = mOriginalSize - BORDER;
-            addPaddingToParent(mIconView, BORDER / 2);
+            mIconView.getLayoutParams().height = mOriginalSize - sBorder;
+            mIconView.getLayoutParams().width = mOriginalSize - sBorder;
+            addPaddingToParent(mIconView, sBorder / 2);
         }
 
         mImageLoaded = true;
@@ -190,8 +189,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     public void onClick() {
         Log.e("chromium", "Tile type clicked: " + mItem.type());
 
-        if (mItem.type() != PickerBitmap.TileTypes.NORMAL)
+        if (mItem.type() != PickerBitmap.TileTypes.NORMAL) {
             return;
+        }
 
         mSelectionDelegate.toggleSelectionForItem(mItem);
         setChecked(!super.isChecked());
@@ -199,8 +199,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void setChecked(boolean checked) {
-        if (mItem.type() != PickerBitmap.TileTypes.NORMAL)
+        if (mItem.type() != PickerBitmap.TileTypes.NORMAL) {
             return;
+        }
 
         super.setChecked(checked);
         updateSelectionOverlays();
@@ -208,8 +209,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onSelectionStateChange(List<PickerBitmap> selectedItems) {
-        if (mItem.type() != PickerBitmap.TileTypes.NORMAL)
+        if (mItem.type() != PickerBitmap.TileTypes.NORMAL) {
             return;
+        }
 
         updateSelectionOverlays();
         boolean selected = selectedItems.contains(mItem);
@@ -217,7 +219,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         if (!mImageLoaded || selected == checked)
             return;
 
-        int size = selected && !checked ? mOriginalSize - BORDER : mOriginalSize;
+        int size = selected && !checked ? mOriginalSize - sBorder : mOriginalSize;
         if (size != mIconView.getWidth()) {
             ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, size);
             animation.setDuration(50);
@@ -226,8 +228,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     }
 
     private void updateSelectionOverlays() {
-        if (mItem.type() != PickerBitmap.TileTypes.NORMAL)
+        if (mItem.type() != PickerBitmap.TileTypes.NORMAL) {
             return;
+        }
 
         mSelectedView.setVisibility(super.isChecked() ? View.VISIBLE : View.GONE);
 
@@ -235,10 +238,11 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         // to show it when nothing is selected and also not on a blank canvas.
         boolean somethingSelected =
                 mSelectionDelegate != null && mSelectionDelegate.isSelectionEnabled();
-        if (!super.isChecked() && mImageLoaded && somethingSelected)
+        if (!super.isChecked() && mImageLoaded && somethingSelected) {
             mUnselectedView.setVisibility(View.VISIBLE);
-        else
+        } else {
             mUnselectedView.setVisibility(View.GONE);
+        }
     }
 
     public void setTextWithOverlay() {

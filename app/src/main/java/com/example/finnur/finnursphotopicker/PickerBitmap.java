@@ -29,5 +29,7 @@ public class PickerBitmap {
         mFilePath = filePath;
     }
 
-    public TileTypes type() { return mType; }
+    public TileTypes type() {
+        return mType;
+    }
 }

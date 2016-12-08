@@ -6,11 +6,9 @@
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
-import android.view.View;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -50,12 +48,16 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
                 return null;
             }
 
-            //Log.e("chromium", "FileName:" + fullPath + "/" + files[i].getName() + " size: " + files[i].length());
-            pickerBitmaps.add(new PickerBitmap(filePath + "/" + files[i].getName(), PickerBitmap.TileTypes.NORMAL));
+            //Log.e("chromium", "FileName:" + fullPath + "/" + files[i].getName() +
+            //                  " size: " + files[i].length());
+            pickerBitmaps.add(
+                new PickerBitmap(filePath + "/" + files[i].getName(),
+                                 PickerBitmap.TileTypes.NORMAL));
         }
 
         long endTime = System.nanoTime();
-        long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
+        long durationInMs =
+                TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
         Log.e("chromium", "Enumerated " + files.length + " files: " + durationInMs + " ms");
 
         return pickerBitmaps;
