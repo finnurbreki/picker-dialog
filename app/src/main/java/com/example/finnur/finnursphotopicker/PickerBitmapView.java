@@ -21,8 +21,6 @@ import android.view.animation.Transformation;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import java.util.List;
-
 // Chrome-specific:
 /*
 FLIP
@@ -31,6 +29,8 @@ import org.chromium.chrome.browser.widget.TintedImageView;
 import org.chromium.chrome.browser.widget.selection.SelectableItemView;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
+
+import java.util.List;
 
 public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     private Context mContext;

@@ -21,8 +21,6 @@ import android.util.LruCache;
 import android.view.View;
 import android.widget.RelativeLayout;
 
-import java.util.List;
-
 // Chrome-specific:
 /*
 FLIP
@@ -30,6 +28,8 @@ import org.chromium.chrome.R;
 import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
+
+import java.util.List;
 
 public class PickerCategoryView extends RelativeLayout
         implements FileEnumWorkerTask.FilesEnumeratedCallback {

@@ -14,14 +14,14 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
 /*
 FLIP
 import org.chromium.chrome.browser.download.ui.ThumbnailProvider;
 */
+
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /** Holds onto a View that displays information about a picker bitmap. */
 public class PickerBitmapViewHolder extends RecyclerView.ViewHolder

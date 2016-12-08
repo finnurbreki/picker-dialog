@@ -18,10 +18,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.LinearLayout;
 import android.view.WindowManager;
-
-import java.util.List;
+import android.widget.LinearLayout;
 
 // Chrome-specific:
 /*
@@ -29,6 +27,8 @@ FLIP
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
+
+import java.util.List;
 
 /**
  * UI for the photo chooser that shows on the Android platform as a result of

@@ -12,13 +12,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.List;
-
 // Chrome-specific:
 /*
 FLIP
 import org.chromium.chrome.R;
 */
+
+import java.util.List;
 
 public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> {
     private Context mContext;
