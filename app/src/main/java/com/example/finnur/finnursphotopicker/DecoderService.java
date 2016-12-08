@@ -88,7 +88,8 @@ public class DecoderService extends Service {
     /**
      * Handler of incoming messages from clients.
      */
-    class IncomingHandler extends Handler {
+    static class IncomingHandler extends Handler {
+        private Messenger mClient;
 
         @Override
         public void handleMessage(Message msg) {
@@ -113,6 +114,11 @@ public class DecoderService extends Service {
                     long startTime = payload.getLong(KEY_START_TIME);
 
                     Bitmap bitmap = BitmapUtils.decodeBitmapFromFileDescriptor(fd, width);
+                    try {
+                        pfd.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
                     MemoryFile imageFile = null;
                     ParcelFileDescriptor imagePfd = null;

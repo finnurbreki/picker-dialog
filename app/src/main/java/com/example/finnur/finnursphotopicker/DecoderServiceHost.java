@@ -10,7 +10,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,9 +24,15 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
+
+// Chrome-specific:
+/* FLIP
+import org.chromium.chrome.browser.DecoderService;
+*/
 
 public class DecoderServiceHost {
     /** Messenger for communicating with the service. */
@@ -35,12 +40,15 @@ public class DecoderServiceHost {
 
     HashMap<String, BitmapWorkerTask.ImageDecodedCallback> mCallbacks =
             new HashMap<String, BitmapWorkerTask.ImageDecodedCallback>();
+    HashMap<String, BitmapWorkerTask.ImageDecodedCallback> getCallbacks() {
+        return mCallbacks;
+    }
 
     /** Flag indicating whether we have called bind on the service. */
     boolean mBound;
 
     // TODOf doc
-    final Messenger mMessenger = new Messenger(new IncomingHandler());
+    final Messenger mMessenger = new Messenger(new IncomingHandler(this));
 
     private long mStartTime = System.nanoTime();
 
@@ -141,9 +149,23 @@ public class DecoderServiceHost {
         }
     };
 
-    class IncomingHandler extends Handler {
+    static class IncomingHandler extends Handler {
+        private final WeakReference<DecoderServiceHost> mHost;
+
+        IncomingHandler(DecoderServiceHost host) {
+            mHost = new WeakReference<DecoderServiceHost>(host);
+        }
+
         @Override
         public void handleMessage(Message msg) {
+            DecoderServiceHost host = mHost.get();
+            if (host == null) {
+                super.handleMessage(msg);
+                return;
+            }
+            HashMap<String, BitmapWorkerTask.ImageDecodedCallback> callbacks =
+                host.getCallbacks();
+
             switch (msg.what) {
                 case DecoderService.MSG_IMAGE_DECODED_REPLY:
                     Bundle payload = msg.getData();
@@ -186,9 +208,9 @@ public class DecoderServiceHost {
                     }
 
                     // Reply back to the original caller.
-                    BitmapWorkerTask.ImageDecodedCallback callback = mCallbacks.get(filePath);
+                    BitmapWorkerTask.ImageDecodedCallback callback = callbacks.get(filePath);
                     callback.imageDecodedCallback(filePath, bitmap, startTime);
-                    mCallbacks.remove(filePath);
+                    callbacks.remove(filePath);
                     break;
                 default:
                     super.handleMessage(msg);
