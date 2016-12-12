@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 // FLIP
-//package org.chromium.chrome.browser;
+//package org.chromium.ui;
 package com.example.finnur.finnursphotopicker;
 
 /**

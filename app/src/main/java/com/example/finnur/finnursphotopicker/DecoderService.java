@@ -39,8 +39,6 @@ public class DecoderService extends Service {
     static final String KEY_START_TIME = "start_time";
     static final String KEY_WIDTH = "width";
 
-    private Messenger mClient;
-
     private static final Method sMethodGetFileDescriptor;
     static {
         sMethodGetFileDescriptor = getMethod("getFileDescriptor");

@@ -26,6 +26,7 @@ import android.widget.LinearLayout;
 FLIP
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
+import org.chromium.ui.OnPhotoChangedListener;
 */
 
 import java.util.List;
