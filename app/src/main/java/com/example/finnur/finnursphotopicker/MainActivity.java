@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
                 };
 
                 //Debug.startMethodTracing("showDlg");
-                mDialog = new PhotoPickerDialog(getWindow().getContext(), listener);
+                mDialog = new PhotoPickerDialog(getWindow().getContext(), listener, false);
 
                 // This removes the padding around the dialog.
                 mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));

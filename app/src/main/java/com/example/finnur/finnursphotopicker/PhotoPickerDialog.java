@@ -11,7 +11,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar.OnMenuItemClickListener;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,7 +36,7 @@ import java.util.List;
  */
 public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickListener {
 
-    private Context mContext;
+    private final Context mContext;
 
     // The listener for the photo changed event.
     private final OnPhotoChangedListener mListener;
@@ -55,7 +54,8 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
      * @param listener The object to notify when the color is set.
      */
     public PhotoPickerDialog(Context context,
-                             OnPhotoChangedListener listener) {
+                             OnPhotoChangedListener listener,
+                             boolean multiSelection) {
         super(context, 0);
 
         mContext = context;
@@ -68,7 +68,9 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         title.setPadding(0, 0, 0, 0);
         setCustomTitle(title);
 
-        mSelectionDelegate = new SelectionDelegate<PickerBitmap>();
+        mSelectionDelegate = multiSelection
+                ? new SelectionDelegateMulti<PickerBitmap>()
+                : new SelectionDelegateSingle<PickerBitmap>();
 
         initializeChromeSpecificStuff(title);
         initializeNonChromeSpecificStuff();
@@ -85,13 +87,13 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         PickerCategoryView categoryDownloads = new PickerCategoryView(context);
 
         if (++sFolder == 1) {
-            categoryCamera.setInitialState("/DCIM/Camera", mSelectionDelegate);
+            categoryCamera.setInitialState("/DCIM/Camera", mSelectionDelegate, multiSelection);
             parentLayout.addView(categoryCamera);
         } else if (sFolder == 2) {
-            categoryScreenshots.setInitialState("/Pictures/Screenshots", mSelectionDelegate);
+            categoryScreenshots.setInitialState("/Pictures/Screenshots", mSelectionDelegate, multiSelection);
             parentLayout.addView(categoryScreenshots);
         } else {
-            categoryDownloads.setInitialState("/Download", mSelectionDelegate);
+            categoryDownloads.setInitialState("/Download", mSelectionDelegate, multiSelection);
             parentLayout.addView(categoryDownloads);
             sFolder = 0;
         }

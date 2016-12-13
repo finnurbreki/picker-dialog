@@ -36,6 +36,7 @@ public class PickerCategoryView extends RelativeLayout
     private Context mContext;
     private PickerAdapter mPickerAdapter;
     private List<PickerBitmap> mPickerBitmaps;
+    private boolean mMultiSelection;
 
     private RecyclerView mRecyclerView;
 
@@ -131,6 +132,9 @@ public class PickerCategoryView extends RelativeLayout
     public LruCache<String, Bitmap> getPrettyBitmaps() {
         return mPrettyBitmaps;
     }
+    public boolean isMultiSelect() {
+        return mMultiSelection;
+    }
 
     public Bitmap getSelectionBitmap(boolean selected) {
         if (selected) {
@@ -140,10 +144,12 @@ public class PickerCategoryView extends RelativeLayout
         }
     }
 
-    public void setInitialState(String path, SelectionDelegate<PickerBitmap> selectionDelegate) {
+    public void setInitialState(String path, SelectionDelegate<PickerBitmap> selectionDelegate,
+            boolean multiSelection) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.addItemDecoration(new RecyclerViewItemDecoration());
         mSelectionDelegate = selectionDelegate;
+        mMultiSelection = multiSelection;
 
         // FLIP
         mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(),

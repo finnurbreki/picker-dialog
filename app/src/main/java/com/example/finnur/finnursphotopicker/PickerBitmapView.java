@@ -213,9 +213,15 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             return;
         }
 
-        updateSelectionOverlays();
         boolean selected = selectedItems.contains(mItem);
         boolean checked = super.isChecked();
+
+        if (!mCategoryView.isMultiSelect() && !selected && checked) {
+            super.toggle();
+        }
+
+        updateSelectionOverlays();
+
         if (!mImageLoaded || selected == checked) {
             return;
         }
@@ -239,7 +245,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         // to show it when nothing is selected and also not on a blank canvas.
         boolean somethingSelected =
                 mSelectionDelegate != null && mSelectionDelegate.isSelectionEnabled();
-        if (!super.isChecked() && mImageLoaded && somethingSelected) {
+        if (!super.isChecked() && mImageLoaded && somethingSelected && mCategoryView.isMultiSelect()) {
             mUnselectedView.setVisibility(View.VISIBLE);
         } else {
             mUnselectedView.setVisibility(View.GONE);

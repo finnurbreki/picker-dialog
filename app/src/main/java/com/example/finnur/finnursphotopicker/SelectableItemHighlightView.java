@@ -31,15 +31,15 @@ public class SelectableItemHighlightView extends View implements Checkable {
      */
     public SelectableItemHighlightView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        /*
         Drawable clickDrawable = context.obtainStyledAttributes(new int[] {
                 android.R.attr.selectableItemBackground }).getDrawable(0);
-        /* FLIP
         Drawable longClickDrawable = ApiCompatibilityUtils.getDrawable(context.getResources(),
                 R.drawable.selectable_item_highlight);
-                */
         Drawable longClickDrawable = context.getResources().getDrawable(R.drawable.selectable_item_highlight);
         LayerDrawable ld = new LayerDrawable(new Drawable[] {clickDrawable, longClickDrawable});
         setBackground(ld);
+        */
     }
 
     @Override
