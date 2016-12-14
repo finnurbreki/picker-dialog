@@ -135,6 +135,10 @@ public class PickerCategoryView extends RelativeLayout
     public boolean isMultiSelect() {
         return mMultiSelection;
     }
+    // FLIP
+    public static boolean useDecoderService() {
+        return false;
+    }  // TODOf remove.
 
     public Bitmap getSelectionBitmap(boolean selected) {
         if (selected) {

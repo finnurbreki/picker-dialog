@@ -36,7 +36,6 @@ public class SelectableItemHighlightView extends View implements Checkable {
                 android.R.attr.selectableItemBackground }).getDrawable(0);
         Drawable longClickDrawable = ApiCompatibilityUtils.getDrawable(context.getResources(),
                 R.drawable.selectable_item_highlight);
-        Drawable longClickDrawable = context.getResources().getDrawable(R.drawable.selectable_item_highlight);
         LayerDrawable ld = new LayerDrawable(new Drawable[] {clickDrawable, longClickDrawable});
         setBackground(ld);
         */

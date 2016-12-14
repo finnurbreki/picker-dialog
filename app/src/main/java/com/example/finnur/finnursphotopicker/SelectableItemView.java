@@ -107,7 +107,6 @@ public abstract class SelectableItemView<E> extends FrameLayout implements Check
     // OnClickListener implementation.
     @Override
     public final void onClick(View view) {
-        //Log.e("chromium", "onClick called");
         assert view == this;
 
         if (mSelectionDelegate.isSelectionEnabled()) {

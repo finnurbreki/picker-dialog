@@ -30,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
 
     private PhotoPickerDialog mDialog;
 
-    private DecoderServiceHost mDecoderServiceHost = new DecoderServiceHost();
+    private DecoderServiceHost mDecoderServiceHost =
+            PickerCategoryView.useDecoderService() ? new DecoderServiceHost() : null;
 
     public DecoderServiceHost getDecoderServiceHost() { return mDecoderServiceHost; }
 
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mDecoderServiceHost.onResume(this);
+        if (mDecoderServiceHost != null) mDecoderServiceHost.onResume(this);
     }
 
     /*
@@ -90,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        mDecoderServiceHost.onStop(this);
+        if (mDecoderServiceHost != null) mDecoderServiceHost.onStop(this);
     }
 
     @Override
