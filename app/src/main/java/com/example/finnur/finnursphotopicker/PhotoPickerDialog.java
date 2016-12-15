@@ -42,6 +42,9 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     // The listener for the photo changed event.
     private final OnPhotoChangedListener mListener;
 
+    // The category we're showing photos for.
+    private final PickerCategoryView mCategoryView;
+
     static int sFolder = 0;
 
     // FLIP
@@ -83,25 +86,20 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         LinearLayout parentLayout = (LinearLayout) content.findViewById(R.id.layout);
         LayoutInflater layoutInflater = getLayoutInflater();
 
-        PickerCategoryView categoryCamera = new PickerCategoryView(context);
-        PickerCategoryView categoryScreenshots = new PickerCategoryView(context);
-        PickerCategoryView categoryDownloads = new PickerCategoryView(context);
-
+        mCategoryView = new PickerCategoryView(context);
         if (++sFolder == 1) {
-            categoryCamera.setInitialState("/DCIM/Camera", mSelectionDelegate, multiSelection);
-            parentLayout.addView(categoryCamera);
+            mCategoryView.setInitialState("/DCIM/Camera", mSelectionDelegate, multiSelection);
+            parentLayout.addView(mCategoryView);
         } else if (sFolder == 2) {
-            categoryScreenshots.setInitialState("/Pictures/Screenshots", mSelectionDelegate, multiSelection);
-            parentLayout.addView(categoryScreenshots);
+            mCategoryView.setInitialState("/Pictures/Screenshots", mSelectionDelegate, multiSelection);
+            parentLayout.addView(mCategoryView);
         } else {
-            categoryDownloads.setInitialState("/Download", mSelectionDelegate, multiSelection);
-            parentLayout.addView(categoryDownloads);
+            mCategoryView.setInitialState("/Download", mSelectionDelegate, multiSelection);
+            parentLayout.addView(mCategoryView);
             sFolder = 0;
         }
 
-        boolean hasItems = categoryCamera.getVisibility() == View.VISIBLE
-                || categoryScreenshots.getVisibility() == View.VISIBLE
-                || categoryDownloads.getVisibility() == View.VISIBLE;
+        boolean hasItems = mCategoryView.getVisibility() == View.VISIBLE;
         if (!hasItems) {
             Log.e("chromium", "Show empty message");
         }
@@ -115,6 +113,12 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+    }
+
+    @Override
+    public void dismiss() {
+        super.dismiss();
+        mCategoryView.endConnection();
     }
 
     @Override

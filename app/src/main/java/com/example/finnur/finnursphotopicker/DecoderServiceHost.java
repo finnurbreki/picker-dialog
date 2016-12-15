@@ -35,8 +35,60 @@ import org.chromium.chrome.browser.DecoderService;
 */
 
 public class DecoderServiceHost {
+    /**
+     * Interface for notifying clients of the service being ready.
+     */
+    public interface ServiceReadyCallback {
+        void serviceReady();
+    }
+
+    /**
+     * Class for interacting with the main interface of the service.
+     */
+    private class DecoderServiceConnection implements ServiceConnection {
+        private ServiceReadyCallback mCallback;
+
+        public DecoderServiceConnection(ServiceReadyCallback callback) {
+            mCallback = callback;
+        }
+
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            mService = new Messenger(service);
+
+            try {
+                Message msg = Message.obtain(null, DecoderService.MSG_REGISTER_CLIENT);
+                msg.replyTo = mMessenger;
+                mService.send(msg);
+            } catch (RemoteException e) {
+                return;
+            }
+
+            mBound = true;
+
+            long endTime = System.nanoTime();
+            long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - mStartTime, TimeUnit.NANOSECONDS);
+            Log.e("chromium", "Time from start of service to bound: " + durationInMs + " ms");
+
+            mCallback.serviceReady();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            mBound = false;
+        }
+    }
+
+    // The callback the client wants us to use to report back when the service is ready.
+    private ServiceReadyCallback mCallback;
+
+    public DecoderServiceHost(ServiceReadyCallback callback) {
+        mCallback = callback;
+    }
+
     /** Messenger for communicating with the service. */
     Messenger mService = null;
+
+    // Our service connection to the decoder service.
+    private DecoderServiceConnection mConnection;
 
     HashMap<String, BitmapWorkerTask.ImageDecodedCallback> mCallbacks =
             new HashMap<String, BitmapWorkerTask.ImageDecodedCallback>();
@@ -52,17 +104,13 @@ public class DecoderServiceHost {
 
     private long mStartTime = System.nanoTime();
 
-    public void DecoderServiceHost() {
-    }
-
-    public void onResume(Context context) {
-        Log.e("chromium", "Binding to service " + DecoderService.class);
+    public void bind(Context context) {
+        mConnection = new DecoderServiceConnection(mCallback);
         Intent intent= new Intent(context, DecoderService.class);
         boolean success = context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        Log.e("chromium", "Service bound: " + success);
     }
 
-    public void onStop(Context context) {
+    public void unbind(Context context) {
         // Unbind from the service
         if (mBound) {
             context.unbindService(mConnection);
@@ -112,42 +160,6 @@ public class DecoderServiceHost {
             e.printStackTrace();
         }
     }
-
-    /**
-     * Class for interacting with the main interface of the service.
-     */
-    private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            // This is called when the connection with the service has been
-            // established, giving us the object we can use to
-            // interact with the service.  We are communicating with the
-            // service using a Messenger, so here we get a client-side
-            // representation of that from the raw IBinder object.
-            mService = new Messenger(service);
-
-            try {
-                Message msg = Message.obtain(null, DecoderService.MSG_REGISTER_CLIENT);
-                msg.replyTo = mMessenger;
-                mService.send(msg);
-            }
-            catch (RemoteException e) {
-                // In this case the service has crashed before we could even do anything with it
-            }
-
-            mBound = true;
-
-            long endTime = System.nanoTime();
-            long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - mStartTime, TimeUnit.NANOSECONDS);
-            Log.e("chromium", "Time from start of service to bound: " + durationInMs + " ms");
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            // This is called when the connection with the service has been
-            // unexpectedly disconnected -- that is, its process crashed.
-            mService = null;
-            mBound = false;
-        }
-    };
 
     static class IncomingHandler extends Handler {
         private final WeakReference<DecoderServiceHost> mHost;

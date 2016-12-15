@@ -46,7 +46,8 @@ public class SelectionDelegateSingle<E> implements SelectionDelegate<E> {
     @Override
     public List<E> getSelectedItems() {
         List<E> list = new ArrayList<E>();
-        list.add(mSelectedItem);
+        if (mSelectedItem != null)
+            list.add(mSelectedItem);
         return list;
     }
 

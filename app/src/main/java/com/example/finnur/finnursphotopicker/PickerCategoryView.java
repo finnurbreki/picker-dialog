@@ -32,11 +32,12 @@ import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import java.util.List;
 
 public class PickerCategoryView extends RelativeLayout
-        implements FileEnumWorkerTask.FilesEnumeratedCallback {
+        implements FileEnumWorkerTask.FilesEnumeratedCallback, DecoderServiceHost.ServiceReadyCallback {
     private Context mContext;
     private PickerAdapter mPickerAdapter;
     private List<PickerBitmap> mPickerBitmaps;
     private boolean mMultiSelection;
+    private String mPath;
 
     private RecyclerView mRecyclerView;
 
@@ -99,13 +100,34 @@ public class PickerCategoryView extends RelativeLayout
 
     private void init(Context context) {
         mContext = context;
+
         // FLIP
         MainActivity activity = (MainActivity) context;
         //ChromeTabbedActivity activity = (ChromeTabbedActivity) context;
 
-        mDecoderServiceHost = activity.getDecoderServiceHost();
+        mDecoderServiceHost = useDecoderService() ? new DecoderServiceHost(this) : null;
+        if (mDecoderServiceHost != null) {
+            mDecoderServiceHost.bind(mContext);
+        }
 
         inflate(mContext, R.layout.picker_category_view, this);
+    }
+
+    public void endConnection() {
+        // FLIP
+        MainActivity activity = (MainActivity) mContext;
+        //ChromeTabbedActivity activity = (ChromeTabbedActivity) context;
+
+        if (mDecoderServiceHost != null) {
+            mDecoderServiceHost.unbind(mContext);
+        }
+    }
+
+    @Override
+    public void serviceReady() {
+        // TODOf instead of waiting to enumerate, perhaps let filesEnumeratedCallback wait to provide
+        // the data?
+        prepareBitmaps(mPath);
     }
 
     public int getMaxImagesShown() {
@@ -154,6 +176,7 @@ public class PickerCategoryView extends RelativeLayout
         mRecyclerView.addItemDecoration(new RecyclerViewItemDecoration());
         mSelectionDelegate = selectionDelegate;
         mMultiSelection = multiSelection;
+        mPath = path;
 
         // FLIP
         mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(),
@@ -194,7 +217,9 @@ public class PickerCategoryView extends RelativeLayout
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
-        prepareBitmaps(path);
+        if (!useDecoderService()) {
+            serviceReady();  // Call it manually because the decoder won't do it for us.
+        }
     }
 
     public void filesEnumeratedCallback(List<PickerBitmap> files) {
