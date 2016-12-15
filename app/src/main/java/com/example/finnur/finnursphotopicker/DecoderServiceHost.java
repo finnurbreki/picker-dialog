@@ -29,11 +29,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-// Chrome-specific:
-/* FLIP
-import org.chromium.chrome.browser.DecoderService;
-*/
-
 public class DecoderServiceHost {
     /**
      * Interface for notifying clients of the service being ready.
@@ -66,7 +61,8 @@ public class DecoderServiceHost {
             mBound = true;
 
             long endTime = System.nanoTime();
-            long durationInMs = TimeUnit.MILLISECONDS.convert(endTime - mStartTime, TimeUnit.NANOSECONDS);
+            long durationInMs =
+                    TimeUnit.MILLISECONDS.convert(endTime - mStartTime, TimeUnit.NANOSECONDS);
             Log.e("chromium", "Time from start of service to bound: " + durationInMs + " ms");
 
             mCallback.serviceReady();
@@ -106,7 +102,7 @@ public class DecoderServiceHost {
 
     public void bind(Context context) {
         mConnection = new DecoderServiceConnection(mCallback);
-        Intent intent= new Intent(context, DecoderService.class);
+        Intent intent = new Intent(context, DecoderService.class);
         boolean success = context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -118,7 +114,8 @@ public class DecoderServiceHost {
         }
     }
 
-    public void decodeImage(String filePath, int width, BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
+    public void decodeImage(String filePath, int width,
+            BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
         // Obtain a file descriptor to send over to the sandboxed process.
         File file = new File(filePath);
         FileInputStream inputFile = null;
@@ -141,8 +138,9 @@ public class DecoderServiceHost {
             }
         }
 
-        if (pfd == null)
+        if (pfd == null) {
             return;
+        }
 
         // Prepare and send the data over.
         Message payload = Message.obtain(null, DecoderService.MSG_DECODE_IMAGE);
@@ -176,7 +174,7 @@ public class DecoderServiceHost {
                 return;
             }
             HashMap<String, BitmapWorkerTask.ImageDecodedCallback> callbacks =
-                host.getCallbacks();
+                    host.getCallbacks();
 
             switch (msg.what) {
                 case DecoderService.MSG_IMAGE_DECODED_REPLY:
@@ -205,10 +203,11 @@ public class DecoderServiceHost {
                             try {
                                 inFile.read(pixels, 0, byteCount);
                                 ByteBuffer buffer = ByteBuffer.wrap(pixels);
-                                bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                                bitmap = Bitmap.createBitmap(
+                                        width, height, Bitmap.Config.ARGB_8888);
                                 bitmap.copyPixelsFromBuffer(buffer);
                             } catch (IOException e) {
-                               e.printStackTrace();
+                                e.printStackTrace();
                             }
                         } finally {
                             try {

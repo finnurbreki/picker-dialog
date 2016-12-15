@@ -16,9 +16,9 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 
 // Chrome-specific:
@@ -245,7 +245,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         // to show it when nothing is selected and also not on a blank canvas.
         boolean somethingSelected =
                 mSelectionDelegate != null && mSelectionDelegate.isSelectionEnabled();
-        if (!super.isChecked() && mImageLoaded && somethingSelected && mCategoryView.isMultiSelect()) {
+        if (!super.isChecked() && mImageLoaded && somethingSelected
+                && mCategoryView.isMultiSelect()) {
             mUnselectedView.setVisibility(View.VISIBLE);
         } else {
             mUnselectedView.setVisibility(View.GONE);

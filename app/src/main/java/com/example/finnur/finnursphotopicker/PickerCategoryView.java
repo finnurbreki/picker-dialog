@@ -22,8 +22,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 
 // Chrome-specific:
-/*
-FLIP
+/* FLIP
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
@@ -32,7 +31,8 @@ import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import java.util.List;
 
 public class PickerCategoryView extends RelativeLayout
-        implements FileEnumWorkerTask.FilesEnumeratedCallback, DecoderServiceHost.ServiceReadyCallback {
+        implements FileEnumWorkerTask.FilesEnumeratedCallback,
+                DecoderServiceHost.ServiceReadyCallback {
     private Context mContext;
     private PickerAdapter mPickerAdapter;
     private List<PickerBitmap> mPickerBitmaps;
@@ -101,10 +101,6 @@ public class PickerCategoryView extends RelativeLayout
     private void init(Context context) {
         mContext = context;
 
-        // FLIP
-        MainActivity activity = (MainActivity) context;
-        //ChromeTabbedActivity activity = (ChromeTabbedActivity) context;
-
         mDecoderServiceHost = useDecoderService() ? new DecoderServiceHost(this) : null;
         if (mDecoderServiceHost != null) {
             mDecoderServiceHost.bind(mContext);
@@ -114,10 +110,6 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     public void endConnection() {
-        // FLIP
-        MainActivity activity = (MainActivity) mContext;
-        //ChromeTabbedActivity activity = (ChromeTabbedActivity) context;
-
         if (mDecoderServiceHost != null) {
             mDecoderServiceHost.unbind(mContext);
         }
@@ -125,8 +117,8 @@ public class PickerCategoryView extends RelativeLayout
 
     @Override
     public void serviceReady() {
-        // TODOf instead of waiting to enumerate, perhaps let filesEnumeratedCallback wait to provide
-        // the data?
+        // TODOf instead of waiting to enumerate, perhaps let filesEnumeratedCallback wait to
+        // provide the data?
         prepareBitmaps(mPath);
     }
 

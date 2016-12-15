@@ -26,6 +26,8 @@ import android.widget.LinearLayout;
 FLIP
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
+import org.chromium.chrome.browser.widget.selection.SelectionDelegateMulti;
+import org.chromium.chrome.browser.widget.selection.SelectionDelegateSingle;
 import org.chromium.ui.OnPhotoChangedListener;
 */
 
@@ -91,7 +93,8 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
             mCategoryView.setInitialState("/DCIM/Camera", mSelectionDelegate, multiSelection);
             parentLayout.addView(mCategoryView);
         } else if (sFolder == 2) {
-            mCategoryView.setInitialState("/Pictures/Screenshots", mSelectionDelegate, multiSelection);
+            mCategoryView.setInitialState(
+                    "/Pictures/Screenshots", mSelectionDelegate, multiSelection);
             parentLayout.addView(mCategoryView);
         } else {
             mCategoryView.setInitialState("/Download", mSelectionDelegate, multiSelection);

@@ -50,14 +50,17 @@ public class DecoderService extends Service {
 
     private static Method getMethod(String name) {
         try {
-            if (name.equals("getFileDescriptor"))
+            if (name.equals("getFileDescriptor")) {
                 return MemoryFile.class.getDeclaredMethod(name);
-            if (name.equals("createAshmemBitmap"))
+            }
+            if (name.equals("createAshmemBitmap")) {
                 return Bitmap.class.getDeclaredMethod(name);
+            }
             return null;
         } catch (NoSuchMethodException e) {
-            if (name.equals("createAshmemBitmap"))
+            if (name.equals("createAshmemBitmap")) {
                 return null;  // Expected error on pre-M devices.
+            }
 
             throw new RuntimeException(e);
         }
@@ -130,7 +133,8 @@ public class DecoderService extends Service {
                     } else {
                         int byteCount = bitmap.getByteCount();
 
-                        // TODO(finnur): Copy pixels by hand using a smaller buffer to conserve memory?
+                        // TODO(finnur): Copy pixels by hand using a smaller buffer to conserve
+                        //     memory?
                         ByteBuffer buffer = ByteBuffer.allocate(byteCount);
                         bitmap.copyPixelsToBuffer(buffer);
                         bitmap.recycle();
@@ -164,10 +168,12 @@ public class DecoderService extends Service {
                     }
 
                     try {
-                        if (imageFile != null)
+                        if (imageFile != null) {
                             imageFile.close();
-                        if (imagePfd != null)
+                        }
+                        if (imagePfd != null) {
                             imagePfd.close();
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
