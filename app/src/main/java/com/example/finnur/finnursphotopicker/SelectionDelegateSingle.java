@@ -31,7 +31,9 @@ public class SelectionDelegateSingle<E> implements SelectionDelegate<E> {
     }
 
     @Override
-    public boolean isItemSelected(E item) { return mSelectedItem == item; }
+    public boolean isItemSelected(E item) {
+        return mSelectedItem == item;
+    }
 
     @Override
     public boolean isSelectionEnabled() {
@@ -47,8 +49,10 @@ public class SelectionDelegateSingle<E> implements SelectionDelegate<E> {
     @Override
     public List<E> getSelectedItems() {
         List<E> list = new ArrayList<E>();
-        if (mSelectedItem != null)
+        if (mSelectedItem != null) {
             list.add(mSelectedItem);
+        }
+
         return list;
     }
 
