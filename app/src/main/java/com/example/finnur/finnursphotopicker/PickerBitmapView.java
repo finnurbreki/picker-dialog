@@ -134,8 +134,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mImageLoaded = !placeholder;
         updateSelectionOverlays();
 
-        mIconView.setOnClickListener(this);
-        //mIconView.setOnLongClickListener(this);
+        setOnClickListener(this);
     }
 
     public void initializeSpecialTile() {
@@ -187,7 +186,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onClick() {
-        Log.e("chromium", "Tile type clicked: " + mItem.type());
+        Log.e("chromium", "PickerBitmapView::onClick, type: " + mItem.type());
 
         if (mItem.type() != PickerBitmap.TileTypes.NORMAL) {
             return;

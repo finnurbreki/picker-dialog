@@ -19,7 +19,6 @@ FLIP
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:focusable="true"
-        android:clickable="true"
         android:gravity="center"
         android:background="?android:attr/selectableItemBackground"
         android:orientation="vertical">
