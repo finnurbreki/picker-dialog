@@ -44,7 +44,7 @@ FLIP
                 android:id="@+id/scrim"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/scrim"
+                android:background="@drawable/file_picker_scrim"
                 android:visibility="gone" />
         </RelativeLayout>
 
