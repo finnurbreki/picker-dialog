@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 // Chrome-specific:
 /*
@@ -40,6 +41,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     // The image view we are showing.
     private TintedImageView mIconView;
+    private View mScrim;
     private int mOriginalSize;
 
     // Our selection delegate.
@@ -67,12 +69,14 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     private class ResizeWidthAnimation extends Animation {
         private View mView;
+        private View mScrim;
 
         private int mStartingSize;
         private int mTargetSize;
 
-        public ResizeWidthAnimation(View view, int size) {
+        public ResizeWidthAnimation(View view, View scrim, int size) {
             mView = view;
+            mScrim = scrim;
             mStartingSize = view.getWidth();
             mTargetSize = size;
         }
@@ -85,6 +89,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
             mView.getLayoutParams().height = newSize;
             mView.getLayoutParams().width = newSize;
+            mScrim.getLayoutParams().height = newSize;
+            mScrim.getLayoutParams().width = newSize;
             // Create a border around the image.
             if (mView instanceof TintedImageView) {
                 addPaddingToParent(mView, padding);
@@ -109,6 +115,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     protected void onFinishInflate() {
         super.onFinishInflate();
         mIconView = (TintedImageView) findViewById(R.id.bitmap_view);
+        mScrim = findViewById(R.id.scrim);
         mSelectedView = (ImageView) findViewById(R.id.selected);
         mUnselectedView = (ImageView) findViewById(R.id.unselected);
     }
@@ -227,7 +234,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
         int size = selected && !checked ? mOriginalSize - mBorder : mOriginalSize;
         if (size != mIconView.getWidth()) {
-            ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, size);
+            ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, mScrim, size);
             animation.setDuration(50);
             mIconView.startAnimation(animation);
         }
@@ -250,6 +257,10 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         } else {
             mUnselectedView.setVisibility(View.GONE);
         }
+
+        boolean scrimVisibility = mSelectedView.getVisibility() == View.VISIBLE
+                || mUnselectedView.getVisibility() == View.VISIBLE;
+        mScrim.setVisibility(scrimVisibility ? View.VISIBLE : View.GONE);
     }
 
     public void setTextWithOverlay() {
