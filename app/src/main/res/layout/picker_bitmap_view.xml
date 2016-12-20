@@ -23,7 +23,7 @@ FLIP
         android:background="?android:attr/selectableItemBackground"
         android:orientation="vertical">
 
-        <RelativeLayout
+        <FrameLayout
             android:id="@+id/border"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -42,11 +42,11 @@ FLIP
 
             <View
                 android:id="@+id/scrim"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:background="@drawable/file_picker_scrim"
                 android:visibility="gone" />
-        </RelativeLayout>
+        </FrameLayout>
 
         <ImageView
             android:id="@+id/selected"

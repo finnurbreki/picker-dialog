@@ -89,8 +89,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
             mView.getLayoutParams().height = newSize;
             mView.getLayoutParams().width = newSize;
-            mScrim.getLayoutParams().height = newSize;
-            mScrim.getLayoutParams().width = newSize;
             // Create a border around the image.
             if (mView instanceof TintedImageView) {
                 addPaddingToParent(mView, padding);
@@ -180,11 +178,12 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mOriginalSize = thumbnail != null ? mIconView.getWidth() : 0;
 
         // If the tile has been selected before the bitmap has loaded, make sure it shows up with
-        // a selection border on load.
+        // a selection border and scrim on load.
         if (super.isChecked()) {
             mIconView.getLayoutParams().height = mOriginalSize - mBorder;
             mIconView.getLayoutParams().width = mOriginalSize - mBorder;
             addPaddingToParent(mIconView, mBorder / 2);
+            mScrim.setVisibility(View.VISIBLE);
         }
 
         mImageLoaded = true;

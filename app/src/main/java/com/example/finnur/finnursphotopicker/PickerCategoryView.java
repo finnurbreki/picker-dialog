@@ -50,10 +50,11 @@ public class PickerCategoryView extends RelativeLayout
     private LruCache<String, Bitmap> mUglyBitmaps;
     private LruCache<String, Bitmap> mPrettyBitmaps;
 
-    private int mColumns = 3;
+    private int mColumns = 4;
 
     // Padding between columns.
-    private int mPadding = 7;
+    private int mPaddingColumns = 5;
+    private int mPaddingRows = 15;
 
     // Maximum number of bitmaps to show.
     private int mMaxImages;
@@ -73,12 +74,18 @@ public class PickerCategoryView extends RelativeLayout
                                    RecyclerView.State state) {
             int position = parent.getChildAdapterPosition(view);
 
-            if (position % mColumns != 0) {
-                outRect.left = mPadding;
+            outRect.left = mPaddingColumns;
+            outRect.top = mPaddingRows;
+
+            // Right-most column also gets padding to the right.
+            if (position % mColumns == mColumns - 1) {
+                outRect.right = mPaddingColumns;
             }
 
-            if (position < parent.getAdapter().getItemCount() - mColumns) {
-                outRect.bottom = mPadding;
+            // Bottom row also gets padding below it.
+            int index = parent.getAdapter().getItemCount() / mColumns;
+            if (position >= index * mColumns) {
+                outRect.bottom = mPaddingRows;
             }
         }
     }
@@ -151,7 +158,7 @@ public class PickerCategoryView extends RelativeLayout
     }
     // FLIP
     public static boolean useDecoderService() {
-        return false;
+        return true;
     }  // TODOf remove.
 
     public Bitmap getSelectionBitmap(boolean selected) {
@@ -180,7 +187,7 @@ public class PickerCategoryView extends RelativeLayout
 
         mMaxImages = 40 * mColumns;
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        mImageSize = (metrics.widthPixels / mColumns) - (mPadding * (mColumns - 1));
+        mImageSize = (metrics.widthPixels / mColumns) - (mPaddingColumns * mColumns);
 
         // The thumbnail clamps the maximum of the smaller side, we need to clamp
         // down the maximum of the larger side, so we flip the sizes.
