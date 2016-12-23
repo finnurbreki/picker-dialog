@@ -12,7 +12,7 @@ public class PickerBitmap {
     private TileTypes mType;
 
     public enum TileTypes {
-        NORMAL, CAMERA, GALLERY
+        PICTURE, CAMERA, GALLERY
     }
 
     public PickerBitmap(String filePath, TileTypes type) {

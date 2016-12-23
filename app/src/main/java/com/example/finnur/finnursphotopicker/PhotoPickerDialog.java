@@ -45,7 +45,13 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     private final OnPhotoChangedListener mListener;
 
     // The category we're showing photos for.
-    private final PickerCategoryView mCategoryView;
+    private PickerCategoryView mCategoryView;
+
+    // True after this widget has been initialized.
+    private boolean mInitialized;
+
+    // True if the file picker should allow multi-selection.
+    private boolean mMultiSelection;
 
     static int sFolder = 0;
 
@@ -66,6 +72,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
 
         mContext = context;
         mListener = listener;
+        mMultiSelection = multiSelection;
 
         // Initialize title
         LayoutInflater inflater = (LayoutInflater) mContext
@@ -84,28 +91,13 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         // Initialize main content view
         View content = inflater.inflate(R.layout.photo_picker_dialog_content, null);
         setView(content);
+    }
 
-        LinearLayout parentLayout = (LinearLayout) content.findViewById(R.id.layout);
-        LayoutInflater layoutInflater = getLayoutInflater();
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
 
-        mCategoryView = new PickerCategoryView(context);
-        if (++sFolder == 1) {
-            mCategoryView.setInitialState("/DCIM/Camera", mSelectionDelegate, multiSelection);
-            parentLayout.addView(mCategoryView);
-        } else if (sFolder == 2) {
-            mCategoryView.setInitialState(
-                    "/Pictures/Screenshots", mSelectionDelegate, multiSelection);
-            parentLayout.addView(mCategoryView);
-        } else {
-            mCategoryView.setInitialState("/Download", mSelectionDelegate, multiSelection);
-            parentLayout.addView(mCategoryView);
-            sFolder = 0;
-        }
-
-        boolean hasItems = mCategoryView.getVisibility() == View.VISIBLE;
-        if (!hasItems) {
-            Log.e("chromium", "Show empty message");
-        }
+        if (hasFocus && !mInitialized) initializeContent();
     }
 
     @Override
@@ -122,6 +114,34 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     public void dismiss() {
         super.dismiss();
         mCategoryView.endConnection();
+    }
+
+    private void initializeContent() {
+        LinearLayout parentLayout = (LinearLayout) findViewById(R.id.layout);
+
+        mCategoryView = new PickerCategoryView(mContext);
+        View view = getWindow().getDecorView();
+        int width = view.getWidth() - view.getPaddingLeft() - view.getPaddingRight();
+        if (++sFolder == 1) {
+            mCategoryView.setInitialState(
+                    "/DCIM/Camera", mSelectionDelegate, mMultiSelection, width);
+            parentLayout.addView(mCategoryView);
+        } else if (sFolder == 2) {
+            mCategoryView.setInitialState(
+                    "/Pictures/Screenshots", mSelectionDelegate, mMultiSelection, width);
+            parentLayout.addView(mCategoryView);
+        } else {
+            mCategoryView.setInitialState("/Download", mSelectionDelegate, mMultiSelection, width);
+            parentLayout.addView(mCategoryView);
+            sFolder = 0;
+        }
+
+        boolean hasItems = mCategoryView.getVisibility() == View.VISIBLE;
+        if (!hasItems) {
+            Log.e("chromium", "Show empty message");
+        }
+
+        mInitialized = true;
     }
 
     @Override

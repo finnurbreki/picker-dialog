@@ -107,7 +107,7 @@ public class DecoderService extends Service {
                 case MSG_DECODE_IMAGE:
                     Bundle payload = msg.getData();
                     String filePath = payload.getString(KEY_FILE_PATH);
-                    Log.e("chromium", "GOT MSG_DECODE_IMAGE " + filePath);
+                    // Log.e("chromium", "GOT MSG_DECODE_IMAGE " + filePath);
 
                     ParcelFileDescriptor pfd = payload.getParcelable(KEY_FILE_DESCRIPTOR);
                     FileDescriptor fd = pfd.getFileDescriptor();

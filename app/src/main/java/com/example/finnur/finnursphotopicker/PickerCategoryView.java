@@ -7,7 +7,6 @@
 package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
@@ -15,7 +14,6 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.View;
@@ -50,11 +48,12 @@ public class PickerCategoryView extends RelativeLayout
     private LruCache<String, Bitmap> mUglyBitmaps;
     private LruCache<String, Bitmap> mPrettyBitmaps;
 
-    private int mColumns = 4;
+    // mColumns and mPadding should both be even numbers or both odd, not a mix (the column padding
+    // will not be of uniform thickness if they are a mix).
+    private int mColumns = 3;
 
-    // Padding between columns.
-    private int mPaddingColumns = 5;
-    private int mPaddingRows = 15;
+    // The padding between columns. See also comment for mColumns.
+    private int mPadding = 21;
 
     // Maximum number of bitmaps to show.
     private int mMaxImages;
@@ -62,7 +61,10 @@ public class PickerCategoryView extends RelativeLayout
     // The size of the bitmaps (equal length for width and height).
     private int mImageSize;
 
+    // The control to show for when an image is selected.
     private Bitmap mBitmapSelected;
+
+    // The control to show for when an image is not selected.
     private Bitmap mBitmapUnselected;
 
     // A worker task for asynchronously enumerating files off the main thread.
@@ -74,18 +76,23 @@ public class PickerCategoryView extends RelativeLayout
                                    RecyclerView.State state) {
             int position = parent.getChildAdapterPosition(view);
 
-            outRect.left = mPaddingColumns;
-            outRect.top = mPaddingRows;
+            // To understand the right shift, one needs to look at an example. Lets say mColumns
+            // is 3 and mPadding is 21. Then RecyclerView will draw items in the following manner:
+            // [Img1] 28px [Img2] 28px [Img3] 28px.
+            // This needs to be converted to:
+            // 21px [Img1] 21px [Img2] 21px [Img3] 21px.
+            // In other words, the first image needs to be shifted right by 21px, the next by 14px
+            // and the last one by 7px to achieve even distribution of padding everywhere. Put
+            // another way: the 1st image shifts 3 steps, 2nd shifts 2 steps and 3rd shifts 1 step.
+            int step = mPadding / mColumns;
+            int shift = mPadding - (step * (position % mColumns));
+            outRect.left = shift;
 
-            // Right-most column also gets padding to the right.
-            if (position % mColumns == mColumns - 1) {
-                outRect.right = mPaddingColumns;
-            }
-
+            outRect.top = mPadding;
             // Bottom row also gets padding below it.
             int index = parent.getAdapter().getItemCount() / mColumns;
             if (position >= index * mColumns) {
-                outRect.bottom = mPaddingRows;
+                outRect.bottom = mPadding;
             }
         }
     }
@@ -113,6 +120,9 @@ public class PickerCategoryView extends RelativeLayout
             mDecoderServiceHost.bind(mContext);
         }
 
+        if (((mColumns % 2) == 0) != ((mPadding % 2) == 0)) {
+            throw new AssertionError("Columns and padding should both be odd or both even");
+        }
         inflate(mContext, R.layout.picker_category_view, this);
     }
 
@@ -170,7 +180,7 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     public void setInitialState(String path, SelectionDelegate<PickerBitmap> selectionDelegate,
-            boolean multiSelection) {
+            boolean multiSelection, int width) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.addItemDecoration(new RecyclerViewItemDecoration());
         mSelectionDelegate = selectionDelegate;
@@ -186,8 +196,12 @@ public class PickerCategoryView extends RelativeLayout
         //          R.drawable.ic_arrow_back_white_24dp);
 
         mMaxImages = 40 * mColumns;
-        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        mImageSize = (metrics.widthPixels / mColumns) - (mPaddingColumns * mColumns);
+
+        // The dialog width is known, the padding between images is known and the number of
+        // image columns is known. From that we can calculate how much space is remaining for
+        // showing images. The layout used when mColumns equals 3 is:
+        // Padding [Img] Padding [Img] Padding.
+        mImageSize = (width - (mPadding * (mColumns + 1))) / mColumns;
 
         // The thumbnail clamps the maximum of the smaller side, we need to clamp
         // down the maximum of the larger side, so we flip the sizes.

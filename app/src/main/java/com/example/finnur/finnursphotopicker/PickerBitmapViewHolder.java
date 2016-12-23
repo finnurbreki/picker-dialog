@@ -14,6 +14,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
+// Chrome-specific:
 /*
 FLIP
 import org.chromium.chrome.browser.download.ui.ThumbnailProvider;
@@ -93,12 +94,12 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             return;
         }
 
-        Log.e("chromium", "w x h: " + bitmap.getWidth() + " x " + bitmap.getHeight()
-                + " size: " + bitmap.getByteCount());
+        //Log.e("chromium", "w x h: " + bitmap.getWidth() + " x " + bitmap.getHeight()
+        //        + " size: " + bitmap.getByteCount());
         long endTime = System.nanoTime();
         long durationInMs = TimeUnit.MILLISECONDS.convert(
                 endTime - requestStartTime, TimeUnit.NANOSECONDS);
-        Log.e("chromium", "Time spent fetching this image: " + durationInMs + " ms");
+        //Log.e("chromium", "Time spent fetching this image: " + durationInMs + " ms");
 
         mItemView.setThumbnailBitmap(bitmap);
     }
@@ -143,7 +144,7 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             }
         } else {
             mItemView.initialize(mItem, null, false);
-            if (mItem.type() == PickerBitmap.TileTypes.NORMAL) {
+            if (mItem.type() == PickerBitmap.TileTypes.PICTURE) {
                 mItemView.setTextWithOverlay();
             } else {
                 mItemView.initializeSpecialTile();

@@ -20,7 +20,6 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
 // Chrome-specific:
 /*
@@ -60,6 +59,16 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     public boolean mImageLoaded;
 
     private int mBorder = 50;
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        if (mCategoryView == null) return;  // Android studio calls onMeasure to draw the widget.
+        int width = mCategoryView.getImageSize();
+        int height = mCategoryView.getImageSize();
+        setMeasuredDimension(width, height);
+    }
 
     private static void addPaddingToParent(View view, int padding) {
         ViewGroup layout = (ViewGroup) view.getParent();
@@ -194,7 +203,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     public void onClick() {
         Log.e("chromium", "PickerBitmapView::onClick, type: " + mItem.type());
 
-        if (mItem.type() != PickerBitmap.TileTypes.NORMAL) {
+        if (mItem.type() != PickerBitmap.TileTypes.PICTURE) {
             return;
         }
 
@@ -204,7 +213,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void setChecked(boolean checked) {
-        if (mItem.type() != PickerBitmap.TileTypes.NORMAL) {
+        if (mItem.type() != PickerBitmap.TileTypes.PICTURE) {
             return;
         }
 
@@ -214,7 +223,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onSelectionStateChange(List<PickerBitmap> selectedItems) {
-        if (mItem.type() != PickerBitmap.TileTypes.NORMAL) {
+        if (mItem.type() != PickerBitmap.TileTypes.PICTURE) {
             return;
         }
 
@@ -240,7 +249,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     }
 
     private void updateSelectionOverlays() {
-        if (mItem.type() != PickerBitmap.TileTypes.NORMAL) {
+        if (mItem.type() != PickerBitmap.TileTypes.PICTURE) {
             return;
         }
 

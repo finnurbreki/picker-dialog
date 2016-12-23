@@ -52,7 +52,7 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
             //                  " size: " + files[i].length());
             pickerBitmaps.add(
                     new PickerBitmap(filePath + "/" + files[i].getName(),
-                            PickerBitmap.TileTypes.NORMAL));
+                            PickerBitmap.TileTypes.PICTURE));
         }
 
         long endTime = System.nanoTime();
