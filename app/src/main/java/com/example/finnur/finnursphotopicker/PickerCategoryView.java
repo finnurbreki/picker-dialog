@@ -9,7 +9,12 @@ package com.example.finnur.finnursphotopicker;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -179,6 +184,15 @@ public class PickerCategoryView extends RelativeLayout
         }
     }
 
+    private Bitmap colorBitmap(Bitmap original, int color) {
+        Bitmap mutable = original.copy(Bitmap.Config.ARGB_8888, true);
+        Canvas canvas = new Canvas(mutable);
+        Paint paint = new Paint();
+        paint.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(mutable, 0.f, 0.f, paint);
+        return mutable;
+    }
+
     public void setInitialState(String path, SelectionDelegate<PickerBitmap> selectionDelegate,
             boolean multiSelection, int width) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
@@ -192,8 +206,14 @@ public class PickerCategoryView extends RelativeLayout
                   R.mipmap.ic_check_circle_black_24dp);
         //          R.drawable.ic_share_white_24dp);
         mBitmapUnselected = BitmapFactory.decodeResource(mContext.getResources(),
-                  R.mipmap.ic_donut_large_black_24dp);
+                  R.mipmap.ic_radio_button_unchecked_black_24dp);
         //          R.drawable.ic_arrow_back_white_24dp);
+
+        // Apply color to the bitmaps.
+        int prefAccentColor = ContextCompat.getColor(mContext, R.color.pref_accent_color);
+        mBitmapSelected = colorBitmap(mBitmapSelected, prefAccentColor);
+        int grayColor = ContextCompat.getColor(mContext, R.color.google_grey_600);
+        mBitmapUnselected = colorBitmap(mBitmapUnselected, grayColor);
 
         mMaxImages = 40 * mColumns;
 
