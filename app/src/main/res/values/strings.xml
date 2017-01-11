@@ -7,4 +7,6 @@
     <string name="color_picker_button_cancel">Cancel</string>
     <string name="clear_cookies_and_site_data_title">(Placeholder)</string>
     <string name="category_title">Category title</string>
+    <string name="camera_label">Camera</string>
+    <string name="browse_label">Browse</string>
 </resources>

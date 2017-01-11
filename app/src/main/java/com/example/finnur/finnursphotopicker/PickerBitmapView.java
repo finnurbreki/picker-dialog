@@ -12,7 +12,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -49,16 +52,23 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // The request we are showing the bitmap for.
     private PickerBitmap mItem;
 
-    // The image view for signifying the image has been selected.
+    // The control that signifies the image has been selected.
     public ImageView mSelectedView;
 
-    // The image view for signifying the image has not been selected.
+    // The control that signifies the image has not been selected.
     public ImageView mUnselectedView;
 
     // Whether the image has been loaded already.
     public boolean mImageLoaded;
 
+    // The amount to use for the border.
     private int mBorder = 50;
+
+    // The size of the text for the special tiles.
+    private final int mTextSize = 60;
+
+    // The amount of vertical padding between the image and the explanatory label.
+    private final int mTextPadding = 60;
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -158,23 +168,36 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         Canvas canvas = new Canvas(tile);
 
         Bitmap icon;
+        String label;
         if (mItem.type() == PickerBitmap.TileTypes.CAMERA) {
             icon = BitmapFactory.decodeResource(
                     // FLIP
                     mContext.getResources(), R.mipmap.ic_camera_alt_black_24dp);
                     //mContext.getResources(), R.drawable.ic_photo_camera);
+            label = mContext.getString(R.string.camera_label);
         } else {
             icon = BitmapFactory.decodeResource(
                     // FLIP
                     mContext.getResources(), R.mipmap.ic_collections_black_24dp);
                     //mContext.getResources(), R.drawable.ic_collections_black_24dp);
+            label = mContext.getString(R.string.browse_label);
         }
+
+        Paint paint = new Paint();
+        Rect bounds = new Rect();
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        paint.setTextSize(mTextSize);
+        paint.getTextBounds(label, 0, label.length(), bounds);
+
         icon = Bitmap.createScaledBitmap(icon, icon.getWidth() * 2, icon.getHeight() * 2, false);
-        canvas.drawBitmap(
-                icon,
-                (tile.getWidth() - icon.getWidth()) / 2,
-                (tile.getHeight() - icon.getHeight()) / 2,
-                null);
+        int totalHeight = icon.getHeight() + bounds.height() + mTextPadding;
+        int x = (tile.getWidth() - icon.getWidth()) / 2;
+        int y = (tile.getHeight() - totalHeight) / 2;
+        canvas.drawBitmap(icon, x, y, null);
+
+        x = (size - bounds.width()) / 2;
+        y += icon.getHeight() + mTextPadding;
+        canvas.drawText(label, x, y, paint);
 
         initialize(mItem, tile, false);
     }
