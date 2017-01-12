@@ -4,8 +4,11 @@
 
 package com.example.finnur.finnursphotopicker;
 
+import android.content.ClipData;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -15,9 +18,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     private PhotoPickerDialog mDialog;
+
+    // An ID for the system intent to show the gallery and have the user pick a photo.
+    static final int PICK_IMAGE_REQUEST = 1;
+
+    // Whether multi-select should be enabled.
+    static final boolean mMultiSelect = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,23 +41,61 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                OnPhotoChangedListener listener = new OnPhotoChangedListener() {
+                OnPhotoPickerListener listener = new OnPhotoPickerListener() {
                     @Override
-                    public void onPhotoChanged(String[] photos) {
-                        if (photos != null) {
-                            for (String path : photos) {
-                                Log.e("***** ", "**** Photo selected: " + path);
-                            }
+                    public void onUserAction(OnPhotoPickerListener.Action action, String[] photos) {
+                        switch (action) {
+                            case PHOTOS_SELECTED:
+                                if (photos != null) {
+                                    for (String path : photos) {
+                                        Log.e("***** ", "**** Photo selected: " + path);
+                                    }
+                                }
+                                break;
+                            case LAUNCH_GALLERY:
+                                Intent intent = new Intent();
+                                intent.setType("image/*");
+                                if (mMultiSelect) {
+                                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                                }
+                                intent.setAction(Intent.ACTION_GET_CONTENT);
+                                startActivityForResult(
+                                        Intent.createChooser(intent, "Select Picture"),
+                                        PICK_IMAGE_REQUEST);
+
+                                mDialog.dismiss();
+                                break;
                         }
                     }
                 };
 
-                mDialog = new PhotoPickerDialog(getWindow().getContext(), listener, true);
+                mDialog = new PhotoPickerDialog(getWindow().getContext(), listener, mMultiSelect);
                 // This removes the padding around the dialog.
                 mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
                 mDialog.show();
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PICK_IMAGE_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                ArrayList<Uri> images = new ArrayList<Uri>();
+                ClipData clipData = data.getClipData();
+                if (clipData == null) {
+                    images.add(data.getData());
+                } else {
+                    int count = data.getClipData().getItemCount();
+                    for (int i = 0; i < count; ++i) {
+                        images.add(data.getClipData().getItemAt(i).getUri());
+                    }
+                }
+
+                // |images| now holds the selected images.
+                Log.e("***** ", "**** Photos selected: " + images.size());
+            }
+        }
     }
 
     @Override

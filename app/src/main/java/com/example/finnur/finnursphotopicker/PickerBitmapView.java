@@ -174,13 +174,13 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
                     // FLIP
                     mContext.getResources(), R.mipmap.ic_camera_alt_black_24dp);
                     //mContext.getResources(), R.drawable.ic_photo_camera);
-            label = mContext.getString(R.string.camera_label);
+            label = mContext.getString(R.string.file_picker_camera);
         } else {
             icon = BitmapFactory.decodeResource(
                     // FLIP
                     mContext.getResources(), R.mipmap.ic_collections_black_24dp);
                     //mContext.getResources(), R.drawable.ic_collections_black_24dp);
-            label = mContext.getString(R.string.browse_label);
+            label = mContext.getString(R.string.file_picker_browse);
         }
 
         Paint paint = new Paint();
@@ -226,7 +226,11 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     public void onClick() {
         Log.e("chromium", "PickerBitmapView::onClick, type: " + mItem.type());
 
-        if (mItem.type() != PickerBitmap.TileTypes.PICTURE) {
+        if (mItem.type() == PickerBitmap.TileTypes.GALLERY) {
+            mCategoryView.showGallery();
+            return;
+        } else if (mItem.type() != PickerBitmap.TileTypes.PICTURE) {
+            // TODO(finnur): Implement selecting a picture from the camera.
             return;
         }
 

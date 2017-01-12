@@ -41,6 +41,7 @@ public class PickerCategoryView extends RelativeLayout
     private List<PickerBitmap> mPickerBitmaps;
     private boolean mMultiSelection;
     private String mPath;
+    private OnPhotoPickerListener mListener;
 
     private RecyclerView mRecyclerView;
 
@@ -194,12 +195,13 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     public void setInitialState(String path, SelectionDelegate<PickerBitmap> selectionDelegate,
-            boolean multiSelection, int width) {
+            OnPhotoPickerListener listener, boolean multiSelection, int width) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.addItemDecoration(new RecyclerViewItemDecoration());
         mSelectionDelegate = selectionDelegate;
         mMultiSelection = multiSelection;
         mPath = path;
+        mListener = listener;
 
         // FLIP
         mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(),
@@ -253,6 +255,10 @@ public class PickerCategoryView extends RelativeLayout
         if (!useDecoderService()) {
             serviceReady();  // Call it manually because the decoder won't do it for us.
         }
+    }
+
+    public void showGallery() {
+        mListener.onUserAction(OnPhotoPickerListener.Action.LAUNCH_GALLERY, null);
     }
 
     public void filesEnumeratedCallback(List<PickerBitmap> files) {

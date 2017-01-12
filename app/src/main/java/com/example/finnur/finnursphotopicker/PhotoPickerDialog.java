@@ -42,7 +42,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     private final Context mContext;
 
     // The listener for the photo changed event.
-    private final OnPhotoChangedListener mListener;
+    private final OnPhotoPickerListener mListener;
 
     // The category we're showing photos for.
     private PickerCategoryView mCategoryView;
@@ -66,7 +66,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
      * @param listener The object to notify when the color is set.
      */
     public PhotoPickerDialog(Context context,
-                             OnPhotoChangedListener listener,
+                             OnPhotoPickerListener listener,
                              boolean multiSelection) {
         super(context, 0);
 
@@ -124,14 +124,15 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         int width = view.getWidth() - view.getPaddingLeft() - view.getPaddingRight();
         if (++sFolder == 1) {
             mCategoryView.setInitialState(
-                    "/DCIM/Camera", mSelectionDelegate, mMultiSelection, width);
+                    "/DCIM/Camera", mSelectionDelegate, mListener, mMultiSelection, width);
             parentLayout.addView(mCategoryView);
         } else if (sFolder == 2) {
             mCategoryView.setInitialState(
-                    "/Pictures/Screenshots", mSelectionDelegate, mMultiSelection, width);
+                    "/Pictures/Screenshots", mSelectionDelegate, mListener, mMultiSelection, width);
             parentLayout.addView(mCategoryView);
         } else {
-            mCategoryView.setInitialState("/Download", mSelectionDelegate, mMultiSelection, width);
+            mCategoryView.setInitialState(
+                    "/Download", mSelectionDelegate, mListener, mMultiSelection, width);
             parentLayout.addView(mCategoryView);
             sFolder = 0;
         }
@@ -174,7 +175,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
             photos[i++] = bitmap.getFilePath();
         }
 
-        mListener.onPhotoChanged(photos);
+        mListener.onUserAction(OnPhotoPickerListener.Action.PHOTOS_SELECTED, photos);
     }
 
     private void initializeChromeSpecificStuff(View title) {
