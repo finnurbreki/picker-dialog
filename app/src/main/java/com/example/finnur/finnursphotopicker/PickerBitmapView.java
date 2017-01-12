@@ -27,7 +27,6 @@ import android.widget.ImageView;
 /*
 FLIP
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.widget.TintedImageView;
 import org.chromium.chrome.browser.widget.selection.SelectableItemView;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
@@ -41,7 +40,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     private PickerCategoryView mCategoryView;
 
     // The image view we are showing.
-    private TintedImageView mIconView;
+    private ImageView mIconView;
     private View mScrim;
     private int mOriginalSize;
 
@@ -108,7 +107,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             mView.getLayoutParams().height = newSize;
             mView.getLayoutParams().width = newSize;
             // Create a border around the image.
-            if (mView instanceof TintedImageView) {
+            if (mView instanceof ImageView) {
                 addPaddingToParent(mView, padding);
             }
         }
@@ -130,7 +129,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        mIconView = (TintedImageView) findViewById(R.id.bitmap_view);
+        mIconView = (ImageView) findViewById(R.id.bitmap_view);
         mScrim = findViewById(R.id.scrim);
         mSelectedView = (ImageView) findViewById(R.id.selected);
         mUnselectedView = (ImageView) findViewById(R.id.unselected);

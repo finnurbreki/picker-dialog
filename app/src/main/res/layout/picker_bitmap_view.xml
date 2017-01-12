@@ -28,8 +28,7 @@ FLIP
             android:layout_height="wrap_content"
             android:background="#cccccc">
 
-            <!-- FLIP <org.chromium.chrome.browser.widget.TintedImageView -->
-            <com.example.finnur.finnursphotopicker.TintedImageView
+            <ImageView
                 android:id="@+id/bitmap_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
