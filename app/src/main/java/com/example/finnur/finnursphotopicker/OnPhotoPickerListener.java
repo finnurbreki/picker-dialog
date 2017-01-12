@@ -20,10 +20,15 @@ public interface OnPhotoPickerListener {
     }
 
     /**
+     * The types of requests supported.
+     */
+    static final int SHOW_GALLERY = 1;
+
+    /**
      * Called when the user has selected an action. For possible actions see
      * above.
      *
      * @param photos The photos that were selected.
      */
-    void onUserAction(Action action, String[] photos);
+    void onPickerUserAction(Action action, String[] photos);
 }

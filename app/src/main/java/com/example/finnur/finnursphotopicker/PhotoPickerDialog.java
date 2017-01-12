@@ -28,7 +28,7 @@ import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegateMulti;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegateSingle;
-import org.chromium.ui.OnPhotoChangedListener;
+import org.chromium.ui.OnPhotoPickerListener;
 */
 
 import java.util.List;
@@ -175,7 +175,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
             photos[i++] = bitmap.getFilePath();
         }
 
-        mListener.onUserAction(OnPhotoPickerListener.Action.PHOTOS_SELECTED, photos);
+        mListener.onPickerUserAction(OnPhotoPickerListener.Action.PHOTOS_SELECTED, photos);
     }
 
     private void initializeChromeSpecificStuff(View title) {

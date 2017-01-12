@@ -43,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 OnPhotoPickerListener listener = new OnPhotoPickerListener() {
                     @Override
-                    public void onUserAction(OnPhotoPickerListener.Action action, String[] photos) {
+                    public void onPickerUserAction(
+                            OnPhotoPickerListener.Action action, String[] photos) {
                         switch (action) {
                             case PHOTOS_SELECTED:
                                 if (photos != null) {

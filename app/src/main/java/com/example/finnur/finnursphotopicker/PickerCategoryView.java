@@ -29,6 +29,7 @@ import android.widget.RelativeLayout;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
+import org.chromium.ui.OnPhotoPickerListener;
 */
 
 import java.util.List;
@@ -258,7 +259,7 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     public void showGallery() {
-        mListener.onUserAction(OnPhotoPickerListener.Action.LAUNCH_GALLERY, null);
+        mListener.onPickerUserAction(OnPhotoPickerListener.Action.LAUNCH_GALLERY, null);
     }
 
     public void filesEnumeratedCallback(List<PickerBitmap> files) {
