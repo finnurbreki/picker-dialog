@@ -249,11 +249,13 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onSelectionStateChange(List<PickerBitmap> selectedItems) {
+        boolean selected = selectedItems.contains(mItem);
+
         if (mItem.type() != PickerBitmap.TileTypes.PICTURE) {
+            if (selected) mSelectionDelegate.toggleSelectionForItem(mItem);
             return;
         }
 
-        boolean selected = selectedItems.contains(mItem);
         boolean checked = super.isChecked();
 
         if (!mCategoryView.isMultiSelect() && !selected && checked) {
