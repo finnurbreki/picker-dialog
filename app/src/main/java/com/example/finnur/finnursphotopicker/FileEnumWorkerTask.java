@@ -43,6 +43,10 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
         String filePath = Environment.getExternalStorageDirectory().toString() + params[0];
         File directory = new File(filePath);
         File[] files = directory.listFiles();
+        if (files == null) {
+            return pickerBitmaps;
+        }
+
         for (int i = 0; i < files.length; i++) {
             if (isCancelled()) {
                 return null;
