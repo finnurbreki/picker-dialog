@@ -168,8 +168,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     public void initializeSpecialTile() {
         int size = mCategoryView.getImageSize();
         Bitmap tile = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-        tile.eraseColor(Color.LTGRAY);
-        Canvas canvas = new Canvas(tile);
+        tile.eraseColor(Color.rgb(0xEE, 0xEE, 0xEE));
 
         String label;
         if (mItem.type() == PickerBitmap.TileTypes.CAMERA) {
