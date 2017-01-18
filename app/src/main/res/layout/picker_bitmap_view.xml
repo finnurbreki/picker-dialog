@@ -61,5 +61,30 @@ FLIP
             android:layout_marginTop="4dp"
             android:contentDescription="@string/clear_cookies_and_site_data_title"
             android:visibility="gone" />
+
+        <!-- Special tiles, that give access to the camera and gallery  -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_centerInParent="true">
+
+            <ImageView
+                android:id="@+id/special_tile"
+                android:adjustViewBounds="true"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:contentDescription="(Placeholder)"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/special_tile_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textSize="16dp"
+                android:gravity="center"
+                android:visibility="gone" />
+        </LinearLayout>
     </RelativeLayout>
 </view>
