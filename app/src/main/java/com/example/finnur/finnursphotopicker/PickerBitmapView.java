@@ -139,8 +139,11 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mCategoryView = categoryView;
         mSelectionDelegate = mCategoryView.getSelectionDelegate();
         super.setSelectionDelegate(mSelectionDelegate);
+
         mSelectedView.setImageBitmap(mCategoryView.getSelectionBitmap(true));
         mUnselectedView.setImageBitmap(mCategoryView.getSelectionBitmap(false));
+
+        mBorder = (int) getResources().getDimension(R.dimen.file_picker_selected_padding);
     }
 
     /**
@@ -210,9 +213,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         // If the tile has been selected before the bitmap has loaded, make sure it shows up with
         // a selection border and scrim on load.
         if (super.isChecked()) {
-            mIconView.getLayoutParams().height = mOriginalSize - mBorder;
-            mIconView.getLayoutParams().width = mOriginalSize - mBorder;
-            addPaddingToParent(mIconView, mBorder / 2);
+            mIconView.getLayoutParams().height = mOriginalSize - 2 * mBorder;
+            mIconView.getLayoutParams().width = mOriginalSize - 2 * mBorder;
+            addPaddingToParent(mIconView, mBorder);
             mScrim.setVisibility(View.VISIBLE);
         }
 
@@ -267,10 +270,12 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             return;
         }
 
-        int size = selected && !checked ? mOriginalSize - mBorder : mOriginalSize;
+        int size = selected && !checked ? mOriginalSize - 2 * mBorder : mOriginalSize;
         if (size != mIconView.getWidth()) {
             ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, mScrim, size);
-            animation.setDuration(50);
+            animation.setDuration(100);
+            // TODO: Add MD interpolator
+            // animation.setInterpolator((mContext, R.interpolator.fast_out_linear_in);
             mIconView.startAnimation(animation);
         }
     }

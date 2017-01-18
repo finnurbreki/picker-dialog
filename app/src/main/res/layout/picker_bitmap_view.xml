@@ -26,7 +26,7 @@ FLIP
             android:id="@+id/border"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="#cccccc">
+            android:background="#eee">
 
             <ImageView
                 android:id="@+id/bitmap_view"
@@ -47,16 +47,18 @@ FLIP
             android:id="@+id/selected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingStart="6dp"
-            android:paddingTop="6dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/file_picker_selected_background"
+            android:elevation="2dp"
             android:contentDescription="@string/clear_cookies_and_site_data_title"
             android:visibility="gone" />
         <ImageView
             android:id="@+id/unselected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingStart="6dp"
-            android:paddingTop="6dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
             android:contentDescription="@string/clear_cookies_and_site_data_title"
             android:visibility="gone" />
     </RelativeLayout>

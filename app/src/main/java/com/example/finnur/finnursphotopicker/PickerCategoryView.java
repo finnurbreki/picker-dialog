@@ -215,8 +215,8 @@ public class PickerCategoryView extends RelativeLayout
         // Apply color to the bitmaps.
         int prefAccentColor = ContextCompat.getColor(mContext, R.color.pref_accent_color);
         mBitmapSelected = colorBitmap(mBitmapSelected, prefAccentColor);
-        int grayColor = ContextCompat.getColor(mContext, R.color.google_grey_600);
-        mBitmapUnselected = colorBitmap(mBitmapUnselected, grayColor);
+        int unselectedColor = ContextCompat.getColor(mContext, R.color.white_mode_tint);
+        mBitmapUnselected = colorBitmap(mBitmapUnselected, unselectedColor);
 
         mMaxImages = 40 * mColumns;
 
