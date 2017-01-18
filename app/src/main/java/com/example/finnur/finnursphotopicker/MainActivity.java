@@ -10,7 +10,10 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -18,7 +21,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,8 +34,14 @@ public class MainActivity extends AppCompatActivity {
     // An ID for the system intent to show the gallery and have the user pick a photo.
     static final int PICK_IMAGE_REQUEST = 1;
 
+    // An ID for the system intent to show the camera intent.
+    static final int TAKE_PHOTO_REQUEST = 2;
+
     // Whether multi-select should be enabled.
     static final boolean mMultiSelect = true;
+
+    // The path to the photo captured from the camera.
+    private String mCurrentPhotoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +79,34 @@ public class MainActivity extends AppCompatActivity {
 
                                 mDialog.dismiss();
                                 break;
+                            case LAUNCH_CAMERA:
+                                Intent takePictureIntent = new Intent(
+                                        MediaStore.ACTION_IMAGE_CAPTURE);
+                                if (takePictureIntent.resolveActivity(
+                                        getPackageManager()) != null) {
+                                    // Create the File where the photo should go
+                                    File photoFile = null;
+                                    try {
+                                        photoFile = createImageFile();
+                                        mCurrentPhotoPath = photoFile.getAbsolutePath();
+                                    } catch (IOException ex) {
+                                        // Error occurred while creating the File
+                                        // TODOf implement.
+                                    }
+
+                                    // Continue only if the File was successfully created
+                                    if (photoFile != null) {
+                                        Uri photoURI = FileProvider.getUriForFile(
+                                                getWindow().getContext(),
+                                                "com.example.finnur.finnursphotopicker",
+                                                photoFile);
+                                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                                        startActivityForResult(
+                                                takePictureIntent, TAKE_PHOTO_REQUEST);
+                                    }
+                                }
+                                mDialog.dismiss();
+                                break;
                         }
                     }
                 };
@@ -80,23 +121,44 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PICK_IMAGE_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                ArrayList<Uri> images = new ArrayList<Uri>();
-                ClipData clipData = data.getClipData();
-                if (clipData == null) {
-                    images.add(data.getData());
-                } else {
-                    int count = data.getClipData().getItemCount();
-                    for (int i = 0; i < count; ++i) {
-                        images.add(data.getClipData().getItemAt(i).getUri());
-                    }
-                }
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK) {
+            processGalleryIntentResults(data);
+        } else if (requestCode == TAKE_PHOTO_REQUEST && resultCode == RESULT_OK) {
+            processCameraIntentResults(data);
+        }
+    }
 
-                // |images| now holds the selected images.
-                Log.e("***** ", "**** Photos selected: " + images.size());
+    private void processGalleryIntentResults(Intent data) {
+        ArrayList<Uri> images = new ArrayList<Uri>();
+        ClipData clipData = data.getClipData();
+        if (clipData == null) {
+            images.add(data.getData());
+        } else {
+            int count = data.getClipData().getItemCount();
+            for (int i = 0; i < count; ++i) {
+                images.add(data.getClipData().getItemAt(i).getUri());
             }
         }
+
+        // |images| now holds the selected images.
+        Log.e("***** ", "**** Photos selected: " + images.size());
+    }
+
+    private void processCameraIntentResults(Intent data) {
+        Log.e("***** ", "**** Photos captured: " + mCurrentPhotoPath);
+        // TODOf delete file if cancelled?
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+        return image;
     }
 
     @Override

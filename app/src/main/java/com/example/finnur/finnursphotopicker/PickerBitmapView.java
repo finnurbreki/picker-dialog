@@ -228,7 +228,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             mCategoryView.showGallery();
             return;
         } else if (mItem.type() == PickerBitmap.TileTypes.CAMERA) {
-            // TODO(finnur): Implement selecting a picture from the camera.
+            mCategoryView.showCamera();
             return;
         }
 

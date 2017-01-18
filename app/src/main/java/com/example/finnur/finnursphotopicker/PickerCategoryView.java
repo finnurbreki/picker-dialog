@@ -262,6 +262,10 @@ public class PickerCategoryView extends RelativeLayout
         mListener.onPickerUserAction(OnPhotoPickerListener.Action.LAUNCH_GALLERY, null);
     }
 
+    public void showCamera() {
+        mListener.onPickerUserAction(OnPhotoPickerListener.Action.LAUNCH_CAMERA, null);
+    }
+
     public void filesEnumeratedCallback(List<PickerBitmap> files) {
         mPickerBitmaps = files;
         if (files != null && files.size() > 0) {
