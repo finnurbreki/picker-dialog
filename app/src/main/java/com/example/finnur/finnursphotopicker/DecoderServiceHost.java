@@ -11,6 +11,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -173,8 +176,6 @@ public class DecoderServiceHost {
                 super.handleMessage(msg);
                 return;
             }
-            HashMap<String, BitmapWorkerTask.ImageDecodedCallback> callbacks =
-                    host.getCallbacks();
 
             switch (msg.what) {
                 case DecoderService.MSG_IMAGE_DECODED_REPLY:
@@ -183,15 +184,22 @@ public class DecoderServiceHost {
                     // Read the reply back from the service.
                     long startTime = payload.getLong(DecoderService.KEY_START_TIME);
                     String filePath = payload.getString(DecoderService.KEY_FILE_PATH);
+                    Boolean success = payload.getBoolean(DecoderService.KEY_SUCCESS);
                     Bitmap bitmap = payload.getParcelable(DecoderService.KEY_IMAGE_BITMAP);
+                    int width = payload.getInt(DecoderService.KEY_WIDTH);
+                    int height = width;
+
+                    if (!success) {
+                        closeRequest(
+                                host, filePath, createPlaceholderBitmap(width, height), startTime);
+                        return;
+                    }
 
                     // Direct passing of bitmaps via ashmem became available in Marshmallow. For
                     // older clients, we manage our own memory file.
                     if (bitmap == null) {
                         ParcelFileDescriptor pfd =
                                 payload.getParcelable(DecoderService.KEY_IMAGE_DESCRIPTOR);
-                        int width = payload.getInt(DecoderService.KEY_WIDTH);
-                        int height = width;
                         int byteCount = payload.getInt(DecoderService.KEY_IMAGE_BYTE_COUNT);
 
                         // Grab the decoded pixels from memory and construct a bitmap object.
@@ -219,13 +227,30 @@ public class DecoderServiceHost {
                     }
 
                     // Reply back to the original caller.
-                    BitmapWorkerTask.ImageDecodedCallback callback = callbacks.get(filePath);
-                    callback.imageDecodedCallback(filePath, bitmap, startTime);
-                    callbacks.remove(filePath);
+                    closeRequest(host, filePath, bitmap, startTime);
                     break;
                 default:
                     super.handleMessage(msg);
             }
         }
+
+        private Bitmap createPlaceholderBitmap(int width, int height) {
+            Bitmap placeholder =
+                    Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(placeholder);
+            Paint paint = new Paint();
+            paint.setColor(Color.GRAY);
+            canvas.drawRect(0, 0, (float) width, (float) height, paint);
+            return placeholder;
+        }
+
+        private void closeRequest(
+                DecoderServiceHost host, String filePath, Bitmap bitmap, long startTime) {
+            HashMap<String, BitmapWorkerTask.ImageDecodedCallback> callbacks = host.getCallbacks();
+            BitmapWorkerTask.ImageDecodedCallback callback = callbacks.get(filePath);
+            callback.imageDecodedCallback(filePath, bitmap, startTime);
+            callbacks.remove(filePath);
+        }
+
     }
 }

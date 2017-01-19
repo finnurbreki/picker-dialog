@@ -69,6 +69,18 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // The amount to use for the border.
     private int mBorder;
 
+    /**
+     * Resets the view to its starting state, which is necessary when the view is about to be
+     * re-used.
+     */
+    private void resetTile() {
+        mUnselectedView.setVisibility(View.GONE);
+        mSelectedView.setVisibility(View.GONE);
+        mScrim.setVisibility(View.GONE);
+        mSpecialTileView.setVisibility(View.GONE);
+        mSpecialTileLabel.setVisibility(View.GONE);
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -156,6 +168,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
      * @param thumbnail The Bitmap to use for the thumbnail or null.
      */
     public void initialize(PickerBitmap item, @Nullable Bitmap thumbnail, boolean placeholder) {
+        resetTile();
+
         mItem = item;
         setItem(item);
         setThumbnailBitmap(thumbnail);
@@ -186,10 +200,11 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             label = mContext.getString(R.string.file_picker_browse);
             mSpecialTileLabel.setText(label);
         }
-        mSpecialTileView.setVisibility(View.VISIBLE);
-        mSpecialTileLabel.setVisibility(View.VISIBLE);
 
         initialize(mItem, tile, false);
+
+        mSpecialTileView.setVisibility(View.VISIBLE);
+        mSpecialTileLabel.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -274,7 +289,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             return;
         }
 
-        mSelectedView.setVisibility(super.isChecked() ? View.VISIBLE : View.GONE);
+        if (super.isChecked()) mSelectedView.setVisibility(View.VISIBLE);
 
         // The visibility of the unselected image is a little more complex because we don't want
         // to show it when nothing is selected and also not on a blank canvas.
@@ -283,13 +298,11 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         if (!super.isChecked() && mImageLoaded && somethingSelected
                 && mCategoryView.isMultiSelect()) {
             mUnselectedView.setVisibility(View.VISIBLE);
-        } else {
-            mUnselectedView.setVisibility(View.GONE);
         }
 
         boolean scrimVisibility = mSelectedView.getVisibility() == View.VISIBLE
                 || mUnselectedView.getVisibility() == View.VISIBLE;
-        mScrim.setVisibility(scrimVisibility ? View.VISIBLE : View.GONE);
+        if (scrimVisibility) mScrim.setVisibility(View.VISIBLE);
     }
 
     public void setTextWithOverlay() {

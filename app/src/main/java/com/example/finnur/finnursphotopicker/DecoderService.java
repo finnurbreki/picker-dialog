@@ -38,6 +38,7 @@ public class DecoderService extends Service {
     static final String KEY_IMAGE_DESCRIPTOR = "image_descriptor";
     static final String KEY_START_TIME = "start_time";
     static final String KEY_WIDTH = "width";
+    static final String KEY_SUCCESS = "success";
 
     private static final Method sMethodGetFileDescriptor;
     static {
@@ -105,79 +106,102 @@ public class DecoderService extends Service {
                     mClient = null;
                     break;
                 case MSG_DECODE_IMAGE:
-                    Bundle payload = msg.getData();
-                    String filePath = payload.getString(KEY_FILE_PATH);
-                    // Log.e("chromium", "GOT MSG_DECODE_IMAGE " + filePath);
-
-                    ParcelFileDescriptor pfd = payload.getParcelable(KEY_FILE_DESCRIPTOR);
-                    FileDescriptor fd = pfd.getFileDescriptor();
-                    int width = payload.getInt(KEY_WIDTH);
-                    long startTime = payload.getLong(KEY_START_TIME);
-
-                    Bitmap bitmap = BitmapUtils.decodeBitmapFromFileDescriptor(fd, width);
-                    try {
-                        pfd.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    MemoryFile imageFile = null;
-                    ParcelFileDescriptor imagePfd = null;
-
                     Bundle bundle = new Bundle();
-                    // createAshmemBitmap was not available until Marshmallow.
-                    if (sMethodCreateAshmemBitmap != null) {
-                        Bitmap ashmemBitmap = createAshmemBitmap(bitmap);
-                        bitmap.recycle();
-                        bundle.putParcelable(KEY_IMAGE_BITMAP, ashmemBitmap);
-                    } else {
-                        int byteCount = bitmap.getByteCount();
+                    try {
+                        Bundle payload = msg.getData();
 
-                        // TODO(finnur): Copy pixels by hand using a smaller buffer to conserve
-                        //     memory?
-                        ByteBuffer buffer = ByteBuffer.allocate(byteCount);
-                        bitmap.copyPixelsToBuffer(buffer);
-                        bitmap.recycle();
-                        buffer.rewind();
+                        String filePath = payload.getString(KEY_FILE_PATH);
+                        ParcelFileDescriptor pfd = payload.getParcelable(KEY_FILE_DESCRIPTOR);
+                        int width = payload.getInt(KEY_WIDTH);
+                        long startTime = payload.getLong(KEY_START_TIME);
 
+                        // Setup a minimum viable response to parent process. Will be fleshed out
+                        // further below.
+                        bundle.putString(KEY_FILE_PATH, filePath);
+                        bundle.putInt(KEY_WIDTH, width);
+                        bundle.putLong(KEY_START_TIME, startTime);
+                        bundle.putBoolean(KEY_SUCCESS, false);
+
+                        FileDescriptor fd = pfd.getFileDescriptor();
+                        Bitmap bitmap = BitmapUtils.decodeBitmapFromFileDescriptor(fd, width);
                         try {
-                            imageFile = new MemoryFile(filePath, byteCount);
-                            imageFile.writeBytes(buffer.array(), 0, 0, byteCount);
-
-                            fd = getFileDescriptor(imageFile);
-                            imagePfd = ParcelFileDescriptor.dup(fd);
+                            pfd.close();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
 
-                        bundle.putInt(KEY_WIDTH, width);
-                        bundle.putParcelable(KEY_IMAGE_DESCRIPTOR, imagePfd);
-                        bundle.putInt(KEY_IMAGE_BYTE_COUNT, byteCount);
-                    }
+                        MemoryFile imageFile = null;
+                        ParcelFileDescriptor imagePfd = null;
 
-                    try {
-                        bundle.putString(KEY_FILE_PATH, filePath);
-                        bundle.putLong(KEY_START_TIME, startTime);
+                        // createAshmemBitmap was not available until Marshmallow.
+                        if (sMethodCreateAshmemBitmap != null) {
+                            Bitmap ashmemBitmap = createAshmemBitmap(bitmap);
+                            bitmap.recycle();
+                            bundle.putParcelable(KEY_IMAGE_BITMAP, ashmemBitmap);
+                            bundle.putBoolean(KEY_SUCCESS, true);
+                        } else {
+                            int byteCount = bitmap.getByteCount();
 
-                        Message reply = Message.obtain(null, MSG_IMAGE_DECODED_REPLY);
-                        reply.setData(bundle);
-                        mClient.send(reply);
-                    } catch (RemoteException e) {
-                        Log.e("chromium", "DEAD CLIENT");
-                        mClient = null;  // He's dead, Jim.
-                    }
+                            // TODO(finnur): Copy pixels by hand using a smaller buffer to conserve
+                            //     memory?
+                            ByteBuffer buffer = ByteBuffer.allocate(byteCount);
+                            bitmap.copyPixelsToBuffer(buffer);
+                            bitmap.recycle();
+                            buffer.rewind();
 
-                    try {
+                            try {
+                                imageFile = new MemoryFile(filePath, byteCount);
+                                imageFile.writeBytes(buffer.array(), 0, 0, byteCount);
+
+                                fd = getFileDescriptor(imageFile);
+                                imagePfd = ParcelFileDescriptor.dup(fd);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                            bundle.putParcelable(KEY_IMAGE_DESCRIPTOR, imagePfd);
+                            bundle.putInt(KEY_IMAGE_BYTE_COUNT, byteCount);
+                            bundle.putBoolean(KEY_SUCCESS, true);
+                        }
+
+                        try {
+                            Message reply = Message.obtain(null, MSG_IMAGE_DECODED_REPLY);
+                            reply.setData(bundle);
+                            mClient.send(reply);
+                            bundle = null;
+                        } catch (RemoteException e) {
+                            Log.e("chromium", "DEAD CLIENT");
+                            mClient = null;  // He's dead, Jim.
+                        }
+
                         if (imageFile != null) {
                             imageFile.close();
                         }
-                        if (imagePfd != null) {
-                            imagePfd.close();
+                        try {
+                            if (imagePfd != null) {
+                                imagePfd.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    } catch (IOException e) {
+                    } catch (Exception e) {
+                        // This service has no UI and maintains no state so if it crashes on
+                        // decoding a photo, it is better UX to eat the exception instead of showing
+                        // a crash dialog and discarding other requests that have already been sent.
                         e.printStackTrace();
+
+                        if (bundle != null && mClient != null) {
+                            Message reply = Message.obtain(null, MSG_IMAGE_DECODED_REPLY);
+                            reply.setData(bundle);
+                            try {
+                                mClient.send(reply);
+                            } catch (RemoteException remoteException) {
+                                Log.e("chromium", "DEAD CLIENT");
+                                mClient = null;  // He's dead, Jim.
+                            }
+                        }
                     }
-                    break;
+            break;
                 default:
                     super.handleMessage(msg);
             }
