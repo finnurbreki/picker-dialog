@@ -159,6 +159,10 @@ public class DecoderServiceHost {
         }
     }
 
+    public void cancelDecodeImage(String filePath) {
+        // TODO
+    }
+
     static class IncomingHandler extends Handler {
         private final WeakReference<DecoderServiceHost> mHost;
 
