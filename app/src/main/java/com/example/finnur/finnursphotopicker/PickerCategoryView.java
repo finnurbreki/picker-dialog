@@ -36,7 +36,8 @@ import java.util.List;
 
 public class PickerCategoryView extends RelativeLayout
         implements FileEnumWorkerTask.FilesEnumeratedCallback,
-                DecoderServiceHost.ServiceReadyCallback {
+                DecoderServiceHost.ServiceReadyCallback,
+                RecyclerView.RecyclerListener {
     private Context mContext;
     private PickerAdapter mPickerAdapter;
     private List<PickerBitmap> mPickerBitmaps;
@@ -198,6 +199,7 @@ public class PickerCategoryView extends RelativeLayout
             OnPhotoPickerListener listener, boolean multiSelection, int width) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.addItemDecoration(new RecyclerViewItemDecoration());
+        mRecyclerView.setRecyclerListener(this);
         mSelectionDelegate = selectionDelegate;
         mMultiSelection = multiSelection;
         mListener = listener;
@@ -280,5 +282,18 @@ public class PickerCategoryView extends RelativeLayout
 
         mWorkerTask = new FileEnumWorkerTask(this);
         mWorkerTask.execute();
+    }
+
+    @Override
+    public void onViewRecycled(RecyclerView.ViewHolder holder) {
+        if (!useDecoderService()) {
+            return;
+        }
+
+        PickerBitmapViewHolder bitmapHolder = (PickerBitmapViewHolder) holder;
+        String filePath = bitmapHolder.getFilePath();
+        if (filePath != null) {
+            getDecoderServiceHost().cancelDecodeImage(filePath);
+        }
     }
 }
