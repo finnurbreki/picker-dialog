@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class DecoderServiceHost {
@@ -73,6 +74,25 @@ public class DecoderServiceHost {
         }
     }
 
+    private class DecoderServiceParams {
+        public String filePath;
+        public int width;
+        BitmapWorkerTask.ImageDecodedCallback callback;
+        public long startTime;
+
+        public DecoderServiceParams(String filePath, int width,
+                BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
+            this.filePath = filePath;
+            this.width = width;
+            this.callback = callback;
+            this.startTime = startTime;
+        }
+    }
+
+    // Map of file paths to decoder paramters in order of request
+    private LinkedHashMap<String, DecoderServiceParams> mRequests = new LinkedHashMap<>();
+    LinkedHashMap<String, DecoderServiceParams> getmRequests() { return mRequests; }
+
     // The callback the client wants us to use to report back when the service is ready.
     private ServiceReadyCallback mCallback;
 
@@ -116,6 +136,24 @@ public class DecoderServiceHost {
 
     public void decodeImage(String filePath, int width,
             BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
+        DecoderServiceParams params
+                = new DecoderServiceParams(filePath, width, callback, startTime);
+        mRequests.put(filePath, params);
+        if (mRequests.size() == 1) {
+            dispatchNextDecodeImageRequest();
+        }
+    }
+
+    void dispatchNextDecodeImageRequest() {
+        for (DecoderServiceParams params : mRequests.values()) {
+            dispatchDecodeImageRequest(params.filePath, params.width, params.callback,
+                    params.startTime);
+            break;
+        }
+    }
+
+    private void dispatchDecodeImageRequest(String filePath, int width,
+           BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
         // Obtain a file descriptor to send over to the sandboxed process.
         File file = new File(filePath);
         FileInputStream inputFile = null;
@@ -150,13 +188,17 @@ public class DecoderServiceHost {
         payload.setData(bundle);
         try {
             mService.send(payload);
-            mCallbacks.put(filePath, callback);
+            // mCallbacks.put(filePath, callback);
             pfd.close();
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void cancelDecodeImage(String filePath) {
+        mRequests.remove(filePath);
     }
 
     static class IncomingHandler extends Handler {
@@ -173,8 +215,6 @@ public class DecoderServiceHost {
                 super.handleMessage(msg);
                 return;
             }
-            HashMap<String, BitmapWorkerTask.ImageDecodedCallback> callbacks =
-                    host.getCallbacks();
 
             switch (msg.what) {
                 case DecoderService.MSG_IMAGE_DECODED_REPLY:
@@ -219,9 +259,15 @@ public class DecoderServiceHost {
                     }
 
                     // Reply back to the original caller.
-                    BitmapWorkerTask.ImageDecodedCallback callback = callbacks.get(filePath);
-                    callback.imageDecodedCallback(filePath, bitmap, startTime);
-                    callbacks.remove(filePath);
+                    DecoderServiceParams params = host.getmRequests().get(filePath);
+                    try {
+                        if (params != null) {
+                            params.callback.imageDecodedCallback(filePath, bitmap, startTime);
+                        }
+                    } finally {
+                        host.getmRequests().remove(filePath);
+                        host.dispatchNextDecodeImageRequest();
+                    }
                     break;
                 default:
                     super.handleMessage(msg);
