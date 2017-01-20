@@ -102,6 +102,7 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
         //Log.e("chromium", "Time spent fetching this image: " + durationInMs + " ms");
 
         mItemView.setThumbnailBitmap(bitmap);
+        mItemView.fadeInThumnail();
     }
 
     public void displayItem(Context context, PickerCategoryView categoryView, int position) {
@@ -129,7 +130,7 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
                 mItemView.initialize(mItem, placeholder, false);
             } else {
                 placeholder = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-                placeholder.eraseColor(Color.LTGRAY);
+                placeholder.eraseColor(Color.argb(0, 0, 0, 0));
                 mItemView.initialize(mItem, placeholder, true);
             }
 

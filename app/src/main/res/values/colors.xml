@@ -8,5 +8,10 @@
     <color name="light_active_color">#4285F4</color>
     <color name="pref_accent_color">@color/light_active_color</color>
     <color name="google_grey_600">#757575</color>
+    <color name="file_picker_tile_bg_color">#eeeeee</color>
+    <color name="file_picker_special_tile_bg_color">#263238</color>
+    <color name="file_picker_special_tile_color">#fff</color>
+    <color name="file_picker_special_tile_disabled_bg_color">#e0e0e0</color>
+    <color name="file_picker_special_tile_disabled_color">#bdbdbd</color>
     <color name="white_mode_tint">#FFFFFF</color>
 </resources>

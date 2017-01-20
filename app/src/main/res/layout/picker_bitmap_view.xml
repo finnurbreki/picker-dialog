@@ -13,7 +13,8 @@ FLIP
 <view class="com.example.finnur.finnursphotopicker.PickerBitmapView"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content"
+    android:background="@color/file_picker_tile_bg_color">
 
     <!-- android:background="?android:attr/selectableItemBackground" -->
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -25,8 +26,7 @@ FLIP
         <FrameLayout
             android:id="@+id/border"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="#eee">
+            android:layout_height="wrap_content">
 
             <ImageView
                 android:id="@+id/bitmap_view"
@@ -64,27 +64,33 @@ FLIP
 
         <!-- Special tiles, that give access to the camera and gallery  -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:id="@+id/special_tile"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_centerInParent="true">
+            android:gravity="center"
+            android:layout_centerInParent="true"
+            android:visibility="gone">
 
             <ImageView
-                android:id="@+id/special_tile"
+                android:id="@+id/special_tile_icon"
                 android:adjustViewBounds="true"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:contentDescription="(Placeholder)"
-                android:visibility="gone" />
+                android:tint="@color/file_picker_special_tile_color" />
 
             <TextView
                 android:id="@+id/special_tile_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/file_picker_label_gap"
+                android:fontFamily="sans-serif-medium"
                 android:textStyle="bold"
-                android:textSize="16dp"
-                android:gravity="center"
-                android:visibility="gone" />
+                android:textSize="14sp"
+                android:textAllCaps="true"
+                android:textColor="@color/file_picker_special_tile_color"
+                android:gravity="center" />
         </LinearLayout>
     </RelativeLayout>
 </view>
