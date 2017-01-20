@@ -6,6 +6,8 @@
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -216,6 +218,11 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         updateSelectionOverlays();
     }
 
+    public void fadeInThumnail() {
+        mIconView.setAlpha(0.0f);
+        mIconView.animate().alpha(1.0f).setDuration(200).start();
+    }
+
     @Override
     public void onClick() {
         Log.e("chromium", "PickerBitmapView::onClick, type: " + mItem.type());
@@ -293,7 +300,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             fgColorId = R.color.file_picker_special_tile_disabled_color;
         }
 
-        mBorderView.setBackgroundColor(ContextCompat.getColor(mContext, bgColorId));
+        setBackgroundColor(ContextCompat.getColor(mContext, bgColorId));
         mSpecialTileLabel.setTextColor(ContextCompat.getColor(mContext, fgColorId));
         mSpecialTileIcon.setImageTintList(createSimpleColorStateList(
                 ContextCompat.getColor(mContext, fgColorId)
