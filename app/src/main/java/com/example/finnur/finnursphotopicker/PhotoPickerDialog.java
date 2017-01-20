@@ -53,8 +53,6 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     // True if the file picker should allow multi-selection.
     private boolean mMultiSelection;
 
-    static int sFolder = 0;
-
     // FLIP
     // The toolbar at the top of the dialog.
     //private PhotoPickerToolbar mToolbar;  // TODOf make final once inside in ctor?
@@ -122,20 +120,8 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         mCategoryView = new PickerCategoryView(mContext);
         View view = getWindow().getDecorView();
         int width = view.getWidth() - view.getPaddingLeft() - view.getPaddingRight();
-        if (++sFolder == 1) {
-            mCategoryView.setInitialState(
-                    "/DCIM/Camera", mSelectionDelegate, mListener, mMultiSelection, width);
-            parentLayout.addView(mCategoryView);
-        } else if (sFolder == 2) {
-            mCategoryView.setInitialState(
-                    "/Pictures/Screenshots", mSelectionDelegate, mListener, mMultiSelection, width);
-            parentLayout.addView(mCategoryView);
-        } else {
-            mCategoryView.setInitialState(
-                    "/Download", mSelectionDelegate, mListener, mMultiSelection, width);
-            parentLayout.addView(mCategoryView);
-            sFolder = 0;
-        }
+        mCategoryView.setInitialState(mSelectionDelegate, mListener, mMultiSelection, width);
+        parentLayout.addView(mCategoryView);
 
         boolean hasItems = mCategoryView.getVisibility() == View.VISIBLE;
         if (!hasItems) {

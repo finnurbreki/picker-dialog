@@ -6,29 +6,37 @@
 //package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
-public class PickerBitmap {
+public class PickerBitmap implements Comparable<PickerBitmap> {
     // The file path to the bitmap to show.
     private String mFilePath;
     private TileTypes mType;
+    private long mLastModified;
 
     public enum TileTypes {
         PICTURE, CAMERA, GALLERY
     }
 
-    public PickerBitmap(String filePath, TileTypes type) {
+    public PickerBitmap(String filePath, TileTypes type, long lastModified) {
         mFilePath = filePath;
         mType = type;
+        mLastModified = lastModified;
     }
 
     public String getFilePath() {
         return mFilePath;
     }
 
-    public void setFilePath(String filePath) {
-        mFilePath = filePath;
-    }
-
     public TileTypes type() {
         return mType;
+    }
+
+    @Override
+    public int compareTo(PickerBitmap f) {
+        if (mLastModified < f.mLastModified) {
+            return 1;
+        } else if (mLastModified > f.mLastModified) {
+            return -1;
+        }
+        return 0;
     }
 }

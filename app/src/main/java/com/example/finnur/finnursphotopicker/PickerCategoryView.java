@@ -41,7 +41,6 @@ public class PickerCategoryView extends RelativeLayout
     private PickerAdapter mPickerAdapter;
     private List<PickerBitmap> mPickerBitmaps;
     private boolean mMultiSelection;
-    private String mPath;
     private OnPhotoPickerListener mListener;
 
     private RecyclerView mRecyclerView;
@@ -143,7 +142,7 @@ public class PickerCategoryView extends RelativeLayout
     public void serviceReady() {
         // TODOf instead of waiting to enumerate, perhaps let filesEnumeratedCallback wait to
         // provide the data?
-        prepareBitmaps(mPath);
+        prepareBitmaps();
     }
 
     public int getMaxImagesShown() {
@@ -195,13 +194,12 @@ public class PickerCategoryView extends RelativeLayout
         return mutable;
     }
 
-    public void setInitialState(String path, SelectionDelegate<PickerBitmap> selectionDelegate,
+    public void setInitialState(SelectionDelegate<PickerBitmap> selectionDelegate,
             OnPhotoPickerListener listener, boolean multiSelection, int width) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.addItemDecoration(new RecyclerViewItemDecoration());
         mSelectionDelegate = selectionDelegate;
         mMultiSelection = multiSelection;
-        mPath = path;
         mListener = listener;
 
         // FLIP
@@ -270,18 +268,17 @@ public class PickerCategoryView extends RelativeLayout
         mPickerBitmaps = files;
         if (files != null && files.size() > 0) {
             mRecyclerView.setAdapter(mPickerAdapter);
-            //mPickerAdapter.notifyDataSetChanged();
         } else {
             setVisibility(View.GONE);
         }
     }
 
-    private void prepareBitmaps(String path) {
+    private void prepareBitmaps() {
         if (mWorkerTask != null) {
             mWorkerTask.cancel(true);
         }
 
         mWorkerTask = new FileEnumWorkerTask(this);
-        mWorkerTask.execute(path);
+        mWorkerTask.execute();
     }
 }
