@@ -280,7 +280,7 @@ public class PickerCategoryView extends RelativeLayout
             mWorkerTask.cancel(true);
         }
 
-        mWorkerTask = new FileEnumWorkerTask(this);
+        mWorkerTask = new FileEnumWorkerTask(this, AcceptFileFilter.forAttr("image/*,video/*"));
         mWorkerTask.execute();
     }
 

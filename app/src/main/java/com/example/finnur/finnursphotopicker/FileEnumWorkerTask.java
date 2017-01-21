@@ -23,9 +23,15 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
     }
 
     private FilesEnumeratedCallback mCallback;
+    private AcceptFileFilter mFilter;
 
     public FileEnumWorkerTask(FilesEnumeratedCallback callback) {
+        this(callback, AcceptFileFilter.getDefault());
+    }
+
+    public FileEnumWorkerTask(FilesEnumeratedCallback callback, AcceptFileFilter filter) {
         mCallback = callback;
+        mFilter = filter;
     }
 
     // Enumerate files in background.
@@ -58,7 +64,10 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
                 }
 
                 File file = files[i];
-                
+                if (!mFilter.test(file)) {
+                    continue;
+                }
+
                 //Log.e("chromium", "FileName:" + file.getPath().toString() + "/" + file.getName() +
                 //                  " size: " + file.length());
                 pickerBitmaps.add(
