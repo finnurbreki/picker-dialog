@@ -5,4 +5,6 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="file_picker_selected_padding">12dp</dimen>
     <dimen name="file_picker_label_gap">10dp</dimen>
+    <dimen name="file_picker_tile_min_size">100dp</dimen>
+    <dimen name="file_picker_tile_gap">4dp</dimen>
 </resources>

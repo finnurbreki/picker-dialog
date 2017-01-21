@@ -14,6 +14,8 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
+import android.support.annotation.DimenRes;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
@@ -57,10 +59,10 @@ public class PickerCategoryView extends RelativeLayout
 
     // mColumns and mPadding should both be even numbers or both odd, not a mix (the column padding
     // will not be of uniform thickness if they are a mix).
-    private int mColumns = 3;
+    private int mColumns;
 
     // The padding between columns. See also comment for mColumns.
-    private int mPadding = 21;
+    private int mPadding;
 
     // Maximum number of bitmaps to show.
     private int mMaxImages;
@@ -77,6 +79,9 @@ public class PickerCategoryView extends RelativeLayout
     // A worker task for asynchronously enumerating files off the main thread.
     private FileEnumWorkerTask mWorkerTask;
 
+    // Default value to use as an accept attribute for testing
+    private static final String DEFAULT_ACCEPT_ATTR = "image/*,video/*";
+/*
     private class RecyclerViewItemDecoration extends RecyclerView.ItemDecoration {
         @Override
         public void getItemOffsets(Rect outRect, View view, RecyclerView parent,
@@ -103,7 +108,7 @@ public class PickerCategoryView extends RelativeLayout
             }
         }
     }
-
+*/
     public PickerCategoryView(Context context) {
         super(context);
         init(context);
@@ -198,7 +203,7 @@ public class PickerCategoryView extends RelativeLayout
     public void setInitialState(SelectionDelegate<PickerBitmap> selectionDelegate,
             OnPhotoPickerListener listener, boolean multiSelection, int width) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        mRecyclerView.addItemDecoration(new RecyclerViewItemDecoration());
+        // mRecyclerView.addItemDecoration(new RecyclerViewItemDecoration());
         mRecyclerView.setRecyclerListener(this);
         mSelectionDelegate = selectionDelegate;
         mMultiSelection = multiSelection;
@@ -218,17 +223,19 @@ public class PickerCategoryView extends RelativeLayout
         int unselectedColor = ContextCompat.getColor(mContext, R.color.white_mode_tint);
         mBitmapUnselected = colorBitmap(mBitmapUnselected, unselectedColor);
 
+        calculateGridMetrics(width);
         mMaxImages = 40 * mColumns;
+        mThumbnailProvider = new ThumbnailProviderImpl(mImageSize);
 
         // The dialog width is known, the padding between images is known and the number of
         // image columns is known. From that we can calculate how much space is remaining for
         // showing images. The layout used when mColumns equals 3 is:
         // Padding [Img] Padding [Img] Padding.
-        mImageSize = (width - (mPadding * (mColumns + 1))) / mColumns;
+        // mImageSize = (width - (mPadding * (mColumns + 1))) / mColumns;
 
         // The thumbnail clamps the maximum of the smaller side, we need to clamp
         // down the maximum of the larger side, so we flip the sizes.
-        mThumbnailProvider = new ThumbnailProviderImpl(mImageSize * 3 / 4);
+        // mThumbnailProvider = new ThumbnailProviderImpl(mImageSize * 3 / 4);
 
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSizeLarge = maxMemory / 2; // 1/2th of the available memory.
@@ -252,10 +259,19 @@ public class PickerCategoryView extends RelativeLayout
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        mRecyclerView.addItemDecoration(new GridSpacingItemDecoration(mColumns, mPadding));
 
         if (!useDecoderService()) {
             serviceReady();  // Call it manually because the decoder won't do it for us.
         }
+    }
+
+    private void calculateGridMetrics(int width) {
+        int minSize
+                = mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_min_size);
+        mPadding = mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_gap);
+        mColumns = Math.max(1, (width - mPadding) / (minSize+mPadding));
+        mImageSize = (width - mPadding*(mColumns+1)) / (mColumns);
     }
 
     public void showGallery() {
@@ -294,6 +310,36 @@ public class PickerCategoryView extends RelativeLayout
         String filePath = bitmapHolder.getFilePath();
         if (filePath != null) {
             getDecoderServiceHost().cancelDecodeImage(filePath);
+        }
+    }
+
+    private class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
+        private int spanCount;
+        private int spacing;
+
+        public GridSpacingItemDecoration(int spanCount, int spacing) {
+            this.spanCount = spanCount;
+            this.spacing = spacing;
+        }
+
+        @Override
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+            int left = 0, right = 0, top = 0, bottom = 0;
+            int position = parent.getChildAdapterPosition(view);
+
+            if (position >= 0) {
+                int column = position % spanCount; // item column
+
+                left = spacing - column * spacing / spanCount;
+                right = (column + 1) * spacing / spanCount;
+
+                if (position < spanCount) { // top edge
+                    top = spacing;
+                }
+                bottom = spacing; // item bottom
+            }
+
+            outRect.set(left, top, right, bottom);
         }
     }
 }
