@@ -4,12 +4,13 @@ import android.support.annotation.NonNull;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Predicate;
 
 
-public abstract class AcceptFileFilter {
+public abstract class AcceptFileFilter implements FileFilter {
     private static AcceptFileFilter mDefaultSingleton = null;
 
     @NonNull
@@ -25,7 +26,7 @@ public abstract class AcceptFileFilter {
         return new AttrAcceptFileFilter(acceptAttr);
     }
 
-    public abstract boolean test(@NonNull File file);
+    public abstract boolean accept(@NonNull File file);
 
     public abstract boolean acceptsImages();
 
@@ -38,7 +39,7 @@ public abstract class AcceptFileFilter {
 class DefaultAcceptFileFilter extends AcceptFileFilter {
 
     @Override
-    public boolean test(@NonNull File file) {
+    public boolean accept(@NonNull File file) {
         return true;
     }
 
@@ -87,7 +88,11 @@ class AttrAcceptFileFilter extends AcceptFileFilter {
     }
 
     @Override
-    public boolean test(@NonNull File file) {
+    public boolean accept(@NonNull File file) {
+        if (file.isDirectory()) {
+            return true;
+        }
+
         String uri = file.toURI().toString();
         String ext = MimeTypeMap.getFileExtensionFromUrl(uri).toLowerCase();
         if (mExtensions.contains(ext)) {
