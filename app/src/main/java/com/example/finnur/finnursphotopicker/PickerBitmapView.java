@@ -44,7 +44,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     private ImageView mIconView;
     private View mScrim;
     private View mBorderView;
-    private int mOriginalSize;
 
     // Our selection delegate.
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
@@ -222,13 +221,12 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
      */
     public void setThumbnailBitmap(Bitmap thumbnail) {
         mIconView.setImageBitmap(thumbnail);
-        mOriginalSize = thumbnail != null ? mIconView.getWidth() : 0;
 
         // If the tile has been selected before the bitmap has loaded, make sure it shows up with
         // a selection border and scrim on load.
         if (super.isChecked()) {
-            mIconView.getLayoutParams().height = mOriginalSize - 2 * mBorder;
-            mIconView.getLayoutParams().width = mOriginalSize - 2 * mBorder;
+            mIconView.getLayoutParams().height = mCategoryView.getImageSize() - 2 * mBorder;
+            mIconView.getLayoutParams().width = mCategoryView.getImageSize() - 2 * mBorder;
             addPaddingToParent(mIconView, mBorder);
             mScrim.setVisibility(View.VISIBLE);
         }
@@ -290,7 +288,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             return;
         }
 
-        int size = selected && !checked ? mOriginalSize - 2 * mBorder : mOriginalSize;
+        int size = selected && !checked
+                ? mCategoryView.getImageSize() - 2 * mBorder : mCategoryView.getImageSize();
         if (size != mIconView.getWidth()) {
             ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, mScrim, size);
             animation.setDuration(100);
