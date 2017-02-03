@@ -14,8 +14,6 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
-import android.support.annotation.DimenRes;
-import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
@@ -81,34 +79,7 @@ public class PickerCategoryView extends RelativeLayout
 
     // Default value to use as an accept attribute for testing
     private static final String DEFAULT_ACCEPT_ATTR = "image/*,video/*";
-/*
-    private class RecyclerViewItemDecoration extends RecyclerView.ItemDecoration {
-        @Override
-        public void getItemOffsets(Rect outRect, View view, RecyclerView parent,
-                                   RecyclerView.State state) {
-            int position = parent.getChildAdapterPosition(view);
 
-            // To understand the right shift, one needs to look at an example. Lets say mColumns
-            // is 3 and mPadding is 21. Then RecyclerView will draw items in the following manner:
-            // [Img1] 28px [Img2] 28px [Img3] 28px.
-            // This needs to be converted to:
-            // 21px [Img1] 21px [Img2] 21px [Img3] 21px.
-            // In other words, the first image needs to be shifted right by 21px, the next by 14px
-            // and the last one by 7px to achieve even distribution of padding everywhere. Put
-            // another way: the 1st image shifts 3 steps, 2nd shifts 2 steps and 3rd shifts 1 step.
-            int step = mPadding / mColumns;
-            int shift = mPadding - (step * (position % mColumns));
-            outRect.left = shift;
-
-            outRect.top = mPadding;
-            // Bottom row also gets padding below it.
-            int index = parent.getAdapter().getItemCount() / mColumns;
-            if (position >= index * mColumns) {
-                outRect.bottom = mPadding;
-            }
-        }
-    }
-*/
     public PickerCategoryView(Context context) {
         super(context);
         init(context);
@@ -203,7 +174,6 @@ public class PickerCategoryView extends RelativeLayout
     public void setInitialState(SelectionDelegate<PickerBitmap> selectionDelegate,
             OnPhotoPickerListener listener, boolean multiSelection, int width) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        // mRecyclerView.addItemDecoration(new RecyclerViewItemDecoration());
         mRecyclerView.setRecyclerListener(this);
         mSelectionDelegate = selectionDelegate;
         mMultiSelection = multiSelection;
@@ -227,15 +197,9 @@ public class PickerCategoryView extends RelativeLayout
         mMaxImages = 40 * mColumns;
         mThumbnailProvider = new ThumbnailProviderImpl(mImageSize);
 
-        // The dialog width is known, the padding between images is known and the number of
-        // image columns is known. From that we can calculate how much space is remaining for
-        // showing images. The layout used when mColumns equals 3 is:
-        // Padding [Img] Padding [Img] Padding.
-        // mImageSize = (width - (mPadding * (mColumns + 1))) / mColumns;
-
         // The thumbnail clamps the maximum of the smaller side, we need to clamp
         // down the maximum of the larger side, so we flip the sizes.
-        // mThumbnailProvider = new ThumbnailProviderImpl(mImageSize * 3 / 4);
+        mThumbnailProvider = new ThumbnailProviderImpl(mImageSize * 3 / 4);
 
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSizeLarge = maxMemory / 2; // 1/2th of the available memory.
@@ -267,11 +231,11 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     private void calculateGridMetrics(int width) {
-        int minSize
-                = mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_min_size);
+        int minSize = mContext.getResources().getDimensionPixelSize(
+                R.dimen.file_picker_tile_min_size);
         mPadding = mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_gap);
-        mColumns = Math.max(1, (width - mPadding) / (minSize+mPadding));
-        mImageSize = (width - mPadding*(mColumns+1)) / (mColumns);
+        mColumns = Math.max(1, (width - mPadding) / (minSize + mPadding));
+        mImageSize = (width - mPadding * (mColumns + 1)) / (mColumns);
     }
 
     public void showGallery() {
@@ -328,15 +292,15 @@ public class PickerCategoryView extends RelativeLayout
             int position = parent.getChildAdapterPosition(view);
 
             if (position >= 0) {
-                int column = position % spanCount; // item column
+                int column = position % spanCount;
 
                 left = spacing - column * spacing / spanCount;
                 right = (column + 1) * spacing / spanCount;
 
-                if (position < spanCount) { // top edge
+                if (position < spanCount) {
                     top = spacing;
                 }
-                bottom = spacing; // item bottom
+                bottom = spacing;
             }
 
             outRect.set(left, top, right, bottom);
