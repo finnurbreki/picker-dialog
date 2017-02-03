@@ -5,9 +5,7 @@ import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.function.Predicate;
 
 
 public abstract class AcceptFileFilter implements FileFilter {
@@ -76,7 +74,7 @@ class AttrAcceptFileFilter extends AcceptFileFilter {
             if (field.startsWith(".")) {
                 mExtensions.add(field.substring(1));
             } else if (field.endsWith("/*")) {
-                mMimeSupertypes.add(field.substring(0, field.length()-2));
+                mMimeSupertypes.add(field.substring(0, field.length() - 2));
             } else if (field.contains("/")) {
                 mMimeTypes.add(field);
             } else {
@@ -104,7 +102,7 @@ class AttrAcceptFileFilter extends AcceptFileFilter {
             if (mMimeTypes.contains(mimeType)) {
                 return true;
             }
-            if (mMimeSupertypes.contains( getMimeSupertype(mimeType) )) {
+            if (mMimeSupertypes.contains(getMimeSupertype(mimeType))) {
                 return true;
             }
         }
@@ -139,7 +137,7 @@ class AttrAcceptFileFilter extends AcceptFileFilter {
         for (String ext : mExtensions) {
             String mimeType = getMimeTypeFromExtension(ext);
             if (mimeType != null) {
-                supertypes.add( getMimeSupertype(mimeType) );
+                supertypes.add(getMimeSupertype(mimeType));
             }
         }
         return supertypes;
