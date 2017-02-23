@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FLIP
-//package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
 import android.content.ComponentName;
@@ -21,7 +19,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -31,7 +28,6 @@ import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.concurrent.TimeUnit;
 
 public class DecoderServiceHost {
     /**
@@ -64,11 +60,6 @@ public class DecoderServiceHost {
 
             mBound = true;
 
-            long endTime = System.nanoTime();
-            long durationInMs =
-                    TimeUnit.MILLISECONDS.convert(endTime - mStartTime, TimeUnit.NANOSECONDS);
-            Log.e("chromium", "Time from start of service to bound: " + durationInMs + " ms");
-
             mCallback.serviceReady();
         }
 
@@ -78,23 +69,25 @@ public class DecoderServiceHost {
     }
 
     private class DecoderServiceParams {
-        public String filePath;
-        public int width;
-        BitmapWorkerTask.ImageDecodedCallback callback;
-        public long startTime;
+        public String mFilePath;
+        public int mWidth;
+        BitmapWorkerTask.ImageDecodedCallback mCallback;
+        public long mStartTime;
 
         public DecoderServiceParams(String filePath, int width,
                 BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
-            this.filePath = filePath;
-            this.width = width;
-            this.callback = callback;
-            this.startTime = startTime;
+            mFilePath = filePath;
+            mWidth = width;
+            mCallback = callback;
+            mStartTime = startTime;
         }
     }
 
     // Map of file paths to decoder parameters in order of request.
     private LinkedHashMap<String, DecoderServiceParams> mRequests = new LinkedHashMap<>();
-    LinkedHashMap<String, DecoderServiceParams> getRequests() { return mRequests; }
+    LinkedHashMap<String, DecoderServiceParams> getRequests() {
+        return mRequests;
+    }
 
     // The callback the client wants us to use to report back when the service is ready.
     private ServiceReadyCallback mCallback;
@@ -103,7 +96,7 @@ public class DecoderServiceHost {
         mCallback = callback;
     }
 
-    /** Messenger for communicating with the service. */
+    // Messenger for communicating with the remote service.
     Messenger mService = null;
 
     // Our service connection to the decoder service.
@@ -115,10 +108,10 @@ public class DecoderServiceHost {
         return mCallbacks;
     }
 
-    /** Flag indicating whether we have called bind on the service. */
+    // Flag indicating whether we have called bind on the service.
     boolean mBound;
 
-    // TODOf doc
+    // The inbound messenger used by the remote service to communicate with us.
     final Messenger mMessenger = new Messenger(new IncomingHandler(this));
 
     private long mStartTime = System.nanoTime();
@@ -126,7 +119,7 @@ public class DecoderServiceHost {
     public void bind(Context context) {
         mConnection = new DecoderServiceConnection(mCallback);
         Intent intent = new Intent(context, DecoderService.class);
-        boolean success = context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     public void unbind(Context context) {
@@ -139,8 +132,8 @@ public class DecoderServiceHost {
 
     public void decodeImage(String filePath, int width,
             BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
-        DecoderServiceParams params
-                = new DecoderServiceParams(filePath, width, callback, startTime);
+        DecoderServiceParams params =
+                new DecoderServiceParams(filePath, width, callback, startTime);
         mRequests.put(filePath, params);
         if (mRequests.size() == 1) {
             dispatchNextDecodeImageRequest();
@@ -149,14 +142,14 @@ public class DecoderServiceHost {
 
     void dispatchNextDecodeImageRequest() {
         for (DecoderServiceParams params : mRequests.values()) {
-            dispatchDecodeImageRequest(params.filePath, params.width, params.callback,
-                    params.startTime);
+            dispatchDecodeImageRequest(params.mFilePath, params.mWidth, params.mCallback,
+                    params.mStartTime);
             break;
         }
     }
 
     private void dispatchDecodeImageRequest(String filePath, int width,
-           BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
+            BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
         // Obtain a file descriptor to send over to the sandboxed process.
         File file = new File(filePath);
         FileInputStream inputFile = null;
@@ -231,8 +224,7 @@ public class DecoderServiceHost {
                     int height = width;
 
                     if (!success) {
-                        closeRequest(
-                                host, filePath, createPlaceholderBitmap(width, height), startTime);
+                        closeRequest(host, filePath, createPlaceholderBitmap(width, height));
                         return;
                     }
 
@@ -268,7 +260,7 @@ public class DecoderServiceHost {
                     }
 
                     // Reply back to the original caller.
-                    closeRequest(host, filePath, bitmap, startTime);
+                    closeRequest(host, filePath, bitmap);
                     break;
                 default:
                     super.handleMessage(msg);
@@ -285,11 +277,10 @@ public class DecoderServiceHost {
             return placeholder;
         }
 
-        private void closeRequest(
-                DecoderServiceHost host, String filePath, Bitmap bitmap, long startTime) {
+        private void closeRequest(DecoderServiceHost host, String filePath, Bitmap bitmap) {
             DecoderServiceParams params = host.getRequests().get(filePath);
             if (params != null) {
-                params.callback.imageDecodedCallback(filePath, bitmap, startTime);
+                params.mCallback.imageDecodedCallback(filePath, bitmap);
                 host.getRequests().remove(filePath);
             }
             host.dispatchNextDecodeImageRequest();

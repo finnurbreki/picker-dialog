@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FLIP
-//package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
 import android.graphics.Bitmap;
@@ -11,7 +9,7 @@ import android.os.AsyncTask;
 
 class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
     public interface ImageDecodedCallback {
-        void imageDecodedCallback(String filePath, Bitmap bitmap, long requestStartTime);
+        void imageDecodedCallback(String filePath, Bitmap bitmap);
     }
 
     private BitmapWorkerRequest mRequest;
@@ -42,6 +40,6 @@ class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
             return;
         }
 
-        mCallback.imageDecodedCallback(mFilePath, bitmap, mRequest.getRequestStartTime());
+        mCallback.imageDecodedCallback(mFilePath, bitmap);
     }
 }

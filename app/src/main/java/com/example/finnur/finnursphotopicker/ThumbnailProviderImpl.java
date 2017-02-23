@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FLIP
-//package org.chromium.chrome.browser.download.ui;
 package com.example.finnur.finnursphotopicker;
 
 import android.graphics.Bitmap;
@@ -16,8 +14,11 @@ import android.support.v4.util.LruCache;
 import android.text.TextUtils;
 import android.util.Log;
 
-//import org.chromium.base.ThreadUtils;
-//import org.chromium.base.annotations.CalledByNative;
+// Chrome-specific imports:
+/*
+import org.chromium.base.ThreadUtils;
+import org.chromium.base.annotations.CalledByNative;
+*/
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;

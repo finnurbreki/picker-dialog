@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FLIP
-//package org.chromium.chrome.browser.widget.selection;
 package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
@@ -15,7 +13,8 @@ import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.Checkable;
 import android.widget.FrameLayout;
 
-/* FLIP
+// Chrome-specific imports:
+/*
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate.SelectionObserver;
@@ -157,5 +156,5 @@ public abstract class SelectableItemView<E> extends FrameLayout implements Check
      */
     protected abstract void onClick();
 
-    // Additional (redundant Chromium functions left out).
+    // Additional (redundant) Chromium functions left out.
 }

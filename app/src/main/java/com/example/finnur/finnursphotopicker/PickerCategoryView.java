@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FLIP
-//package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
@@ -24,8 +22,9 @@ import android.util.LruCache;
 import android.view.View;
 import android.widget.RelativeLayout;
 
-// Chrome-specific:
-/* FLIP
+// Chrome-specific imports:
+/*
+import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
@@ -80,9 +79,6 @@ public class PickerCategoryView extends RelativeLayout
     // A worker task for asynchronously enumerating files off the main thread.
     private FileEnumWorkerTask mWorkerTask;
 
-    // Default value to use as an accept attribute for testing
-    private static final String DEFAULT_ACCEPT_ATTR = "image/*,video/*";
-
     public PickerCategoryView(Context context) {
         super(context);
         init(context);
@@ -125,7 +121,7 @@ public class PickerCategoryView extends RelativeLayout
         prepareBitmaps();
     }
 
-    // TODOf visible for testing
+    @VisibleForTesting
     public RecyclerView getRecyclerViewForTesting() {
         return mRecyclerView;
     }

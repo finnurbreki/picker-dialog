@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FLIP
-//package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
 import android.graphics.Bitmap;
@@ -13,35 +11,12 @@ import java.io.FileDescriptor;
 
 class BitmapUtils {
     public static Bitmap sizeBitmap(Bitmap bitmap, int width) {
-        int w = bitmap.getWidth();
-        int h = bitmap.getHeight();
-        int size = bitmap.getByteCount() / 1024;
         bitmap = ensureMinSize(bitmap, width);
-        int sizeEnlarged = bitmap.getByteCount() / 1024;
         bitmap = cropToSquare(bitmap, width);
-        int sizeCropped = bitmap.getByteCount() / 1024;
-        //Log.e("chromium", "Bitmap decoded size: " + size + " KB, enlarged: " +
-        //      sizeEnlarged + " KB, cropped: " + sizeCropped + " KB");
-        //long endTime = System.nanoTime();
-        //long durationInMs = TimeUnit.MILLISECONDS.convert(
-        //      endTime - startTime, TimeUnit.NANOSECONDS);
-
-        //info = Runtime.getRuntime();
-        //long diff2 = (info.maxMemory() - info.totalMemory()) / 1024;
-        //String memory = "Mem delta: " + diff1 + " KB -> " + diff2 + " KB";
-
-        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size +
-        //        " KB (now " + bitmap.getWidth() + "x" + bitmap.getHeight() +
-        //        " size " + (bitmap.getByteCount() / 1024) + " KB) loaded in " +
-        //        durationInMs + " ms. " + memory);
         return bitmap;
     }
 
     public static Bitmap decodeBitmapFromFileDescriptor(FileDescriptor fd, int width) {
-        //long startTime = System.nanoTime();
-
-        //Runtime info = Runtime.getRuntime();
-        //long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFileDescriptor(fd, null, options);
@@ -51,19 +26,10 @@ class BitmapUtils {
         if (bitmap == null) {
             return null;
         }
-
-        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now "
-        //        + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " +
-        //        (bitmap.getByteCount() / 1024) + " KB) loaded in " +
-        //        durationInMs + " ms. " + memory);
         return sizeBitmap(bitmap, width);
     }
 
     public static Bitmap decodeBitmapFromDisk(String filePath, int width) {
-        //long startTime = System.nanoTime();
-
-        //Runtime info = Runtime.getRuntime();
-        //long diff1 = (info.maxMemory() - info.totalMemory()) / 1024;
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(filePath, options);
@@ -73,12 +39,6 @@ class BitmapUtils {
         if (bitmap == null) {
             return null;
         }
-
-
-        //Log.e("chromium", "Bitmap " + w + "x" + h + " size " + size + " KB (now "
-        //        + bitmap.getWidth() + "x" + bitmap.getHeight() + " size " +
-        //        (bitmap.getByteCount() / 1024) + " KB) loaded in " +
-        //        durationInMs + " ms. " + memory);
         return sizeBitmap(bitmap, width);
     }
 

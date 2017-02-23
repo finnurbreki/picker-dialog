@@ -2,11 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-//package org.chromium.chrome.browser.widget.selection;
 package com.example.finnur.finnursphotopicker;
 
-// FLIP
-//import org.chromium.base.ObserverList;
+// Chrome-specific imports:
+// import org.chromium.base.ObserverList;
 
 import java.util.ArrayList;
 import java.util.HashSet;

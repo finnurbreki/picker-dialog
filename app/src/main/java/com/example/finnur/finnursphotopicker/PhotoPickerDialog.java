@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FLIP
-//package org.chromium.chrome.browser;
 package com.example.finnur.finnursphotopicker;
 
 import android.app.AlertDialog;
@@ -21,9 +19,9 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 
-// Chrome-specific:
+// Chrome-specific imports:
 /*
-FLIP
+import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegateMulti;
@@ -55,7 +53,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
 
     // FLIP
     // The toolbar at the top of the dialog.
-    //private PhotoPickerToolbar mToolbar;  // TODOf make final once inside in ctor?
+    //private PhotoPickerToolbar mToolbar;
 
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
 
@@ -105,7 +103,6 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         getWindow().setLayout(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
     }
 
     @Override
@@ -114,11 +111,12 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         mCategoryView.endConnection();
     }
 
-    // TODOf visible for testing (and below)
+    @VisibleForTesting
     public PickerCategoryView getPickerCategoryViewForTesting() {
         return mCategoryView;
     }
 
+    @VisibleForTesting
     public SelectionDelegate getSelectionDelegateForTesting() {
         return mSelectionDelegate;
     }
@@ -132,6 +130,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         mCategoryView.setInitialState(mSelectionDelegate, mListener, mMultiSelection, width);
         parentLayout.addView(mCategoryView);
 
+        // TODOf implement empty message?
         boolean hasItems = mCategoryView.getVisibility() == View.VISIBLE;
         if (!hasItems) {
             Log.e("chromium", "Show empty message");
@@ -142,16 +141,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
 
     @Override
     public boolean onMenuItemClick(MenuItem item) {
-        // FLIP
-        /*
-        if (item.getItemId() == R.id.close_menu_id
-                || item.getItemId() == R.id.selection_mode_done_menu_id) {
-            tryNotifyPhotoSet();
-            dismiss();
-            return true;
-        }
-        Log.e("chromium ", "onMenuItemClick");
-        */
+        // This is a Chrome-specific function, not needed otherwise.
         return false;
     }
 
@@ -174,29 +164,10 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     }
 
     private void initializeChromeSpecificStuff(View title) {
-        // FLIP
-        /*
-        mToolbar = (PhotoPickerToolbar) title.findViewById(R.id.action_bar);
-        mToolbar.setOnMenuItemClickListener(this);
-        DrawerLayout drawerLayout = null;
-
-        //if (!DeviceFormFactor.isLargeTablet(mContext)) {
-        //    drawerLayout = (DrawerLayout) mMainView;
-        //    addDrawerListener(drawerLayout);
-        //}
-        mToolbar.initialize(mSelectionDelegate, 0, drawerLayout,
-                R.id.file_picker_normal_menu_group,
-                R.id.file_picker_selection_mode_menu_group,
-                null);
-        mToolbar.setTitle(R.string.file_picker_select_files);
-        //addObserver(mToolbar);  // REMOVE?
-    */
+        // This function is only implemented in Chrome.
     }
 
     private void initializeNonChromeSpecificStuff() {
-        // FLIP
-        /*
-        */
         String negativeButtonText = mContext.getString(R.string.color_picker_button_cancel);
         setButton(BUTTON_NEGATIVE, negativeButtonText,
                 new Dialog.OnClickListener() {
@@ -213,5 +184,4 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
             }
         });
     }
-
 }

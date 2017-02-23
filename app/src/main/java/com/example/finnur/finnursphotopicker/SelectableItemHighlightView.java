@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FLIP
-//package org.chromium.chrome.browser.widget.selection;
 package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
@@ -13,7 +11,8 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Checkable;
 
-/* FLIP
+// Chrome-specific imports:
+/*
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.chrome.R;
 */

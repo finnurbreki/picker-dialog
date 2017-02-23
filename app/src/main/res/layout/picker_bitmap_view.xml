@@ -6,10 +6,7 @@
 -->
 
 <!-- Represents a single item in the DownloadHistoryAdapterView. -->
-<!--
-FLIP
-<view class="org.chromium.chrome.browser.PickerBitmapView"
--->
+
 <view class="com.example.finnur.finnursphotopicker.PickerBitmapView"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"

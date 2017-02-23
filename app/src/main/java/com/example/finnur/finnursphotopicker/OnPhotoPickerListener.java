@@ -2,11 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FLIP
-//package org.chromium.ui;
 package com.example.finnur.finnursphotopicker;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,6 +32,11 @@ public interface OnPhotoPickerListener {
      */
     void onPickerUserAction(Action action, String[] photos);
 
-    // TODOf doc
+    /**
+     * Used during testing to provide pre-canned data to the dialog.
+     *
+     * @return The test files to use (Map<String, Long>, mapping file paths to creation times) or
+     *     null when run outside of a test.
+     */
     Map<String, Long> getFilesForTesting();
 }
