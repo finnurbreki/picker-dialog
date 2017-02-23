@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -108,6 +109,11 @@ public class MainActivity extends AppCompatActivity {
                                 mDialog.dismiss();
                                 break;
                         }
+                    }
+
+                    @Override
+                    public Map<String, Long> getFilesForTesting() {
+                        return null;
                     }
                 };
 

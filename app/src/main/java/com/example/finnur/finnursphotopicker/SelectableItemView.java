@@ -11,10 +11,12 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.Checkable;
 import android.widget.FrameLayout;
 
 /* FLIP
+import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate.SelectionObserver;
 */
@@ -154,4 +156,6 @@ public abstract class SelectableItemView<E> extends FrameLayout implements Check
      * that case.
      */
     protected abstract void onClick();
+
+    // Additional (redundant Chromium functions left out).
 }

@@ -6,6 +6,9 @@
 //package org.chromium.ui;
 package com.example.finnur.finnursphotopicker;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * The callback used to indicate what action the user took in the picker.
  */
@@ -31,4 +34,7 @@ public interface OnPhotoPickerListener {
      * @param photos The photos that were selected.
      */
     void onPickerUserAction(Action action, String[] photos);
+
+    // TODOf doc
+    Map<String, Long> getFilesForTesting();
 }

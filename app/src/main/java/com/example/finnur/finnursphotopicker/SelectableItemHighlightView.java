@@ -31,6 +31,7 @@ public class SelectableItemHighlightView extends View implements Checkable {
      */
     public SelectableItemHighlightView(Context context, AttributeSet attrs) {
         super(context, attrs);
+
         /*
         Drawable clickDrawable = context.obtainStyledAttributes(new int[] {
                 android.R.attr.selectableItemBackground }).getDrawable(0);

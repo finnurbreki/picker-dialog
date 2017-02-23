@@ -26,6 +26,10 @@ public class PickerBitmap implements Comparable<PickerBitmap> {
         return mFilePath;
     }
 
+    public long getLastModified() {
+        return mLastModified;
+    }
+
     public TileTypes type() {
         return mType;
     }

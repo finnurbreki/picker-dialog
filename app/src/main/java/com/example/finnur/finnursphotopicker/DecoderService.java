@@ -201,7 +201,7 @@ public class DecoderService extends Service {
                             }
                         }
                     }
-            break;
+                    break;
                 default:
                     super.handleMessage(msg);
             }

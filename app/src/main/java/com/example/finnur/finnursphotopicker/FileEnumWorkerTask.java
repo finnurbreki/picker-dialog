@@ -79,8 +79,8 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
         long endTime = System.nanoTime();
         long durationInMs =
                 TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
-        Log.e("chromium", "Enumerated " + (pickerBitmaps.size() - 2) + " files: " +
-                durationInMs + " ms");
+        Log.e("chromium", "Enumerated " + (pickerBitmaps.size() - 2) + " files: "
+                + durationInMs + " ms");
 
         return pickerBitmaps;
     }

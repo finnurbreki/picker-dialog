@@ -185,4 +185,9 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
         String file = filePath.toLowerCase(Locale.US);
         return file.endsWith(".jpg") || file.endsWith(".gif") || file.endsWith(".png");
     }
+
+    // TODOf visiblefortesting
+    public boolean getImageLoadedForTesting() {
+        return mItemView.getImageLoadedForTesting();
+    }
 }

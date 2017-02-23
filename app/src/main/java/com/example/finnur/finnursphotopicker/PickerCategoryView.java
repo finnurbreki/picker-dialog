@@ -32,7 +32,10 @@ import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import org.chromium.ui.OnPhotoPickerListener;
 */
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class PickerCategoryView extends RelativeLayout
         implements FileEnumWorkerTask.FilesEnumeratedCallback,
@@ -122,6 +125,11 @@ public class PickerCategoryView extends RelativeLayout
         prepareBitmaps();
     }
 
+    // TODOf visible for testing
+    public RecyclerView getRecyclerViewForTesting() {
+        return mRecyclerView;
+    }
+
     public int getMaxImagesShown() {
         return mMaxImages;
     }
@@ -195,7 +203,6 @@ public class PickerCategoryView extends RelativeLayout
 
         calculateGridMetrics(width);
         mMaxImages = 40 * mColumns;
-        mThumbnailProvider = new ThumbnailProviderImpl(mImageSize);
 
         // The thumbnail clamps the maximum of the smaller side, we need to clamp
         // down the maximum of the larger side, so we flip the sizes.
@@ -255,7 +262,26 @@ public class PickerCategoryView extends RelativeLayout
         }
     }
 
+    private boolean loadTestFiles() {
+        Map<String, Long> testFiles = mListener.getFilesForTesting();
+        if (testFiles == null) {
+            return false;
+        }
+
+        List<PickerBitmap> files = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : testFiles.entrySet()) {
+            String key = entry.getKey();
+            Long value = entry.getValue();
+            files.add(new PickerBitmap(key, PickerBitmap.TileTypes.PICTURE, value));
+        }
+        Collections.sort(files);
+        filesEnumeratedCallback(files);
+        return true;
+    }
+
     private void prepareBitmaps() {
+        if (loadTestFiles()) return;
+
         if (mWorkerTask != null) {
             mWorkerTask.cancel(true);
         }
@@ -278,29 +304,30 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     private class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
-        private int spanCount;
-        private int spacing;
+        private int mSpanCount;
+        private int mSpacing;
 
         public GridSpacingItemDecoration(int spanCount, int spacing) {
-            this.spanCount = spanCount;
-            this.spacing = spacing;
+            mSpanCount = spanCount;
+            mSpacing = spacing;
         }
 
         @Override
-        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+        public void getItemOffsets(
+                Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
             int left = 0, right = 0, top = 0, bottom = 0;
             int position = parent.getChildAdapterPosition(view);
 
             if (position >= 0) {
-                int column = position % spanCount;
+                int column = position % mSpanCount;
 
-                left = spacing - column * spacing / spanCount;
-                right = (column + 1) * spacing / spanCount;
+                left = mSpacing - column * mSpacing / mSpanCount;
+                right = (column + 1) * mSpacing / mSpanCount;
 
-                if (position < spanCount) {
-                    top = spacing;
+                if (position < mSpanCount) {
+                    top = mSpacing;
                 }
-                bottom = spacing;
+                bottom = mSpacing;
             }
 
             outRect.set(left, top, right, bottom);

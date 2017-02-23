@@ -114,6 +114,15 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         mCategoryView.endConnection();
     }
 
+    // TODOf visible for testing (and below)
+    public PickerCategoryView getPickerCategoryViewForTesting() {
+        return mCategoryView;
+    }
+
+    public SelectionDelegate getSelectionDelegateForTesting() {
+        return mSelectionDelegate;
+    }
+
     private void initializeContent() {
         LinearLayout parentLayout = (LinearLayout) findViewById(R.id.layout);
 
@@ -177,7 +186,8 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         //}
         mToolbar.initialize(mSelectionDelegate, 0, drawerLayout,
                 R.id.file_picker_normal_menu_group,
-                R.id.file_picker_selection_mode_menu_group);
+                R.id.file_picker_selection_mode_menu_group,
+                null);
         mToolbar.setTitle(R.string.file_picker_select_files);
         //addObserver(mToolbar);  // REMOVE?
     */
