@@ -11,7 +11,6 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar.OnMenuItemClickListener;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -129,12 +128,6 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         int width = view.getWidth() - view.getPaddingLeft() - view.getPaddingRight();
         mCategoryView.setInitialState(mSelectionDelegate, mListener, mMultiSelection, width);
         parentLayout.addView(mCategoryView);
-
-        // TODOf implement empty message?
-        boolean hasItems = mCategoryView.getVisibility() == View.VISIBLE;
-        if (!hasItems) {
-            Log.e("chromium", "Show empty message");
-        }
 
         mInitialized = true;
     }

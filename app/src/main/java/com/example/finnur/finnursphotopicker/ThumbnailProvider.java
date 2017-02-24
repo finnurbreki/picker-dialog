@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package com.example.finnur.finnursphotopicker;
+package com.example.finnur.finnursphotopicker;  // TODO(finnur): Delete this class?
 
 import android.graphics.Bitmap;
 

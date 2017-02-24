@@ -14,7 +14,6 @@ import android.view.View;
 // Chrome-specific imports:
 /*
 import org.chromium.base.VisibleForTesting;
-import org.chromium.chrome.browser.download.ui.ThumbnailProvider;
 */
 
 import java.util.List;
@@ -22,7 +21,7 @@ import java.util.Locale;
 
 /** Holds onto a View that displays information about a picker bitmap. */
 public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
-        implements ThumbnailProvider.ThumbnailRequest, BitmapWorkerTask.ImageDecodedCallback {
+        implements BitmapWorkerTask.ImageDecodedCallback {
     // Our parent category.
     private PickerCategoryView mCategoryView;
 
@@ -39,22 +38,8 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
         mItemView = (PickerBitmapView) itemView;
     }
 
-    // ThumbnailProvider.ThumbnailRequest:
-
-    @Override
     public String getFilePath() {
         return mItem == null ? null : mItem.getFilePath();
-    }
-
-    @Override
-    public void onThumbnailRetrieved(String filePath, Bitmap thumbnail) {
-        // TODOf don't crop on the UI thread...
-        if (thumbnail != null) {
-            int size = mCategoryView.getImageSize();
-            Bitmap bitmap = BitmapUtils.ensureMinSize(thumbnail, size);
-            bitmap = BitmapUtils.cropToSquare(bitmap, size);
-            imageDecodedCallback(filePath, bitmap);
-        }
     }
 
     // BitmapWorkerRequest.ImageDecodedCallback
@@ -107,15 +92,8 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
                 mItemView.initialize(mItem, placeholder, true);
             }
 
-            if (!mCategoryView.useDecoderService()) {
-                Bitmap cachedBitmap = mCategoryView.getThumbnailProvider().getThumbnail(this);
-                if (cachedBitmap != null) {
-                    imageDecodedCallback(filePath, cachedBitmap);
-                }
-            } else {
-                mCategoryView.getDecoderServiceHost().decodeImage(
-                        mItem.getFilePath(), size, this, System.nanoTime());
-            }
+            mCategoryView.getDecoderServiceHost().decodeImage(
+                    mItem.getFilePath(), size, this, System.nanoTime());
         } else {
             mItemView.initialize(mItem, null, false);
             if (mItem.type() == PickerBitmap.TileTypes.PICTURE) {

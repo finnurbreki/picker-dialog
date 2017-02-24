@@ -18,7 +18,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -187,16 +186,10 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
         int iconBitmapId, labelStringId;
         if (mItem.type() == PickerBitmap.TileTypes.CAMERA) {
-            // FLIP
-            iconBitmapId = R.mipmap.ic_camera_alt_black_24dp;
-            //iconBitmapId = R.drawable.ic_photo_camera;
-
+            iconBitmapId = R.drawable.ic_photo_camera;
             labelStringId = R.string.file_picker_camera;
         } else {
-            // FLIP
-            iconBitmapId = R.mipmap.ic_collections_black_24dp;
-            // iconBitmapId = R.drawable.ic_collections_black_24dp
-
+            iconBitmapId = R.drawable.ic_collections_black_24dp;
             labelStringId = R.string.file_picker_browse;
         }
 
@@ -240,8 +233,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onClick() {
-        Log.e("chromium", "PickerBitmapView::onClick, type: " + mItem.type());
-
         if (mItem.type() == PickerBitmap.TileTypes.GALLERY) {
             mCategoryView.showGallery();
             return;

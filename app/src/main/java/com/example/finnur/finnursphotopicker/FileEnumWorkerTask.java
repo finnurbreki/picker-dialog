@@ -6,13 +6,11 @@ package com.example.finnur.finnursphotopicker;
 
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
     public interface FilesEnumeratedCallback {
@@ -38,8 +36,6 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
             return null;
         }
 
-        long startTime = System.nanoTime();
-
         List<PickerBitmap> pickerBitmaps = new ArrayList<>();
 
         String paths[] = new String[3];
@@ -60,8 +56,6 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
                     return null;
                 }
 
-                //Log.e("chromium", "FileName:" + file.getPath().toString() + "/" + file.getName() +
-                //                  " size: " + file.length());
                 pickerBitmaps.add(
                         new PickerBitmap(filePath + "/" + file.getName(),
                                 PickerBitmap.TileTypes.PICTURE,
@@ -73,12 +67,6 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
 
         pickerBitmaps.add(0, new PickerBitmap("", PickerBitmap.TileTypes.GALLERY, 0));
         pickerBitmaps.add(0, new PickerBitmap("", PickerBitmap.TileTypes.CAMERA, 0));
-
-        long endTime = System.nanoTime();
-        long durationInMs =
-                TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
-        Log.e("chromium", "Enumerated " + (pickerBitmaps.size() - 2) + " files: "
-                + durationInMs + " ms");
 
         return pickerBitmaps;
     }

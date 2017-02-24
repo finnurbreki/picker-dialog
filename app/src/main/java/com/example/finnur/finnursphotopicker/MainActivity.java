@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,8 +92,10 @@ public class MainActivity extends AppCompatActivity {
                                         photoFile = createImageFile();
                                         mCurrentPhotoPath = photoFile.getAbsolutePath();
                                     } catch (IOException ex) {
-                                        // Error occurred while creating the File
-                                        // TODOf implement.
+                                        // Error occurred while creating the File.
+                                        Toast.makeText(getWindow().getContext(),
+                                                R.string.failed_to_launch_photo_activity,
+                                                Toast.LENGTH_SHORT).show();
                                     }
 
                                     // Continue only if the File was successfully created
@@ -152,7 +155,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void processCameraIntentResults(Intent data) {
         Log.e("***** ", "**** Photos captured: " + mCurrentPhotoPath);
-        // TODOf delete file if cancelled?
     }
 
     private File createImageFile() throws IOException {
@@ -164,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
+        image.deleteOnExit();
         return image;
     }
 

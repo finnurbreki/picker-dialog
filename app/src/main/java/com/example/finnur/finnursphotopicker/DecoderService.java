@@ -15,7 +15,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
-import android.util.Log;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -25,9 +24,8 @@ import java.nio.ByteBuffer;
 
 public class DecoderService extends Service {
     static final int MSG_REGISTER_CLIENT = 1;
-    static final int MSG_UNREGISTER_CLIENT = 2;
-    static final int MSG_DECODE_IMAGE = 3;
-    static final int MSG_IMAGE_DECODED_REPLY = 4;
+    static final int MSG_DECODE_IMAGE = 2;
+    static final int MSG_IMAGE_DECODED_REPLY = 3;
 
     static final String KEY_FILE_DESCRIPTOR = "file_descriptor";
     static final String KEY_FILE_PATH = "file_path";
@@ -95,13 +93,7 @@ public class DecoderService extends Service {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_REGISTER_CLIENT:
-                    Log.e("chromium", "GOT MSG_REGISTER_CLIENT");
                     mClient = msg.replyTo;
-                    break;
-                case MSG_UNREGISTER_CLIENT:
-                    Log.e("chromium", "GOT MSG_UNREGISTER_CLIENT");
-                    // TODOf implement?
-                    mClient = null;
                     break;
                 case MSG_DECODE_IMAGE:
                     Bundle bundle = new Bundle();
@@ -168,7 +160,6 @@ public class DecoderService extends Service {
                             mClient.send(reply);
                             bundle = null;
                         } catch (RemoteException e) {
-                            Log.e("chromium", "DEAD CLIENT");
                             mClient = null;  // He's dead, Jim.
                         }
 
@@ -194,7 +185,6 @@ public class DecoderService extends Service {
                             try {
                                 mClient.send(reply);
                             } catch (RemoteException remoteException) {
-                                Log.e("chromium", "DEAD CLIENT");
                                 mClient = null;  // He's dead, Jim.
                             }
                         }
@@ -217,7 +207,6 @@ public class DecoderService extends Service {
      */
     @Override
     public IBinder onBind(Intent intent) {
-        Log.e("chromium", "ON BIND");
         return mMessenger.getBinder();
     }
 }

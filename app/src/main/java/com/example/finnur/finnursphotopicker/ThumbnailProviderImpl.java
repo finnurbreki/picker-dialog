@@ -4,6 +4,8 @@
 
 package com.example.finnur.finnursphotopicker;
 
+// TODO(finnur): Delete this class?
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;

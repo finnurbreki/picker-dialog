@@ -17,7 +17,6 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.LruCache;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -26,7 +25,6 @@ import android.widget.RelativeLayout;
 /*
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
-import org.chromium.chrome.browser.download.ui.ThumbnailProviderImpl;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import org.chromium.ui.OnPhotoPickerListener;
 */
@@ -51,8 +49,6 @@ public class PickerCategoryView extends RelativeLayout
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
 
     private DecoderServiceHost mDecoderServiceHost;
-
-    private ThumbnailProviderImpl mThumbnailProvider;
 
     private LruCache<String, Bitmap> mUglyBitmaps;
     private LruCache<String, Bitmap> mPrettyBitmaps;
@@ -97,10 +93,8 @@ public class PickerCategoryView extends RelativeLayout
     private void init(Context context) {
         mContext = context;
 
-        mDecoderServiceHost = useDecoderService() ? new DecoderServiceHost(this) : null;
-        if (mDecoderServiceHost != null) {
-            mDecoderServiceHost.bind(mContext);
-        }
+        mDecoderServiceHost = new DecoderServiceHost(this);
+        mDecoderServiceHost.bind(mContext);
 
         if (((mColumns % 2) == 0) != ((mPadding % 2) == 0)) {
             throw new AssertionError("Columns and padding should both be odd or both even");
@@ -138,9 +132,6 @@ public class PickerCategoryView extends RelativeLayout
     public List<PickerBitmap> getPickerBitmaps() {
         return mPickerBitmaps;
     }
-    public ThumbnailProviderImpl getThumbnailProvider() {
-        return mThumbnailProvider;
-    }
     public DecoderServiceHost getDecoderServiceHost() {
         return mDecoderServiceHost;
     }
@@ -153,10 +144,6 @@ public class PickerCategoryView extends RelativeLayout
     public boolean isMultiSelect() {
         return mMultiSelection;
     }
-    // FLIP
-    public static boolean useDecoderService() {
-        return true;
-    }  // TODOf remove.
 
     public Bitmap getSelectionBitmap(boolean selected) {
         if (selected) {
@@ -183,13 +170,10 @@ public class PickerCategoryView extends RelativeLayout
         mMultiSelection = multiSelection;
         mListener = listener;
 
-        // FLIP
         mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(),
-                  R.mipmap.ic_check_circle_black_24dp);
-        //          R.drawable.ic_share_white_24dp);
+                  R.drawable.ic_check_circle_black_24dp);
         mBitmapUnselected = BitmapFactory.decodeResource(mContext.getResources(),
-                  R.mipmap.ic_radio_button_unchecked_black_24dp);
-        //          R.drawable.ic_arrow_back_white_24dp);
+                  R.drawable.ic_radio_button_unchecked_black_24dp);
 
         // Apply color to the bitmaps.
         int prefAccentColor = ContextCompat.getColor(mContext, R.color.pref_accent_color);
@@ -200,14 +184,9 @@ public class PickerCategoryView extends RelativeLayout
         calculateGridMetrics(width);
         mMaxImages = 40 * mColumns;
 
-        // The thumbnail clamps the maximum of the smaller side, we need to clamp
-        // down the maximum of the larger side, so we flip the sizes.
-        mThumbnailProvider = new ThumbnailProviderImpl(mImageSize * 3 / 4);
-
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSizeLarge = maxMemory / 2; // 1/2th of the available memory.
         final int cacheSizeSmall = maxMemory / 8; // 1/8th of the available memory.
-        Log.e("chromium", "Cache sizes: " + cacheSizeLarge + " " + cacheSizeSmall);
         mUglyBitmaps = new LruCache<String, Bitmap>(cacheSizeSmall) {
             @Override
             protected int sizeOf(String key, Bitmap bitmap) {
@@ -227,10 +206,6 @@ public class PickerCategoryView extends RelativeLayout
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.addItemDecoration(new GridSpacingItemDecoration(mColumns, mPadding));
-
-        if (!useDecoderService()) {
-            serviceReady();  // Call it manually because the decoder won't do it for us.
-        }
     }
 
     private void calculateGridMetrics(int width) {
@@ -288,10 +263,6 @@ public class PickerCategoryView extends RelativeLayout
 
     @Override
     public void onViewRecycled(RecyclerView.ViewHolder holder) {
-        if (!useDecoderService()) {
-            return;
-        }
-
         PickerBitmapViewHolder bitmapHolder = (PickerBitmapViewHolder) holder;
         String filePath = bitmapHolder.getFilePath();
         if (filePath != null) {

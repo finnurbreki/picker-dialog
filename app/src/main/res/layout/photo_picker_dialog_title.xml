@@ -13,7 +13,7 @@
     android:paddingEnd="20dp"
     android:paddingTop="15dp" >
 
-    <!-- FLIP -->
+    <!-- The Android Studio project does not implement the Chrome toolbar -->
     <!--org.chromium.chrome.browser.PhotoPickerToolbar
         android:id="@+id/action_bar"
         android:layout_width="match_parent"
