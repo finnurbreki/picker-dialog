@@ -43,7 +43,7 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> 
 
     @Override
     public void onBindViewHolder(PickerBitmapViewHolder holder, int position, List payloads) {
-        holder.displayItem(mContext, mCategoryView, position);
+        holder.displayItem(mCategoryView, position);
     }
 
     @Override

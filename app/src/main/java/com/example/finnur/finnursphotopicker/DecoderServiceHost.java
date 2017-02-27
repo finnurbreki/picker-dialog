@@ -26,7 +26,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 public class DecoderServiceHost {
@@ -35,6 +34,10 @@ public class DecoderServiceHost {
      */
     public interface ServiceReadyCallback {
         void serviceReady();
+    }
+
+    public interface ImageDecodedCallback {
+        void imageDecodedCallback(String filePath, Bitmap bitmap);
     }
 
     /**
@@ -71,11 +74,11 @@ public class DecoderServiceHost {
     private class DecoderServiceParams {
         public String mFilePath;
         public int mWidth;
-        BitmapWorkerTask.ImageDecodedCallback mCallback;
+        ImageDecodedCallback mCallback;
         public long mStartTime;
 
-        public DecoderServiceParams(String filePath, int width,
-                BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
+        public DecoderServiceParams(String filePath, int width, ImageDecodedCallback callback,
+                long startTime) {
             mFilePath = filePath;
             mWidth = width;
             mCallback = callback;
@@ -102,12 +105,6 @@ public class DecoderServiceHost {
     // Our service connection to the decoder service.
     private DecoderServiceConnection mConnection;
 
-    HashMap<String, BitmapWorkerTask.ImageDecodedCallback> mCallbacks =
-            new HashMap<String, BitmapWorkerTask.ImageDecodedCallback>();
-    HashMap<String, BitmapWorkerTask.ImageDecodedCallback> getCallbacks() {
-        return mCallbacks;
-    }
-
     // Flag indicating whether we have called bind on the service.
     boolean mBound;
 
@@ -131,7 +128,7 @@ public class DecoderServiceHost {
     }
 
     public void decodeImage(String filePath, int width,
-            BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
+            ImageDecodedCallback callback, long startTime) {
         DecoderServiceParams params =
                 new DecoderServiceParams(filePath, width, callback, startTime);
         mRequests.put(filePath, params);
@@ -142,14 +139,12 @@ public class DecoderServiceHost {
 
     void dispatchNextDecodeImageRequest() {
         for (DecoderServiceParams params : mRequests.values()) {
-            dispatchDecodeImageRequest(params.mFilePath, params.mWidth, params.mCallback,
-                    params.mStartTime);
+            dispatchDecodeImageRequest(params.mFilePath, params.mWidth, params.mStartTime);
             break;
         }
     }
 
-    private void dispatchDecodeImageRequest(String filePath, int width,
-            BitmapWorkerTask.ImageDecodedCallback callback, long startTime) {
+    private void dispatchDecodeImageRequest(String filePath, int width, long startTime) {
         // Obtain a file descriptor to send over to the sandboxed process.
         File file = new File(filePath);
         FileInputStream inputFile = null;

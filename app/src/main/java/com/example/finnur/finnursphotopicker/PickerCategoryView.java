@@ -50,7 +50,7 @@ public class PickerCategoryView extends RelativeLayout
 
     private DecoderServiceHost mDecoderServiceHost;
 
-    private LruCache<String, Bitmap> mUglyBitmaps;
+    private LruCache<String, Bitmap> mLowResBitmaps;
     private LruCache<String, Bitmap> mPrettyBitmaps;
 
     // mColumns and mPadding should both be even numbers or both odd, not a mix (the column padding
@@ -135,8 +135,8 @@ public class PickerCategoryView extends RelativeLayout
     public DecoderServiceHost getDecoderServiceHost() {
         return mDecoderServiceHost;
     }
-    public LruCache<String, Bitmap> getUglyBitmaps() {
-        return mUglyBitmaps;
+    public LruCache<String, Bitmap> getLowResBitmaps() {
+        return mLowResBitmaps;
     }
     public LruCache<String, Bitmap> getPrettyBitmaps() {
         return mPrettyBitmaps;
@@ -185,9 +185,9 @@ public class PickerCategoryView extends RelativeLayout
         mMaxImages = 40 * mColumns;
 
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-        final int cacheSizeLarge = maxMemory / 2; // 1/2th of the available memory.
+        final int cacheSizeLarge = maxMemory / 2; // 1/2 of the available memory.
         final int cacheSizeSmall = maxMemory / 8; // 1/8th of the available memory.
-        mUglyBitmaps = new LruCache<String, Bitmap>(cacheSizeSmall) {
+        mLowResBitmaps = new LruCache<String, Bitmap>(cacheSizeSmall) {
             @Override
             protected int sizeOf(String key, Bitmap bitmap) {
                 return bitmap.getByteCount() / 1024;

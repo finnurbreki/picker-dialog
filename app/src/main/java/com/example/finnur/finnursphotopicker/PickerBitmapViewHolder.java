@@ -21,7 +21,7 @@ import java.util.Locale;
 
 /** Holds onto a View that displays information about a picker bitmap. */
 public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
-        implements BitmapWorkerTask.ImageDecodedCallback {
+        implements DecoderServiceHost.ImageDecodedCallback {
     // Our parent category.
     private PickerCategoryView mCategoryView;
 
@@ -42,7 +42,7 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
         return mItem == null ? null : mItem.getFilePath();
     }
 
-    // BitmapWorkerRequest.ImageDecodedCallback
+    // DecoderServiceHost.ImageDecodedCallback
 
     @Override
     public void imageDecodedCallback(String filePath, Bitmap bitmap) {
@@ -54,20 +54,22 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             mCategoryView.getPrettyBitmaps().put(filePath, bitmap);
         }
 
-        if (mCategoryView.getUglyBitmaps().get(filePath) == null) {
-            Bitmap ugly = BitmapUtils.scale(bitmap, 40, false);
-            mCategoryView.getUglyBitmaps().put(filePath, ugly);
+        if (mCategoryView.getLowResBitmaps().get(filePath) == null) {
+            // Scaling the image down takes between 0-1 ms on average (Nexus 6 phone debug build).
+            Bitmap lowres = BitmapUtils.scale(bitmap, 40, false);
+            mCategoryView.getLowResBitmaps().put(filePath, lowres);
         }
 
         if (!TextUtils.equals(mItem.getFilePath(), filePath)) {
             return;
         }
 
-        mItemView.setThumbnailBitmap(bitmap);
-        mItemView.fadeInThumnail();
+        if (mItemView.setThumbnailBitmap(bitmap)) {
+            mItemView.fadeInThumbnail();
+        }
     }
 
-    public void displayItem(Context context, PickerCategoryView categoryView, int position) {
+    public void displayItem(PickerCategoryView categoryView, int position) {
         mCategoryView = categoryView;
 
         List<PickerBitmap> pickerBitmaps = mCategoryView.getPickerBitmaps();
@@ -82,8 +84,9 @@ public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
             }
 
             int size = mCategoryView.getImageSize();
-            Bitmap placeholder = mCategoryView.getUglyBitmaps().get(filePath);
+            Bitmap placeholder = mCategoryView.getLowResBitmaps().get(filePath);
             if (placeholder != null) {
+                // Scaling the image up takes between 3-4 ms on average (Nexus 6 phone debug build).
                 placeholder = BitmapUtils.scale(placeholder, size, false);
                 mItemView.initialize(mItem, placeholder, false);
             } else {

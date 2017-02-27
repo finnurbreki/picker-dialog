@@ -209,8 +209,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     /**
      * @param thumbnail The Bitmap to use for the icon ImageView.
+     * @return true if no image was loaded before (e.g. not even a low-res image).
      */
-    public void setThumbnailBitmap(Bitmap thumbnail) {
+    public boolean setThumbnailBitmap(Bitmap thumbnail) {
         mIconView.setImageBitmap(thumbnail);
 
         // If the tile has been selected before the bitmap has loaded, make sure it shows up with
@@ -222,11 +223,14 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             mScrim.setVisibility(View.VISIBLE);
         }
 
+        boolean noImageWasLoaded = !mImageLoaded;
         mImageLoaded = true;
         updateSelectionState();
+
+        return noImageWasLoaded;
     }
 
-    public void fadeInThumnail() {
+    public void fadeInThumbnail() {
         mIconView.setAlpha(0.0f);
         mIconView.animate().alpha(1.0f).setDuration(200).start();
     }
