@@ -4,7 +4,6 @@
 
 package com.example.finnur.finnursphotopicker;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;

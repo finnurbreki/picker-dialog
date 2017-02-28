@@ -14,7 +14,7 @@
     android:paddingTop="15dp" >
 
     <!-- The Android Studio project does not implement the Chrome toolbar -->
-    <!--org.chromium.chrome.browser.PhotoPickerToolbar
+    <!--org.chromium.chrome.browser.photo_picker.PhotoPickerToolbar
         android:id="@+id/action_bar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -23,6 +23,6 @@
 
         <include layout="@layout/number_roll_view" />
 
-    </org.chromium.chrome.browser.PhotoPickerToolbar-->
+    </org.chromium.chrome.browser.photo_picker.PhotoPickerToolbar-->
 
 </RelativeLayout>

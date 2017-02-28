@@ -5,13 +5,13 @@
 package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
@@ -28,6 +28,7 @@ import android.widget.TextView;
 // Chrome-specific imports:
 /*
 import org.chromium.chrome.R;
+import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.chrome.browser.widget.selection.SelectableItemView;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
@@ -200,7 +201,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         float pixels = 48 * ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
         BitmapDrawable drawable = new BitmapDrawable(
                 resources, Bitmap.createScaledBitmap(icon, (int) pixels, (int) pixels, true));
-        mSpecialTile.setCompoundDrawablesRelativeWithIntrinsicBounds(null, drawable, null, null);
+        ApiCompatibilityUtils.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                mSpecialTile, null, drawable, null, null);
 
         initialize(mItem, tile, false);
 
@@ -315,8 +317,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         Drawable[] drawables = mSpecialTile.getCompoundDrawables();
         // The textview only has a top compound drawable (2nd element).
         if (drawables[1] != null) {
-            drawables[1].setTintList(createSimpleColorStateList(
-                    ContextCompat.getColor(mContext, fgColorId)));
+            int color = ContextCompat.getColor(mContext, fgColorId);
+            drawables[1].setColorFilter(color, PorterDuff.Mode.SRC_IN);
         }
 
         // The visibility of the unselected image is a little more complex because we don't want
@@ -326,16 +328,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
                 ? View.VISIBLE : View.GONE);
         mScrim.setVisibility(!special && !checked && anySelection
                 ? View.VISIBLE : View.GONE);
-    }
-
-    private static ColorStateList createSimpleColorStateList(int color) {
-        int[][] states = new int[][] {
-            new int[] { android.R.attr.state_enabled },
-            new int[] { -android.R.attr.state_enabled },
-        };
-
-        int[] colors = new int[] { color, color };
-        return new ColorStateList(states, colors);
     }
 
     public void setTextWithOverlay() {
