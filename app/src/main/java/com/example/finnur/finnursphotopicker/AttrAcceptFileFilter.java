@@ -20,7 +20,6 @@ class AttrAcceptFileFilter extends AcceptFileFilter {
     private HashSet<String> mMimeSupertypes = new HashSet<>();
     private MimeTypeMap mMimeTypeMap;
 
-
     public AttrAcceptFileFilter(@NonNull String acceptAttr) {
         for (String field : acceptAttr.toLowerCase(Locale.US).split(",")) {
             field = field.trim();

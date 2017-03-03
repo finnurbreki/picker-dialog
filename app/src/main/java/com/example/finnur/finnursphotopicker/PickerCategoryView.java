@@ -34,10 +34,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A class for keeping track of common data associated with showing photos in
+ * the photo picker, for example the RecyclerView and the caches.
+ */
 public class PickerCategoryView extends RelativeLayout
         implements FileEnumWorkerTask.FilesEnumeratedCallback,
-                DecoderServiceHost.ServiceReadyCallback,
-                RecyclerView.RecyclerListener {
+                   DecoderServiceHost.ServiceReadyCallback, RecyclerView.RecyclerListener {
     private Context mContext;
     private PickerAdapter mPickerAdapter;
     private List<PickerBitmap> mPickerBitmaps;
@@ -110,8 +113,6 @@ public class PickerCategoryView extends RelativeLayout
 
     @Override
     public void serviceReady() {
-        // TODOf instead of waiting to enumerate, perhaps let filesEnumeratedCallback wait to
-        // provide the data?
         prepareBitmaps();
     }
 
@@ -170,10 +171,10 @@ public class PickerCategoryView extends RelativeLayout
         mMultiSelection = multiSelection;
         mListener = listener;
 
-        mBitmapSelected = BitmapFactory.decodeResource(mContext.getResources(),
-                  R.drawable.ic_check_circle_black_24dp);
-        mBitmapUnselected = BitmapFactory.decodeResource(mContext.getResources(),
-                  R.drawable.ic_radio_button_unchecked_black_24dp);
+        mBitmapSelected = BitmapFactory.decodeResource(
+                mContext.getResources(), R.drawable.ic_check_circle_black_24dp);
+        mBitmapUnselected = BitmapFactory.decodeResource(
+                mContext.getResources(), R.drawable.ic_radio_button_unchecked_black_24dp);
 
         // Apply color to the bitmaps.
         int prefAccentColor = ContextCompat.getColor(mContext, R.color.pref_accent_color);
@@ -209,8 +210,8 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     private void calculateGridMetrics(int width) {
-        int minSize = mContext.getResources().getDimensionPixelSize(
-                R.dimen.file_picker_tile_min_size);
+        int minSize =
+                mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_min_size);
         mPadding = mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_gap);
         mColumns = Math.max(1, (width - mPadding) / (minSize + mPadding));
         mImageSize = (width - mPadding * (mColumns + 1)) / (mColumns);

@@ -28,14 +28,18 @@ import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 
+/**
+ * A class to communicate with the decoder service.
+ */
 public class DecoderServiceHost {
     /**
      * Interface for notifying clients of the service being ready.
      */
-    public interface ServiceReadyCallback {
-        void serviceReady();
-    }
+    public interface ServiceReadyCallback { void serviceReady(); }
 
+    /**
+     * An interface notifying clients when an image has finished decoding.
+     */
     public interface ImageDecodedCallback {
         void imageDecodedCallback(String filePath, Bitmap bitmap);
     }
@@ -71,14 +75,17 @@ public class DecoderServiceHost {
         }
     }
 
+    /**
+     * Class for keeping track of the data involved with each request.
+     */
     private class DecoderServiceParams {
         public String mFilePath;
         public int mWidth;
         ImageDecodedCallback mCallback;
         public long mStartTime;
 
-        public DecoderServiceParams(String filePath, int width, ImageDecodedCallback callback,
-                long startTime) {
+        public DecoderServiceParams(
+                String filePath, int width, ImageDecodedCallback callback, long startTime) {
             mFilePath = filePath;
             mWidth = width;
             mCallback = callback;
@@ -120,15 +127,14 @@ public class DecoderServiceHost {
     }
 
     public void unbind(Context context) {
-        // Unbind from the service
         if (mBound) {
             context.unbindService(mConnection);
             mBound = false;
         }
     }
 
-    public void decodeImage(String filePath, int width,
-            ImageDecodedCallback callback, long startTime) {
+    public void decodeImage(
+            String filePath, int width, ImageDecodedCallback callback, long startTime) {
         DecoderServiceParams params =
                 new DecoderServiceParams(filePath, width, callback, startTime);
         mRequests.put(filePath, params);
@@ -231,16 +237,15 @@ public class DecoderServiceHost {
                         int byteCount = payload.getInt(DecoderService.KEY_IMAGE_BYTE_COUNT);
 
                         // Grab the decoded pixels from memory and construct a bitmap object.
-                        FileInputStream inFile =
-                                new ParcelFileDescriptor.AutoCloseInputStream(pfd);
+                        FileInputStream inFile = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
                         byte[] pixels = new byte[byteCount];
 
                         try {
                             try {
                                 inFile.read(pixels, 0, byteCount);
                                 ByteBuffer buffer = ByteBuffer.wrap(pixels);
-                                bitmap = Bitmap.createBitmap(
-                                        width, height, Bitmap.Config.ARGB_8888);
+                                bitmap =
+                                        Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
                                 bitmap.copyPixelsFromBuffer(buffer);
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -263,8 +268,7 @@ public class DecoderServiceHost {
         }
 
         private Bitmap createPlaceholderBitmap(int width, int height) {
-            Bitmap placeholder =
-                    Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            Bitmap placeholder = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(placeholder);
             Paint paint = new Paint();
             paint.setColor(Color.GRAY);

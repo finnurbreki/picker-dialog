@@ -27,14 +27,17 @@ import android.widget.TextView;
 
 // Chrome-specific imports:
 /*
-import org.chromium.chrome.R;
 import org.chromium.base.ApiCompatibilityUtils;
+import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectableItemView;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 */
 
 import java.util.List;
 
+/**
+ * A container class for a view showing a photo in the photo picker.
+ */
 public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     private Context mContext;
 
@@ -82,7 +85,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        if (mCategoryView == null) return;  // Android studio calls onMeasure to draw the widget.
+        if (mCategoryView == null) return; // Android studio calls onMeasure to draw the widget.
         int width = mCategoryView.getImageSize();
         int height = mCategoryView.getImageSize();
         setMeasuredDimension(width, height);
@@ -109,8 +112,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
         @Override
         protected void applyTransformation(float interpolatedTime, Transformation transformation) {
-            int newSize =
-                    mStartingSize + (int) ((mTargetSize - mStartingSize) * interpolatedTime);
+            int newSize = mStartingSize + (int) ((mTargetSize - mStartingSize) * interpolatedTime);
             int padding = (Math.max(mStartingSize, mTargetSize) - newSize) / 2;
 
             mView.getLayoutParams().height = newSize;
@@ -283,8 +285,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             return;
         }
 
-        int size = selected && !checked
-                ? mCategoryView.getImageSize() - 2 * mBorder : mCategoryView.getImageSize();
+        int size = selected && !checked ? mCategoryView.getImageSize() - 2 * mBorder
+                                        : mCategoryView.getImageSize();
         if (size != mIconView.getWidth()) {
             ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, mScrim, size);
             animation.setDuration(100);
@@ -297,8 +299,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     private void updateSelectionState() {
         boolean special = mItem.type() != PickerBitmap.TileTypes.PICTURE;
         boolean checked = super.isChecked();
-        boolean anySelection = mSelectionDelegate != null
-                && mSelectionDelegate.isSelectionEnabled();
+        boolean anySelection =
+                mSelectionDelegate != null && mSelectionDelegate.isSelectionEnabled();
         boolean multiSelect = mCategoryView.isMultiSelect();
         int bgColorId, fgColorId;
         if (!special) {
@@ -324,10 +326,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         // The visibility of the unselected image is a little more complex because we don't want
         // to show it when nothing is selected and also not on a blank canvas.
         mSelectedView.setVisibility(!special && checked ? View.VISIBLE : View.GONE);
-        mUnselectedView.setVisibility(!special && !checked && anySelection
-                ? View.VISIBLE : View.GONE);
-        mScrim.setVisibility(!special && !checked && anySelection
-                ? View.VISIBLE : View.GONE);
+        mUnselectedView.setVisibility(
+                !special && !checked && anySelection ? View.VISIBLE : View.GONE);
+        mScrim.setVisibility(!special && !checked && anySelection ? View.VISIBLE : View.GONE);
     }
 
     public void setTextWithOverlay() {

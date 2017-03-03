@@ -22,6 +22,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
+/**
+ * A service to accept requests to take image file contents and decode them.
+ */
 public class DecoderService extends Service {
     static final int MSG_REGISTER_CLIENT = 1;
     static final int MSG_DECODE_IMAGE = 2;
@@ -56,7 +59,7 @@ public class DecoderService extends Service {
             return null;
         } catch (NoSuchMethodException e) {
             if (name.equals("createAshmemBitmap")) {
-                return null;  // Expected error on pre-M devices.
+                return null; // Expected error on pre-M devices.
             }
 
             throw new RuntimeException(e);
@@ -132,8 +135,6 @@ public class DecoderService extends Service {
                         } else {
                             int byteCount = bitmap.getByteCount();
 
-                            // TODO(finnur): Copy pixels by hand using a smaller buffer to conserve
-                            //     memory?
                             ByteBuffer buffer = ByteBuffer.allocate(byteCount);
                             bitmap.copyPixelsToBuffer(buffer);
                             bitmap.recycle();
@@ -160,7 +161,7 @@ public class DecoderService extends Service {
                             mClient.send(reply);
                             bundle = null;
                         } catch (RemoteException e) {
-                            mClient = null;  // He's dead, Jim.
+                            mClient = null; // He's dead, Jim.
                         }
 
                         if (imageFile != null) {
@@ -185,7 +186,7 @@ public class DecoderService extends Service {
                             try {
                                 mClient.send(reply);
                             } catch (RemoteException remoteException) {
-                                mClient = null;  // He's dead, Jim.
+                                mClient = null; // He's dead, Jim.
                             }
                         }
                     }

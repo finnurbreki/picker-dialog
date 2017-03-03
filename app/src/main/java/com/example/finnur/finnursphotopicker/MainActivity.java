@@ -98,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
                                                 Toast.LENGTH_SHORT).show();
                                     }
 
-                                    // Continue only if the File was successfully created
                                     if (photoFile != null) {
                                         Uri photoURI = FileProvider.getUriForFile(
                                                 getWindow().getContext(),

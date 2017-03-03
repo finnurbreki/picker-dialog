@@ -9,5 +9,5 @@
     <string name="category_title">Category title</string>
     <string name="file_picker_camera">Camera</string>
     <string name="file_picker_browse">Browse</string>
-    <string name="failed_to_launch_photo_activity">Error while launching photo activity</string>
+    <string name="failed_to_launch_photo_activity">Error launching photo activity</string>
 </resources>

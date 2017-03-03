@@ -56,10 +56,8 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
                     return null;
                 }
 
-                pickerBitmaps.add(
-                        new PickerBitmap(filePath + "/" + file.getName(),
-                                PickerBitmap.TileTypes.PICTURE,
-                                file.lastModified()));
+                pickerBitmaps.add(new PickerBitmap(filePath + "/" + file.getName(),
+                        PickerBitmap.TileTypes.PICTURE, file.lastModified()));
             }
         }
 

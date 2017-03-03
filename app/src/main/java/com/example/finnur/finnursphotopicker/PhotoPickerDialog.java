@@ -4,12 +4,12 @@
 
 package com.example.finnur.finnursphotopicker;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
+import android.app.Dialog;  // Android Studio project specific (not required for Chromium).
 import android.content.Context;
-import android.content.DialogInterface;
+import android.content.DialogInterface;  // Android Studio project specific (not required for Chromium).
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar.OnMenuItemClickListener;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -23,8 +23,6 @@ import android.widget.LinearLayout;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
-import org.chromium.chrome.browser.widget.selection.SelectionDelegateMulti;
-import org.chromium.chrome.browser.widget.selection.SelectionDelegateSingle;
 import org.chromium.ui.OnPhotoPickerListener;
 */
 
@@ -35,7 +33,6 @@ import java.util.List;
  * &lt;input type=file accept=image &gt; form element.
  */
 public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickListener {
-
     private final Context mContext;
 
     // The listener for the photo changed event.
@@ -50,7 +47,6 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     // True if the file picker should allow multi-selection.
     private boolean mMultiSelection;
 
-    // FLIP
     // The toolbar at the top of the dialog.
     //private PhotoPickerToolbar mToolbar;
 
@@ -60,9 +56,8 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
      * @param context The context the dialog is to run in.
      * @param listener The object to notify when the color is set.
      */
-    public PhotoPickerDialog(Context context,
-                             OnPhotoPickerListener listener,
-                             boolean multiSelection) {
+    public PhotoPickerDialog(
+            Context context, OnPhotoPickerListener listener, boolean multiSelection) {
         super(context, 0);
 
         mContext = context;
@@ -70,18 +65,16 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         mMultiSelection = multiSelection;
 
         // Initialize title
-        LayoutInflater inflater = (LayoutInflater) mContext
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater inflater =
+                (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View title = inflater.inflate(R.layout.photo_picker_dialog_title, null);
         title.setPadding(0, 0, 0, 0);
         setCustomTitle(title);
 
-        mSelectionDelegate = multiSelection
-                ? new SelectionDelegateMulti<PickerBitmap>()
-                : new SelectionDelegateSingle<PickerBitmap>();
+        mSelectionDelegate = new SelectionDelegate<PickerBitmap>();
+        if (!multiSelection) mSelectionDelegate.setSingleSelectionMode();
 
-        initializeChromeSpecificStuff(title);
-        initializeNonChromeSpecificStuff();
+        initialize(title);
 
         // Initialize main content view
         View content = inflater.inflate(R.layout.photo_picker_dialog_content, null);
@@ -116,7 +109,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     }
 
     @VisibleForTesting
-    public SelectionDelegate getSelectionDelegateForTesting() {
+    public SelectionDelegate<PickerBitmap> getSelectionDelegateForTesting() {
         return mSelectionDelegate;
     }
 
@@ -156,11 +149,8 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         mListener.onPickerUserAction(OnPhotoPickerListener.Action.PHOTOS_SELECTED, photos);
     }
 
-    private void initializeChromeSpecificStuff(View title) {
-        // This function is only implemented in Chrome.
-    }
-
-    private void initializeNonChromeSpecificStuff() {
+    // This function is implemented differently in Chrome.
+    private void initialize(View title) {
         String negativeButtonText = mContext.getString(R.string.color_picker_button_cancel);
         setButton(BUTTON_NEGATIVE, negativeButtonText,
                 new Dialog.OnClickListener() {

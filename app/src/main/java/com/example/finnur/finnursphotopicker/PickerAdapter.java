@@ -15,6 +15,9 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
+/**
+ * A data adapter for the Photo Picker.
+ */
 public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> {
     private Context mContext;
 
@@ -30,7 +33,7 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> 
     @Override
     public PickerBitmapViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.picker_bitmap_view, parent, false);
+                                .inflate(R.layout.picker_bitmap_view, parent, false);
         PickerBitmapView bitmapView = (PickerBitmapView) itemView;
         bitmapView.initialize(mCategoryView);
         return new PickerBitmapViewHolder(itemView);

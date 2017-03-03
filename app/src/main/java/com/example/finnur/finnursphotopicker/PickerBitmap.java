@@ -4,15 +4,17 @@
 
 package com.example.finnur.finnursphotopicker;
 
+/**
+ * A class to keep track of the meta data associated with a an image in the
+ * photo picker.
+ */
 public class PickerBitmap implements Comparable<PickerBitmap> {
     // The file path to the bitmap to show.
     private String mFilePath;
     private TileTypes mType;
     private long mLastModified;
 
-    public enum TileTypes {
-        PICTURE, CAMERA, GALLERY
-    }
+    public enum TileTypes { PICTURE, CAMERA, GALLERY }
 
     public PickerBitmap(String filePath, TileTypes type, long lastModified) {
         mFilePath = filePath;

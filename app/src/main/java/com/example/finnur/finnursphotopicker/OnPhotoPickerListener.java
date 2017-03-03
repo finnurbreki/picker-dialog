@@ -22,7 +22,8 @@ public interface OnPhotoPickerListener {
     /**
      * The types of requests supported.
      */
-    static final int SHOW_GALLERY = 1;
+    static final int TAKE_PHOTO_REQUEST = 1;
+    static final int SHOW_GALLERY = 2;
 
     /**
      * Called when the user has selected an action. For possible actions see

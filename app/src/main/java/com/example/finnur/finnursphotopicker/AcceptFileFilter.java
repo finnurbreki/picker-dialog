@@ -9,6 +9,9 @@ import android.support.annotation.NonNull;
 import java.io.File;
 import java.io.FileFilter;
 
+/**
+ * Base class for FileFilters used when selection photos.
+ */
 public abstract class AcceptFileFilter implements FileFilter {
     private static AcceptFileFilter sDefaultSingleton = null;
 

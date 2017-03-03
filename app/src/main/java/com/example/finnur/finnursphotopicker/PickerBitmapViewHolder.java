@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.Locale;
 
 /** Holds onto a View that displays information about a picker bitmap. */
-public class PickerBitmapViewHolder extends RecyclerView.ViewHolder
-        implements DecoderServiceHost.ImageDecodedCallback {
+public class PickerBitmapViewHolder
+        extends RecyclerView.ViewHolder implements DecoderServiceHost.ImageDecodedCallback {
     // Our parent category.
     private PickerCategoryView mCategoryView;
 

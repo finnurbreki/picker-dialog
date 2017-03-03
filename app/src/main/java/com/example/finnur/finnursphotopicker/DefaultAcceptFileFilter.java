@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import java.io.File;
 
 class DefaultAcceptFileFilter extends AcceptFileFilter {
-
     @Override
     public boolean accept(@NonNull File file) {
         return true;
