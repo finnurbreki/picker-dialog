@@ -19,6 +19,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import android.os.StrictMode;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -156,6 +157,10 @@ public class DecoderServiceHost {
         FileInputStream inputFile = null;
         ParcelFileDescriptor pfd = null;
         Bundle bundle = new Bundle();
+
+        // The restricted utility process can't open the file to read the
+        // contents, so we need to obtain a file descriptor to pass over.
+        StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
         try {
             try {
                 inputFile = new FileInputStream(file);
@@ -171,6 +176,7 @@ public class DecoderServiceHost {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            StrictMode.setThreadPolicy(oldPolicy);
         }
 
         if (pfd == null) {
