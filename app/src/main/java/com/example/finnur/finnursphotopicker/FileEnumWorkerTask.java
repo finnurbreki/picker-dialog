@@ -12,26 +12,52 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
+/**
+ * A worker task to enumerate image files on disk.
+ */
+class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
+    /**
+     * An interface to use to communicate back the results to the client.
+     */
     public interface FilesEnumeratedCallback {
+        /**
+         * A callback to define to receive the list of all images on disk.
+         * @param files The list of images.
+         */
         void filesEnumeratedCallback(List<PickerBitmap> files);
     }
 
+    // The callback to use to communicate the results.
     private FilesEnumeratedCallback mCallback;
+
+    // The filter to apply to the list.
     private AcceptFileFilter mFilter;
 
+    /**
+     * A FileEnumWorkerTask constructor.
+     * @param callback The callback to use to communicate back the results.
+     */
     public FileEnumWorkerTask(FilesEnumeratedCallback callback) {
         this(callback, AcceptFileFilter.getDefault());
     }
 
+    /**
+     * A FileEnumWorkerTask constructor.
+     * @param callback The callback to use to communicate back the results.
+     * @param filter The file filter to apply to the list.
+     */
     public FileEnumWorkerTask(FilesEnumeratedCallback callback, AcceptFileFilter filter) {
         mCallback = callback;
         mFilter = filter;
     }
 
-    // Enumerate files in background.
+    /**
+     * Enumerates (in the background) the image files on disk. Called on a non-UI thread
+     * @param params Ignored, do not use.
+     * @return A sorted list of images (by last-modified first).
+     */
     @Override
-    protected List<PickerBitmap> doInBackground(String... params) {
+    protected List<PickerBitmap> doInBackground(Void... params) {
         if (isCancelled()) {
             return null;
         }
@@ -57,19 +83,22 @@ class FileEnumWorkerTask extends AsyncTask<String, Void, List<PickerBitmap>> {
                 }
 
                 pickerBitmaps.add(new PickerBitmap(filePath + "/" + file.getName(),
-                        PickerBitmap.TileTypes.PICTURE, file.lastModified()));
+                        file.lastModified(), PickerBitmap.TileTypes.PICTURE));
             }
         }
 
         Collections.sort(pickerBitmaps);
 
-        pickerBitmaps.add(0, new PickerBitmap("", PickerBitmap.TileTypes.GALLERY, 0));
-        pickerBitmaps.add(0, new PickerBitmap("", PickerBitmap.TileTypes.CAMERA, 0));
+        pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.TileTypes.GALLERY));
+        pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.TileTypes.CAMERA));
 
         return pickerBitmaps;
     }
 
-    // Once complete, see if ImageView is still around and set bitmap.
+    /**
+     * Communicates the results back to the client. Called on the UI thread.
+     * @param files The resulting list of files on disk.
+     */
     @Override
     protected void onPostExecute(List<PickerBitmap> files) {
         if (isCancelled()) {

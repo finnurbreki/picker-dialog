@@ -19,10 +19,17 @@ import java.util.List;
  * A data adapter for the Photo Picker.
  */
 public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> {
+    // Our context.
     private Context mContext;
 
+    // The category view to use to show the images.
     private PickerCategoryView mCategoryView;
 
+    /**
+     * The PickerAdapter constructor.
+     * @param context The context to use.
+     * @param categoryView The category view to use to show the images.
+     */
     public PickerAdapter(Context context, PickerCategoryView categoryView) {
         mContext = context;
         mCategoryView = categoryView;
@@ -35,7 +42,7 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> 
         View itemView = LayoutInflater.from(parent.getContext())
                                 .inflate(R.layout.picker_bitmap_view, parent, false);
         PickerBitmapView bitmapView = (PickerBitmapView) itemView;
-        bitmapView.initialize(mCategoryView);
+        bitmapView.preInitialize(mCategoryView);
         return new PickerBitmapViewHolder(itemView);
     }
 
@@ -51,11 +58,6 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> 
 
     @Override
     public int getItemCount() {
-        List<PickerBitmap> pickerBitmaps = mCategoryView.getPickerBitmaps();
-        int maxBitmaps = mCategoryView.getMaxImagesShown();
-        if (maxBitmaps == -1) {
-            return pickerBitmaps.size();
-        }
-        return Math.min(pickerBitmaps.size(), maxBitmaps);
+        return mCategoryView.getPickerBitmaps().size();
     }
 }

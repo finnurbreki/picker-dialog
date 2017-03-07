@@ -36,35 +36,50 @@ import java.util.Map;
 
 /**
  * A class for keeping track of common data associated with showing photos in
- * the photo picker, for example the RecyclerView and the caches.
+ * the photo picker, for example the RecyclerView and the bitmap caches.
  */
 public class PickerCategoryView extends RelativeLayout
         implements FileEnumWorkerTask.FilesEnumeratedCallback,
                    DecoderServiceHost.ServiceReadyCallback, RecyclerView.RecyclerListener {
+    // Our context.
     private Context mContext;
-    private PickerAdapter mPickerAdapter;
+
+    // The list of images on disk, sorted by last-modified first.
     private List<PickerBitmap> mPickerBitmaps;
+
+    // True if multi-selection is allowed in the picker.
     private boolean mMultiSelection;
+
+    // The callback to notify the listener of decisions reached in the picker.
     private OnPhotoPickerListener mListener;
 
-    private RecyclerView mRecyclerView;
-
-    private SelectionDelegate<PickerBitmap> mSelectionDelegate;
-
+    // The host class for the decoding service.
     private DecoderServiceHost mDecoderServiceHost;
 
-    private LruCache<String, Bitmap> mLowResBitmaps;
-    private LruCache<String, Bitmap> mPrettyBitmaps;
+    // The recycler view showing the images.
+    private RecyclerView mRecyclerView;
 
-    // mColumns and mPadding should both be even numbers or both odd, not a mix (the column padding
-    // will not be of uniform thickness if they are a mix).
+    // The picker adapter for the RecyclerView.
+    private PickerAdapter mPickerAdapter;
+
+    // The selection delegate keeping track of which images are selected.
+    private SelectionDelegate<PickerBitmap> mSelectionDelegate;
+
+    // A low-resolution cache for images. Helpful for cache misses from the high-resolution cache
+    // to avoid showing gray squares (show pixelated versions instead until image can be loaded off
+    // disk).
+    private LruCache<String, Bitmap> mLowResBitmaps;
+
+    // A high-resolution cache for images.
+    private LruCache<String, Bitmap> mHighResBitmaps;
+
+    // The number of columns to show. Note: mColumns and mPadding (see below) should both be even
+    // numbers or both odd, not a mix (the column padding will not be of uniform thickness if they
+    // are a mix).
     private int mColumns;
 
     // The padding between columns. See also comment for mColumns.
     private int mPadding;
-
-    // Maximum number of bitmaps to show.
-    private int mMaxImages;
 
     // The size of the bitmaps (equal length for width and height).
     private int mImageSize;
@@ -93,6 +108,10 @@ public class PickerCategoryView extends RelativeLayout
         init(context);
     }
 
+    /**
+     * A helper function for initializing the PickerCategoryView.
+     * @param context The context to use.
+     */
     private void init(Context context) {
         mContext = context;
 
@@ -105,65 +124,23 @@ public class PickerCategoryView extends RelativeLayout
         inflate(mContext, R.layout.picker_category_view, this);
     }
 
+    /**
+     * Severs the connection to the decoding utility process.
+     */
     public void endConnection() {
         if (mDecoderServiceHost != null) {
             mDecoderServiceHost.unbind(mContext);
         }
     }
 
-    @Override
-    public void serviceReady() {
-        prepareBitmaps();
-    }
-
-    @VisibleForTesting
-    public RecyclerView getRecyclerViewForTesting() {
-        return mRecyclerView;
-    }
-
-    public int getMaxImagesShown() {
-        return mMaxImages;
-    }
-    public int getImageSize() {
-        return mImageSize;
-    }
-    public SelectionDelegate<PickerBitmap> getSelectionDelegate() {
-        return mSelectionDelegate;
-    }
-    public List<PickerBitmap> getPickerBitmaps() {
-        return mPickerBitmaps;
-    }
-    public DecoderServiceHost getDecoderServiceHost() {
-        return mDecoderServiceHost;
-    }
-    public LruCache<String, Bitmap> getLowResBitmaps() {
-        return mLowResBitmaps;
-    }
-    public LruCache<String, Bitmap> getPrettyBitmaps() {
-        return mPrettyBitmaps;
-    }
-    public boolean isMultiSelect() {
-        return mMultiSelection;
-    }
-
-    public Bitmap getSelectionBitmap(boolean selected) {
-        if (selected) {
-            return mBitmapSelected;
-        } else {
-            return mBitmapUnselected;
-        }
-    }
-
-    private Bitmap colorBitmap(Bitmap original, int color) {
-        Bitmap mutable = original.copy(Bitmap.Config.ARGB_8888, true);
-        Canvas canvas = new Canvas(mutable);
-        Paint paint = new Paint();
-        paint.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(mutable, 0.f, 0.f, paint);
-        return mutable;
-    }
-
-    public void setInitialState(SelectionDelegate<PickerBitmap> selectionDelegate,
+    /**
+     * Sets the starting state for the PickerCategoryView object.
+     * @param selectionDelegate The selection delegate to use.
+     * @param listener The listener who should be notified of actions.
+     * @param multiSelection Whether to allow the user to select more than one image.
+     * @param width The width of the dialog showing the photos.
+     */
+    public void setStartingState(SelectionDelegate<PickerBitmap> selectionDelegate,
             OnPhotoPickerListener listener, boolean multiSelection, int width) {
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.setRecyclerListener(this);
@@ -183,7 +160,6 @@ public class PickerCategoryView extends RelativeLayout
         mBitmapUnselected = colorBitmap(mBitmapUnselected, unselectedColor);
 
         calculateGridMetrics(width);
-        mMaxImages = 40 * mColumns;
 
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSizeLarge = maxMemory / 2; // 1/2 of the available memory.
@@ -194,7 +170,7 @@ public class PickerCategoryView extends RelativeLayout
                 return bitmap.getByteCount() / 1024;
             }
         };
-        mPrettyBitmaps = new LruCache<String, Bitmap>(cacheSizeLarge) {
+        mHighResBitmaps = new LruCache<String, Bitmap>(cacheSizeLarge) {
             @Override
             protected int sizeOf(String key, Bitmap bitmap) {
                 return bitmap.getByteCount() / 1024;
@@ -209,22 +185,16 @@ public class PickerCategoryView extends RelativeLayout
         mRecyclerView.addItemDecoration(new GridSpacingItemDecoration(mColumns, mPadding));
     }
 
-    private void calculateGridMetrics(int width) {
-        int minSize =
-                mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_min_size);
-        mPadding = mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_gap);
-        mColumns = Math.max(1, (width - mPadding) / (minSize + mPadding));
-        mImageSize = (width - mPadding * (mColumns + 1)) / (mColumns);
+    // DecoderServiceHost.ServiceReadyCallback:
+
+    @Override
+    public void serviceReady() {
+        prepareBitmaps();
     }
 
-    public void showGallery() {
-        mListener.onPickerUserAction(OnPhotoPickerListener.Action.LAUNCH_GALLERY, null);
-    }
+    // FileEnumWorkerTask.FilesEnumeratedCallback:
 
-    public void showCamera() {
-        mListener.onPickerUserAction(OnPhotoPickerListener.Action.LAUNCH_CAMERA, null);
-    }
-
+    @Override
     public void filesEnumeratedCallback(List<PickerBitmap> files) {
         mPickerBitmaps = files;
         if (files != null && files.size() > 0) {
@@ -234,6 +204,102 @@ public class PickerCategoryView extends RelativeLayout
         }
     }
 
+    // RecyclerView.RecyclerListener:
+
+    @Override
+    public void onViewRecycled(RecyclerView.ViewHolder holder) {
+        PickerBitmapViewHolder bitmapHolder = (PickerBitmapViewHolder) holder;
+        String filePath = bitmapHolder.getFilePath();
+        if (filePath != null) {
+            getDecoderServiceHost().cancelDecodeImage(filePath);
+        }
+    }
+
+    // Simple accessors:
+
+    public int getImageSize() {
+        return mImageSize;
+    }
+    public SelectionDelegate<PickerBitmap> getSelectionDelegate() {
+        return mSelectionDelegate;
+    }
+    public List<PickerBitmap> getPickerBitmaps() {
+        return mPickerBitmaps;
+    }
+    public DecoderServiceHost getDecoderServiceHost() {
+        return mDecoderServiceHost;
+    }
+    public LruCache<String, Bitmap> getLowResBitmaps() {
+        return mLowResBitmaps;
+    }
+    public LruCache<String, Bitmap> getHighResBitmaps() {
+        return mHighResBitmaps;
+    }
+    public boolean isMultiSelect() {
+        return mMultiSelection;
+    }
+
+    /**
+     * Notifies the caller that the user selected to launch the gallery.
+     */
+    public void showGallery() {
+        mListener.onPickerUserAction(OnPhotoPickerListener.Action.LAUNCH_GALLERY, null);
+    }
+
+    /**
+     * Notifies the caller that the user selected to launch the camera intent.
+     */
+    public void showCamera() {
+        mListener.onPickerUserAction(OnPhotoPickerListener.Action.LAUNCH_CAMERA, null);
+    }
+
+    /**
+     * Returns the selection bitmaps (control indicating whether the image is selected or not).
+     * @param selected See return value.
+     * @return If |selected| is true, the selection bitmap is returned. Otherwise the unselection
+     *         bitmap is returned.
+     */
+    public Bitmap getSelectionBitmap(boolean selected) {
+        if (selected) {
+            return mBitmapSelected;
+        } else {
+            return mBitmapUnselected;
+        }
+    }
+
+    /**
+     * Applies a color filter to a bitmap.
+     * @param original The bitmap to color.
+     * @param color The color to apply.
+     * @return A colored bitmap.
+     */
+    private Bitmap colorBitmap(Bitmap original, int color) {
+        Bitmap mutable = original.copy(Bitmap.Config.ARGB_8888, true);
+        Canvas canvas = new Canvas(mutable);
+        Paint paint = new Paint();
+        paint.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(mutable, 0.f, 0.f, paint);
+        return mutable;
+    }
+
+    /**
+     * Calculates image size and how many columns can fit on-screen.
+     * @param width The total width of the boundary to show the images in.
+     */
+    private void calculateGridMetrics(int width) {
+        int minSize =
+                mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_min_size);
+        mPadding = mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_gap);
+        mColumns = Math.max(1, (width - mPadding) / (minSize + mPadding));
+        mImageSize = (width - mPadding * (mColumns + 1)) / (mColumns);
+    }
+
+    @VisibleForTesting
+    public RecyclerView getRecyclerViewForTesting() {
+        return mRecyclerView;
+    }
+
+    @VisibleForTesting
     private boolean loadTestFiles() {
         Map<String, Long> testFiles = mListener.getFilesForTesting();
         if (testFiles == null) {
@@ -244,13 +310,16 @@ public class PickerCategoryView extends RelativeLayout
         for (Map.Entry<String, Long> entry : testFiles.entrySet()) {
             String key = entry.getKey();
             Long value = entry.getValue();
-            files.add(new PickerBitmap(key, PickerBitmap.TileTypes.PICTURE, value));
+            files.add(new PickerBitmap(key, value, PickerBitmap.TileTypes.PICTURE));
         }
         Collections.sort(files);
         filesEnumeratedCallback(files);
         return true;
     }
 
+    /**
+     * Prepares bitmaps for loading.
+     */
     private void prepareBitmaps() {
         if (loadTestFiles()) return;
 
@@ -262,17 +331,14 @@ public class PickerCategoryView extends RelativeLayout
         mWorkerTask.execute();
     }
 
-    @Override
-    public void onViewRecycled(RecyclerView.ViewHolder holder) {
-        PickerBitmapViewHolder bitmapHolder = (PickerBitmapViewHolder) holder;
-        String filePath = bitmapHolder.getFilePath();
-        if (filePath != null) {
-            getDecoderServiceHost().cancelDecodeImage(filePath);
-        }
-    }
-
+    /**
+     * A class for implementing grid spacing between items.
+     */
     private class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
+        // The number of spans to account for.
         private int mSpanCount;
+
+        // The amount of spacing to use.
         private int mSpacing;
 
         public GridSpacingItemDecoration(int spanCount, int spacing) {

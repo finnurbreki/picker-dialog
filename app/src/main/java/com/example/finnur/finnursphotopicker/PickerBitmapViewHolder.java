@@ -18,7 +18,9 @@ import org.chromium.base.VisibleForTesting;
 import java.util.List;
 import java.util.Locale;
 
-/** Holds onto a View that displays information about a picker bitmap. */
+/**
+ * Holds onto a View that displays information about a picker bitmap.
+ */
 public class PickerBitmapViewHolder
         extends RecyclerView.ViewHolder implements DecoderServiceHost.ImageDecodedCallback {
     // Our parent category.
@@ -28,17 +30,17 @@ public class PickerBitmapViewHolder
     private final PickerBitmapView mItemView;
 
     // The request we are showing the bitmap for.
-    private PickerBitmap mItem;
+    private PickerBitmap mRequest;
 
+    /**
+     * The PickerBitmapViewHolder.
+     * @param itemView The PickerBitmap view for showing the image.
+     */
     public PickerBitmapViewHolder(View itemView) {
         super(itemView);
 
         assert itemView instanceof PickerBitmapView;
         mItemView = (PickerBitmapView) itemView;
-    }
-
-    public String getFilePath() {
-        return mItem == null ? null : mItem.getFilePath();
     }
 
     // DecoderServiceHost.ImageDecodedCallback
@@ -49,8 +51,8 @@ public class PickerBitmapViewHolder
             return;
         }
 
-        if (mCategoryView.getPrettyBitmaps().get(filePath) == null) {
-            mCategoryView.getPrettyBitmaps().put(filePath, bitmap);
+        if (mCategoryView.getHighResBitmaps().get(filePath) == null) {
+            mCategoryView.getHighResBitmaps().put(filePath, bitmap);
         }
 
         if (mCategoryView.getLowResBitmaps().get(filePath) == null) {
@@ -59,7 +61,7 @@ public class PickerBitmapViewHolder
             mCategoryView.getLowResBitmaps().put(filePath, lowres);
         }
 
-        if (!TextUtils.equals(mItem.getFilePath(), filePath)) {
+        if (!TextUtils.equals(mRequest.getFilePath(), filePath)) {
             return;
         }
 
@@ -68,17 +70,22 @@ public class PickerBitmapViewHolder
         }
     }
 
+    /**
+     * Display a single item from |position| in the PickerCategoryView.
+     * @param categoryView The PickerCategoryView to use to fetch the image.
+     * @param position The position of the item to fetch.
+     */
     public void displayItem(PickerCategoryView categoryView, int position) {
         mCategoryView = categoryView;
 
         List<PickerBitmap> pickerBitmaps = mCategoryView.getPickerBitmaps();
-        mItem = pickerBitmaps.get(position);
+        mRequest = pickerBitmaps.get(position);
 
-        String filePath = mItem.getFilePath();
+        String filePath = mRequest.getFilePath();
         if (isImageExtension(filePath)) {
-            Bitmap original = mCategoryView.getPrettyBitmaps().get(filePath);
+            Bitmap original = mCategoryView.getHighResBitmaps().get(filePath);
             if (original != null) {
-                mItemView.initialize(mItem, original, false);
+                mItemView.initialize(mRequest, original, false);
                 return;
             }
 
@@ -87,28 +94,38 @@ public class PickerBitmapViewHolder
             if (placeholder != null) {
                 // Scaling the image up takes between 3-4 ms on average (Nexus 6 phone debug build).
                 placeholder = BitmapUtils.scale(placeholder, size, false);
-                mItemView.initialize(mItem, placeholder, false);
+                mItemView.initialize(mRequest, placeholder, false);
             } else {
                 placeholder = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
                 placeholder.eraseColor(Color.argb(0, 0, 0, 0));
-                mItemView.initialize(mItem, placeholder, true);
+                mItemView.initialize(mRequest, placeholder, true);
             }
 
-            mCategoryView.getDecoderServiceHost().decodeImage(
-                    mItem.getFilePath(), size, this, System.nanoTime());
+            mCategoryView.getDecoderServiceHost().decodeImage(mRequest.getFilePath(), size, this);
         } else {
-            mItemView.initialize(mItem, null, false);
-            if (mItem.type() == PickerBitmap.TileTypes.PICTURE) {
-                mItemView.setTextWithOverlay();
+            mItemView.initialize(mRequest, null, false);
+            if (mRequest.type() == PickerBitmap.TileTypes.PICTURE) {
+                mItemView.showFileExtension();
             } else {
                 mItemView.initializeSpecialTile();
             }
         }
     }
 
+    /**
+     * @param filePath The file path to consider.
+     * @return true if the |filePath| ends in an image extension.
+     */
     private boolean isImageExtension(String filePath) {
         String file = filePath.toLowerCase(Locale.US);
         return file.endsWith(".jpg") || file.endsWith(".gif") || file.endsWith(".png");
+    }
+
+    /**
+     * Returns the file path of the current request.
+     */
+    public String getFilePath() {
+        return mRequest == null ? null : mRequest.getFilePath();
     }
 
     @VisibleForTesting

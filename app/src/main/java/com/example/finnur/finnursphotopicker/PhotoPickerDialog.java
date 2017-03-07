@@ -33,6 +33,7 @@ import java.util.List;
  * &lt;input type=file accept=image &gt; form element.
  */
 public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickListener {
+    // The context to use.
     private final Context mContext;
 
     // The listener for the photo changed event.
@@ -50,11 +51,14 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
     // The toolbar at the top of the dialog.
     //private PhotoPickerToolbar mToolbar;
 
+    // The selection delegate to keep track of the selected items.
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
 
     /**
-     * @param context The context the dialog is to run in.
-     * @param listener The object to notify when the color is set.
+     * The PhotoPickerDialog constructor.
+     * @param context The context to use.
+     * @param listener The listener object that gets notified when an action is taken.
+     * @param multiSelection True if the photo picker should allow multiple items to be selected.
      */
     public PhotoPickerDialog(
             Context context, OnPhotoPickerListener listener, boolean multiSelection) {
@@ -64,19 +68,18 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         mListener = listener;
         mMultiSelection = multiSelection;
 
-        // Initialize title
+        mSelectionDelegate = new SelectionDelegate<PickerBitmap>();
+        if (!multiSelection) mSelectionDelegate.setSingleSelectionMode();
+
+        // Initialize the title.
         LayoutInflater inflater =
                 (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View title = inflater.inflate(R.layout.photo_picker_dialog_title, null);
         title.setPadding(0, 0, 0, 0);
         setCustomTitle(title);
-
-        mSelectionDelegate = new SelectionDelegate<PickerBitmap>();
-        if (!multiSelection) mSelectionDelegate.setSingleSelectionMode();
-
         initialize(title);
 
-        // Initialize main content view
+        // Initialize the main content view.
         View content = inflater.inflate(R.layout.photo_picker_dialog_content, null);
         setView(content);
     }
@@ -113,22 +116,26 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         return mSelectionDelegate;
     }
 
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        // This is a Chrome-specific function, not needed otherwise.
+        return false;
+    }
+
+    /**
+     * Initializes the PickerCategoryView (it is dynamically adjusted based on the size afforded to
+     * it).
+     */
     private void initializeContent() {
         LinearLayout parentLayout = (LinearLayout) findViewById(R.id.layout);
 
         mCategoryView = new PickerCategoryView(mContext);
         View view = getWindow().getDecorView();
         int width = view.getWidth() - view.getPaddingLeft() - view.getPaddingRight();
-        mCategoryView.setInitialState(mSelectionDelegate, mListener, mMultiSelection, width);
+        mCategoryView.setStartingState(mSelectionDelegate, mListener, mMultiSelection, width);
         parentLayout.addView(mCategoryView);
 
         mInitialized = true;
-    }
-
-    @Override
-    public boolean onMenuItemClick(MenuItem item) {
-        // This is a Chrome-specific function, not needed otherwise.
-        return false;
     }
 
     /**
@@ -149,7 +156,11 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
         mListener.onPickerUserAction(OnPhotoPickerListener.Action.PHOTOS_SELECTED, photos);
     }
 
-    // This function is implemented differently in Chrome.
+    /**
+     * Initializes the view.
+     * Note: This function is implemented differently in Chrome.
+     * @param title The title view.
+     */
     private void initialize(View title) {
         String negativeButtonText = mContext.getString(R.string.color_picker_button_cancel);
         setButton(BUTTON_NEGATIVE, negativeButtonText,

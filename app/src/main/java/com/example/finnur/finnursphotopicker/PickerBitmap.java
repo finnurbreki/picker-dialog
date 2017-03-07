@@ -9,36 +9,56 @@ package com.example.finnur.finnursphotopicker;
  * photo picker.
  */
 public class PickerBitmap implements Comparable<PickerBitmap> {
-    // The file path to the bitmap to show.
-    private String mFilePath;
-    private TileTypes mType;
-    private long mLastModified;
-
+    // The possible types of tiles involved in the viewer.
     public enum TileTypes { PICTURE, CAMERA, GALLERY }
 
-    public PickerBitmap(String filePath, TileTypes type, long lastModified) {
+    // The file path to the bitmap to show.
+    private String mFilePath;
+
+    // When the bitmap was last modified on disk.
+    private long mLastModified;
+
+    // The type of tile involved.
+    private TileTypes mType;
+
+    /**
+     * The PickerBitmap constructor.
+     * @param filePath The file path to the bitmap to show.
+     * @param lastModified When the bitmap was last modified on disk.
+     * @param type The type of tile involved.
+     */
+    public PickerBitmap(String filePath, long lastModified, TileTypes type) {
         mFilePath = filePath;
-        mType = type;
         mLastModified = lastModified;
+        mType = type;
     }
 
+    /**
+     * Accessor for the filepath.
+     * @return The file path for this PickerBitmap object.
+     */
     public String getFilePath() {
         return mFilePath;
     }
 
-    public long getLastModified() {
-        return mLastModified;
-    }
-
+    /**
+     * Accessor for the tile type.
+     * @return The type of tile involved for this bitmap object.
+     */
     public TileTypes type() {
         return mType;
     }
 
+    /**
+     * A comparison function for PickerBitmaps (results in a last-modified first sort).
+     * @param other The PickerBitmap to compare it to.
+     * @return 0, 1, or -1, depending on which is bigger.
+     */
     @Override
-    public int compareTo(PickerBitmap f) {
-        if (mLastModified < f.mLastModified) {
+    public int compareTo(PickerBitmap other) {
+        if (mLastModified < other.mLastModified) {
             return 1;
-        } else if (mLastModified > f.mLastModified) {
+        } else if (mLastModified > other.mLastModified) {
             return -1;
         }
         return 0;

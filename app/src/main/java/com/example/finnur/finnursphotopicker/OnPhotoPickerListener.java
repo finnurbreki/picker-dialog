@@ -28,14 +28,12 @@ public interface OnPhotoPickerListener {
     /**
      * Called when the user has selected an action. For possible actions see
      * above.
-     *
      * @param photos The photos that were selected.
      */
     void onPickerUserAction(Action action, String[] photos);
 
     /**
      * Used during testing to provide pre-canned data to the dialog.
-     *
      * @return The test files to use (Map<String, Long>, mapping file paths to creation times) or
      *     null when run outside of a test.
      */

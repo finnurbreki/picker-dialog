@@ -29,8 +29,9 @@ import java.util.List;
  *
  * @param <E> The type of the item associated with this SelectableItemView.
  */
-public abstract class SelectableItemView<E> extends FrameLayout implements Checkable,
-        OnClickListener, OnLongClickListener, SelectionDelegate.SelectionObserver<E> {
+public abstract class SelectableItemView<E>
+        extends FrameLayout implements Checkable, OnClickListener, OnLongClickListener,
+                                       SelectionDelegate.SelectionObserver<E> {
     private SelectionDelegate<E> mSelectionDelegate;
     private SelectableItemHighlightView mHighlightView;
     private E mItem;

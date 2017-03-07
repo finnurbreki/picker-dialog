@@ -26,28 +26,43 @@ import java.nio.ByteBuffer;
  * A service to accept requests to take image file contents and decode them.
  */
 public class DecoderService extends Service {
+    // Message ids for communicating with the client.
+
+    // A message sent by the client to register as a consumer of this service.
     static final int MSG_REGISTER_CLIENT = 1;
+    // A message sent by the client to decode an image.
     static final int MSG_DECODE_IMAGE = 2;
+    // A message sent by the server to notify the client of the results of the decoding.
     static final int MSG_IMAGE_DECODED_REPLY = 3;
 
+    // The keys for the bundle when passing data to and from this service.
     static final String KEY_FILE_DESCRIPTOR = "file_descriptor";
     static final String KEY_FILE_PATH = "file_path";
     static final String KEY_IMAGE_BITMAP = "image_bitmap";
     static final String KEY_IMAGE_BYTE_COUNT = "image_byte_count";
     static final String KEY_IMAGE_DESCRIPTOR = "image_descriptor";
-    static final String KEY_START_TIME = "start_time";
     static final String KEY_WIDTH = "width";
     static final String KEY_SUCCESS = "success";
 
+    // A method for getFileDescriptor, obtained via Reflection. Can be null if not supported by
+    // the Android OS.
     private static final Method sMethodGetFileDescriptor;
     static {
         sMethodGetFileDescriptor = getMethod("getFileDescriptor");
     }
+
+    // A method for createAshmemBitmap, obtained via Reflection. Can be null if not supported by
+    // the Android OS.
     private static final Method sMethodCreateAshmemBitmap;
     static {
         sMethodCreateAshmemBitmap = getMethod("createAshmemBitmap");
     }
 
+    /**
+     * A helper function to look up methods by name.
+     * @param name The name of the method to look up.
+     * @return The method, if found. Otherwise null.
+     */
     private static Method getMethod(String name) {
         try {
             if (name.equals("getFileDescriptor")) {
@@ -66,6 +81,11 @@ public class DecoderService extends Service {
         }
     }
 
+    /**
+     * A helper function to obtain a FileDescriptor from a MemoryFile.
+     * @param file The MemoryFile to get a FileDescriptor for.
+     * @return The resulting FileDescriptor.
+     */
     public static FileDescriptor getFileDescriptor(MemoryFile file) {
         try {
             return (FileDescriptor) sMethodGetFileDescriptor.invoke(file);
@@ -76,6 +96,11 @@ public class DecoderService extends Service {
         }
     }
 
+    /**
+     * A helper function to obtain an ashmemBitmap version of a regular |bitmap|.
+     * @param bitmap The bitmap to use.
+     * @return an ashmemBitmap.
+     */
     public static Bitmap createAshmemBitmap(Bitmap bitmap) {
         try {
             return (Bitmap) sMethodCreateAshmemBitmap.invoke(bitmap);
@@ -87,9 +112,10 @@ public class DecoderService extends Service {
     }
 
     /**
-     * Handler of incoming messages from clients.
+     * Handler for incoming messages from clients.
      */
     static class IncomingHandler extends Handler {
+        // The client we are communicating with.
         private Messenger mClient;
 
         @Override
@@ -106,13 +132,11 @@ public class DecoderService extends Service {
                         String filePath = payload.getString(KEY_FILE_PATH);
                         ParcelFileDescriptor pfd = payload.getParcelable(KEY_FILE_DESCRIPTOR);
                         int width = payload.getInt(KEY_WIDTH);
-                        long startTime = payload.getLong(KEY_START_TIME);
 
                         // Setup a minimum viable response to parent process. Will be fleshed out
                         // further below.
                         bundle.putString(KEY_FILE_PATH, filePath);
                         bundle.putInt(KEY_WIDTH, width);
-                        bundle.putLong(KEY_START_TIME, startTime);
                         bundle.putBoolean(KEY_SUCCESS, false);
 
                         FileDescriptor fd = pfd.getFileDescriptor();
@@ -198,7 +222,7 @@ public class DecoderService extends Service {
     }
 
     /**
-     * Target we publish for clients to send messages to IncomingHandler.
+     * The target we publish for clients to send messages to IncomingHandler.
      */
     final Messenger mMessenger = new Messenger(new IncomingHandler());
 
