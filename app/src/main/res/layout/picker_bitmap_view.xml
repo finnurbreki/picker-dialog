@@ -64,6 +64,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/file_picker_label_gap"
+            android:drawablePadding="10dp"
             android:fontFamily="sans-serif-medium"
             android:textStyle="bold"
             android:textSize="14sp"

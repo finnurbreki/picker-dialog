@@ -62,7 +62,7 @@ public class PhotoPickerDialog extends AlertDialog implements OnMenuItemClickLis
      */
     public PhotoPickerDialog(
             Context context, OnPhotoPickerListener listener, boolean multiSelection) {
-        super(context, 0);
+        super(context, R.style.FullscreenWhite);
 
         mContext = context;
         mListener = listener;
