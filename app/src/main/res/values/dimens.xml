@@ -1,10 +1,16 @@
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="action_bar_shadow_height">10dp</dimen>
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="chrome_home_empty_view_top_padding">16dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
-    <dimen name="file_picker_selected_padding">12dp</dimen>
     <dimen name="file_picker_label_gap">10dp</dimen>
-    <dimen name="file_picker_tile_min_size">100dp</dimen>
+    <dimen name="file_picker_selected_padding">12dp</dimen>
     <dimen name="file_picker_tile_gap">4dp</dimen>
+    <dimen name="file_picker_tile_min_size">100dp</dimen>
+    <dimen name="list_item_corner_radius">3dp</dimen>
+    <dimen name="toolbar_wide_display_end_offset">-14dp</dimen>
+    <dimen name="toolbar_wide_display_nav_icon_offset">-18dp</dimen>
+    <color name="white_mode_tint">#FFFFFF</color>
 </resources>

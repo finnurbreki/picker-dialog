@@ -4,8 +4,8 @@
 
 package com.example.finnur.finnursphotopicker;
 
-import android.content.Context;
-import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.Adapter;
+import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,27 +18,22 @@ import java.util.List;
 /**
  * A data adapter for the Photo Picker.
  */
-public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> {
-    // Our context.
-    private Context mContext;
-
+public class PickerAdapter extends Adapter<ViewHolder> {
     // The category view to use to show the images.
     private PickerCategoryView mCategoryView;
 
     /**
      * The PickerAdapter constructor.
-     * @param context The context to use.
      * @param categoryView The category view to use to show the images.
      */
-    public PickerAdapter(Context context, PickerCategoryView categoryView) {
-        mContext = context;
+    public PickerAdapter(PickerCategoryView categoryView) {
         mCategoryView = categoryView;
     }
 
     // RecyclerView.Adapter:
 
     @Override
-    public PickerBitmapViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
                                 .inflate(R.layout.picker_bitmap_view, parent, false);
         PickerBitmapView bitmapView = (PickerBitmapView) itemView;
@@ -47,13 +42,16 @@ public class PickerAdapter extends RecyclerView.Adapter<PickerBitmapViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(PickerBitmapViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
         onBindViewHolder(holder, position, null);
     }
 
     @Override
-    public void onBindViewHolder(PickerBitmapViewHolder holder, int position, List payloads) {
-        holder.displayItem(mCategoryView, position);
+    public void onBindViewHolder(ViewHolder holder, int position, List payloads) {
+        if (holder instanceof PickerBitmapViewHolder) {
+            PickerBitmapViewHolder myHolder = (PickerBitmapViewHolder) holder;
+            myHolder.displayItem(mCategoryView, position);
+        }
     }
 
     @Override

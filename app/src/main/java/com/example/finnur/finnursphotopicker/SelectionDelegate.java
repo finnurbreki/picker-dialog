@@ -19,6 +19,7 @@ import java.util.Set;
  * @param <E> The type of the selectable items this delegate interacts with.
  */
 public class SelectionDelegate<E> {
+    // True if the SelectionDelegate should only support a single item being selected at a time.
     private boolean mSingleSelection;
 
     /**

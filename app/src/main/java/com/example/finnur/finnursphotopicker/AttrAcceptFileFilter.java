@@ -8,10 +8,11 @@ import android.support.annotation.NonNull;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.HashSet;
 import java.util.Locale;
 
-class AttrAcceptFileFilter extends AcceptFileFilter {
+class AttrAcceptFileFilter implements FileFilter {
     private static final String IMAGE_SUPERTYPE = "image";
     private static final String VIDEO_SUPERTYPE = "video";
 
@@ -62,17 +63,14 @@ class AttrAcceptFileFilter extends AcceptFileFilter {
         return false;
     }
 
-    @Override
     public boolean acceptsImages() {
         return getAcceptedSupertypes().contains(IMAGE_SUPERTYPE);
     }
 
-    @Override
     public boolean acceptsVideos() {
         return getAcceptedSupertypes().contains(VIDEO_SUPERTYPE);
     }
 
-    @Override
     public boolean acceptsOther() {
         HashSet<String> supertypes = getAcceptedSupertypes();
         supertypes.remove(IMAGE_SUPERTYPE);

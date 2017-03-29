@@ -56,10 +56,10 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                OnPhotoPickerListener listener = new OnPhotoPickerListener() {
+                PhotoPickerListener listener = new PhotoPickerListener() {
                     @Override
                     public void onPickerUserAction(
-                            OnPhotoPickerListener.Action action, String[] photos) {
+                            PhotoPickerListener.Action action, String[] photos) {
                         switch (action) {
                             case PHOTOS_SELECTED:
                                 if (photos != null) {

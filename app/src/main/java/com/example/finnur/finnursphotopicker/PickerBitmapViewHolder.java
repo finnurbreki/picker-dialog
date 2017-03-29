@@ -5,6 +5,7 @@
 package com.example.finnur.finnursphotopicker;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -16,7 +17,6 @@ import org.chromium.base.VisibleForTesting;
 */
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Holds onto a View that displays information about a picker bitmap.
@@ -82,43 +82,32 @@ public class PickerBitmapViewHolder
         mRequest = pickerBitmaps.get(position);
 
         String filePath = mRequest.getFilePath();
-        if (isImageExtension(filePath)) {
-            Bitmap original = mCategoryView.getHighResBitmaps().get(filePath);
-            if (original != null) {
-                mItemView.initialize(mRequest, original, false);
-                return;
-            }
-
-            int size = mCategoryView.getImageSize();
-            Bitmap placeholder = mCategoryView.getLowResBitmaps().get(filePath);
-            if (placeholder != null) {
-                // Scaling the image up takes between 3-4 ms on average (Nexus 6 phone debug build).
-                placeholder = BitmapUtils.scale(placeholder, size, false);
-                mItemView.initialize(mRequest, placeholder, false);
-            } else {
-                placeholder = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-                placeholder.eraseColor(Color.argb(0, 0, 0, 0));
-                mItemView.initialize(mRequest, placeholder, true);
-            }
-
-            mCategoryView.getDecoderServiceHost().decodeImage(mRequest.getFilePath(), size, this);
-        } else {
+        if (mRequest.type() == PickerBitmap.TileTypes.CAMERA
+                || mRequest.type() == PickerBitmap.TileTypes.GALLERY) {
             mItemView.initialize(mRequest, null, false);
-            if (mRequest.type() == PickerBitmap.TileTypes.PICTURE) {
-                mItemView.showFileExtension();
-            } else {
-                mItemView.initializeSpecialTile();
-            }
+            mItemView.initializeSpecialTile();
+            return;
         }
-    }
 
-    /**
-     * @param filePath The file path to consider.
-     * @return true if the |filePath| ends in an image extension.
-     */
-    private boolean isImageExtension(String filePath) {
-        String file = filePath.toLowerCase(Locale.US);
-        return file.endsWith(".jpg") || file.endsWith(".gif") || file.endsWith(".png");
+        Bitmap original = mCategoryView.getHighResBitmaps().get(filePath);
+        if (original != null) {
+            mItemView.initialize(mRequest, original, false);
+            return;
+        }
+
+        int size = mCategoryView.getImageSize();
+        Bitmap placeholder = mCategoryView.getLowResBitmaps().get(filePath);
+        if (placeholder != null) {
+            // Scaling the image up takes between 3-4 ms on average (Nexus 6 phone debug build).
+            placeholder = BitmapUtils.scale(placeholder, size, false);
+            mItemView.initialize(mRequest, placeholder, false);
+        } else {
+            placeholder = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            placeholder.eraseColor(Color.argb(0, 0, 0, 0));
+            mItemView.initialize(mRequest, placeholder, true);
+        }
+
+        mCategoryView.getDecoderServiceHost().decodeImage(mRequest.getFilePath(), size, this);
     }
 
     /**

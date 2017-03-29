@@ -8,9 +8,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -80,7 +78,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     /**
      * A resize animation class for the images (shrinks the image on selection).
      */
-    private class ResizeWidthAnimation extends Animation {
+    private static class ResizeWidthAnimation extends Animation {
         // The view to animate size changes for.
         private View mView;
 
@@ -305,26 +303,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     public void fadeInThumbnail() {
         mIconView.setAlpha(0.0f);
         mIconView.animate().alpha(1.0f).setDuration(200).start();
-    }
-
-    /**
-     * Represent the file as text (show the file extension).
-     */
-    public void showFileExtension() {
-        int photoSize = mCategoryView.getImageSize();
-        Bitmap bitmap = Bitmap.createBitmap(photoSize, photoSize, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        Paint paint = new Paint();
-        int textSize = 72;
-        paint.setTextSize(textSize);
-        paint.setTextScaleX(1);
-        String filePath = mRequest.getFilePath();
-        int dot = filePath.lastIndexOf(".");
-        String extension = dot > -1 ? filePath.substring(dot) : "(no ext)";
-        float width = paint.measureText(extension);
-        canvas.drawText(extension, (photoSize - width) / 2, (photoSize - textSize) / 2, paint);
-        mIconView.setImageBitmap(bitmap);
-        updateSelectionState();
     }
 
     @VisibleForTesting

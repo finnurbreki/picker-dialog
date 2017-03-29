@@ -63,4 +63,20 @@ public class PickerBitmap implements Comparable<PickerBitmap> {
         }
         return 0;
     }
+
+    @Override
+    public final int hashCode() {
+        return (mFilePath + mLastModified).hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (other instanceof PickerBitmap) {
+            return compareTo((PickerBitmap) other) == 0;
+        }
+        return false;
+    }
 }

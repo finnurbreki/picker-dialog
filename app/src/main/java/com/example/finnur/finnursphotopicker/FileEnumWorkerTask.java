@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * A worker task to enumerate image files on disk.
@@ -31,22 +32,14 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
     private FilesEnumeratedCallback mCallback;
 
     // The filter to apply to the list.
-    private AcceptFileFilter mFilter;
-
-    /**
-     * A FileEnumWorkerTask constructor.
-     * @param callback The callback to use to communicate back the results.
-     */
-    public FileEnumWorkerTask(FilesEnumeratedCallback callback) {
-        this(callback, AcceptFileFilter.getDefault());
-    }
+    private AttrAcceptFileFilter mFilter;
 
     /**
      * A FileEnumWorkerTask constructor.
      * @param callback The callback to use to communicate back the results.
      * @param filter The file filter to apply to the list.
      */
-    public FileEnumWorkerTask(FilesEnumeratedCallback callback, AcceptFileFilter filter) {
+    public FileEnumWorkerTask(FilesEnumeratedCallback callback, AttrAcceptFileFilter filter) {
         mCallback = callback;
         mFilter = filter;
     }
@@ -82,8 +75,10 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
                     return null;
                 }
 
-                pickerBitmaps.add(new PickerBitmap(filePath + "/" + file.getName(),
-                        file.lastModified(), PickerBitmap.TileTypes.PICTURE));
+                if (isImageExtension(file.getName())) {
+                    pickerBitmaps.add(new PickerBitmap(filePath + "/" + file.getName(),
+                            file.lastModified(), PickerBitmap.TileTypes.PICTURE));
+                }
             }
         }
 
@@ -93,6 +88,15 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
         pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.TileTypes.CAMERA));
 
         return pickerBitmaps;
+    }
+
+    /**
+     * @param filePath The file path to consider.
+     * @return true if the |filePath| ends in an image extension.
+     */
+    private boolean isImageExtension(String filePath) {
+        String file = filePath.toLowerCase(Locale.US);
+        return file.endsWith(".jpg") || file.endsWith(".gif") || file.endsWith(".png");
     }
 
     /**

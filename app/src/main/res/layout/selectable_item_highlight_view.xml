@@ -3,9 +3,6 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file. -->
 
-<!-- FLIP 
-<org.chromium.chrome.browser.widget.selection.SelectableItemHighlightView 
--->
 <com.example.finnur.finnursphotopicker.SelectableItemHighlightView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/highlight"

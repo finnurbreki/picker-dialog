@@ -7,4 +7,3 @@
     <item android:state_checked="true"
         android:drawable="@color/selectable_list_item_highlight_color" />
 </selector>
-
