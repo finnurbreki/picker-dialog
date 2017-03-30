@@ -58,7 +58,7 @@ import javax.annotation.Nullable;
  * @param <E> The type of the selectable items this layout holds.
  */
 public class SelectableListLayout<E>
-        extends RelativeLayout implements DisplayStyleObserver, SelectionDelegate.SelectionObserver<E> {
+        extends FrameLayout implements DisplayStyleObserver, SelectionDelegate.SelectionObserver<E> {
     /**
      * @param res Resources used to retrieve drawables and dimensions.
      * @return The default list item lateral margin size in pixels. This value should be used in
@@ -321,6 +321,13 @@ public class SelectableListLayout<E>
      */
     public Toolbar detachToolbarView() {
         removeView(mToolbar);
+
+        // The top margin for the content and shadow needs to be removed now that the toolbar
+        // has been removed.
+        View content = findViewById(R.id.list_content);
+        ((MarginLayoutParams) content.getLayoutParams()).topMargin = 0;
+        ((MarginLayoutParams) mToolbarShadow.getLayoutParams()).topMargin = 0;
+
         return mToolbar;
     }
 
@@ -362,8 +369,8 @@ public class SelectableListLayout<E>
     private void setToolbarShadowVisibility() {
         if (mToolbarPermanentlyHidden || mToolbar == null || mRecyclerView == null) return;
 
-        boolean showShadow = mRecyclerView.computeVerticalScrollOffset() != 0
-                || mToolbar.isSearching() || mToolbar.getSelectionDelegate().isSelectionEnabled();
+        boolean showShadow = mRecyclerView.canScrollVertically(-1) || mToolbar.isSearching()
+                || mToolbar.getSelectionDelegate().isSelectionEnabled();
         mToolbarShadow.setVisibility(showShadow ? View.VISIBLE : View.GONE);
     }
 
