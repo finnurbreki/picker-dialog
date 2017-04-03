@@ -7,14 +7,11 @@ package com.example.finnur.finnursphotopicker;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar.OnMenuItemClickListener;
@@ -25,14 +22,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
 
-// Chrome-specific imports:
-/*
 import org.chromium.base.VisibleForTesting;
-import org.chromium.chrome.R;
+//import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectableListLayout;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import org.chromium.ui.PhotoPickerListener;
-*/
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +42,8 @@ public class PickerCategoryView extends RelativeLayout
                    RecyclerView.RecyclerListener,
                    DecoderServiceHost.ServiceReadyCallback,
                    OnMenuItemClickListener {
+    private static final int KILOBYTE = 1024;
+
     // The dialog that owns us.
     private PhotoPickerDialog mDialog;
 
@@ -61,7 +57,7 @@ public class PickerCategoryView extends RelativeLayout
     private List<PickerBitmap> mPickerBitmaps;
 
     // True if multi-selection is allowed in the picker.
-    private boolean mMultiSelection;
+    private boolean mMultiSelectionAllowed;
 
     // The callback to notify the listener of decisions reached in the picker.
     private PhotoPickerListener mListener;
@@ -86,9 +82,11 @@ public class PickerCategoryView extends RelativeLayout
     // A high-resolution cache for images.
     private LruCache<String, Bitmap> mHighResBitmaps;
 
-    // The number of columns to show. Note: mColumns and mPadding (see below) should both be even
-    // numbers or both odd, not a mix (the column padding will not be of uniform thickness if they
-    // are a mix).
+    /**
+     * The number of columns to show. Note: mColumns and mPadding (see below) should both be even
+     * numbers or both odd, not a mix (the column padding will not be of uniform thickness if they
+     * are a mix).
+     */
     private int mColumns;
 
     // The padding between columns. See also comment for mColumns.
@@ -96,12 +94,6 @@ public class PickerCategoryView extends RelativeLayout
 
     // The size of the bitmaps (equal length for width and height).
     private int mImageSize;
-
-    // The control to show for when an image is selected.
-    private Bitmap mBitmapSelected;
-
-    // The control to show for when an image is not selected.
-    private Bitmap mBitmapUnselected;
 
     // A worker task for asynchronously enumerating files off the main thread.
     private FileEnumWorkerTask mWorkerTask;
@@ -153,33 +145,21 @@ public class PickerCategoryView extends RelativeLayout
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(mContext, mColumns);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.addItemDecoration(new GridSpacingItemDecoration(mColumns, mPadding));
 
-        mBitmapSelected = BitmapFactory.decodeResource(
-                mContext.getResources(), R.drawable.ic_check_circle_black_24dp);
-        mBitmapUnselected = BitmapFactory.decodeResource(
-                mContext.getResources(), R.drawable.ic_radio_button_unchecked_black_24dp);
-
-        // Apply color to the bitmaps.
-        int prefAccentColor = ContextCompat.getColor(mContext, R.color.pref_accent_color);
-        mBitmapSelected = colorBitmap(mBitmapSelected, prefAccentColor);
-        int unselectedColor = ContextCompat.getColor(mContext, R.color.white_mode_tint);
-        mBitmapUnselected = colorBitmap(mBitmapUnselected, unselectedColor);
-
-        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / KILOBYTE);
         final int cacheSizeLarge = maxMemory / 2; // 1/2 of the available memory.
         final int cacheSizeSmall = maxMemory / 8; // 1/8th of the available memory.
         mLowResBitmaps = new LruCache<String, Bitmap>(cacheSizeSmall) {
             @Override
             protected int sizeOf(String key, Bitmap bitmap) {
-                return bitmap.getByteCount() / 1024;
+                return bitmap.getByteCount() / KILOBYTE;
             }
         };
         mHighResBitmaps = new LruCache<String, Bitmap>(cacheSizeLarge) {
             @Override
             protected int sizeOf(String key, Bitmap bitmap) {
-                return bitmap.getByteCount() / 1024;
+                return bitmap.getByteCount() / KILOBYTE;
             }
         };
     }
@@ -201,10 +181,11 @@ public class PickerCategoryView extends RelativeLayout
      */
     public void setStartingState(
             PhotoPickerDialog dialog, PhotoPickerListener listener, boolean multiSelection) {
-        if (!multiSelection) mSelectionDelegate.setSingleSelectionMode();
+        // TODOf fix
+        // if (!multiSelection) mSelectionDelegate.setSingleSelectionMode();
 
         mDialog = dialog;
-        mMultiSelection = multiSelection;
+        mMultiSelectionAllowed = multiSelection;
         mListener = listener;
     }
 
@@ -272,7 +253,7 @@ public class PickerCategoryView extends RelativeLayout
         return mHighResBitmaps;
     }
     public boolean isMultiSelect() {
-        return mMultiSelection;
+        return mMultiSelectionAllowed;
     }
 
     /**
@@ -287,20 +268,6 @@ public class PickerCategoryView extends RelativeLayout
      */
     public void showCamera() {
         mListener.onPickerUserAction(PhotoPickerListener.Action.LAUNCH_CAMERA, null);
-    }
-
-    /**
-     * Returns the selection bitmaps (control indicating whether the image is selected or not).
-     * @param selected See return value.
-     * @return If |selected| is true, the selection bitmap is returned. Otherwise the unselection
-     *         bitmap is returned.
-     */
-    public Bitmap getSelectionBitmap(boolean selected) {
-        if (selected) {
-            return mBitmapSelected;
-        } else {
-            return mBitmapUnselected;
-        }
     }
 
     /**

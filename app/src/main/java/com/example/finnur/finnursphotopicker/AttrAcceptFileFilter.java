@@ -12,6 +12,10 @@ import java.io.FileFilter;
 import java.util.HashSet;
 import java.util.Locale;
 
+/**
+ * A file filter for handling extensions and MIME types (images/jpeg) and
+ * supertypes (images/*).
+ */
 class AttrAcceptFileFilter implements FileFilter {
     private static final String IMAGE_SUPERTYPE = "image";
     private static final String VIDEO_SUPERTYPE = "video";

@@ -19,7 +19,6 @@
         <item
             android:id="@+id/selection_mode_done_menu_id"
             android:title="@string/done"
-            android:textColor="#55555555"
             chrome:showAsAction="always" />
     </group>
 </menu>

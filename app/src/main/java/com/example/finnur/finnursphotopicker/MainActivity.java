@@ -22,6 +22,8 @@ import android.view.MenuItem;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.chromium.ui.PhotoPickerListener;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;

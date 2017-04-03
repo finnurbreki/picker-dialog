@@ -9,6 +9,7 @@
 
 <view class="com.example.finnur.finnursphotopicker.PickerBitmapView"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:chrome="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@color/file_picker_tile_bg_color">
@@ -16,8 +17,7 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:orientation="vertical">
+        android:focusable="true">
 
         <FrameLayout
             android:id="@+id/border"
@@ -40,22 +40,25 @@
 
         <ImageView
             android:id="@+id/selected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_marginStart="4dp"
             android:layout_marginTop="4dp"
-            android:background="@drawable/file_picker_selected_background"
-            android:elevation="2dp"
-            android:contentDescription="@string/clear_cookies_and_site_data_title"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter"
+            android:src="@drawable/verify_checkmark"
             android:visibility="gone" />
-        <ImageView
+
+        <org.chromium.chrome.browser.widget.TintedImageView
             android:id="@+id/unselected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginTop="4dp"
-            android:contentDescription="@string/clear_cookies_and_site_data_title"
-            android:visibility="gone" />
+            android:contentDescription="@null"
+            android:visibility="gone"
+            android:src="@drawable/ic_radio_button_unchecked_black_24dp"
+            chrome:tint="@color/white_mode_tint" />
 
         <!-- Special tiles, that give access to the camera and gallery  -->
         <TextView

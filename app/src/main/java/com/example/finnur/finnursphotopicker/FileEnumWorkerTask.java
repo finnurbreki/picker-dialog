@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,6 +6,9 @@ package com.example.finnur.finnursphotopicker;
 
 import android.os.AsyncTask;
 import android.os.Environment;
+
+// Chrome-specific imports:
+// import org.chromium.base.ThreadUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -51,13 +54,14 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
      */
     @Override
     protected List<PickerBitmap> doInBackground(Void... params) {
-        if (isCancelled()) {
-            return null;
-        }
+        // assert !ThreadUtils.runningOnUiThread();
+
+        if (isCancelled()) return null;
 
         List<PickerBitmap> pickerBitmaps = new ArrayList<>();
 
         String paths[] = new String[3];
+        // TODOf look at how Google Photos and such do this.
         paths[0] = "/DCIM/Camera";
         paths[1] = "/Pictures/Screenshots";
         paths[2] = "/Download";
@@ -95,6 +99,7 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
      * @return true if the |filePath| ends in an image extension.
      */
     private boolean isImageExtension(String filePath) {
+        // TODOf This is error prone, use MimeTypeMap instead.
         String file = filePath.toLowerCase(Locale.US);
         return file.endsWith(".jpg") || file.endsWith(".gif") || file.endsWith(".png");
     }

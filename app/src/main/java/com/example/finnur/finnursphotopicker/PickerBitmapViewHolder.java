@@ -5,16 +5,12 @@
 package com.example.finnur.finnursphotopicker;
 
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
 
-// Chrome-specific imports:
-/*
 import org.chromium.base.VisibleForTesting;
-*/
 
 import java.util.List;
 

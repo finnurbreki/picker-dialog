@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -36,34 +36,14 @@ class BitmapUtils {
         options.inSampleSize = calculateInSampleSize(options, width, width);
         options.inJustDecodeBounds = false;
         Bitmap bitmap = BitmapFactory.decodeFileDescriptor(descriptor, null, options);
-        if (bitmap == null) {
-            return null;
-        }
+
+        if (bitmap == null) return null;
+
         return sizeBitmap(bitmap, width);
     }
 
     /**
-     * Given a file path, decodes the contents of the file and returns a bitmap of size
-     * |width|x|width|.
-     * @param filePath The path to the file to read.
-     * @param width The width of the bitmap to return.
-     * @return The resulting bitmap.
-     */
-    public static Bitmap decodeBitmapFromDisk(String filePath, int width) {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(filePath, options);
-        options.inSampleSize = calculateInSampleSize(options, width, width);
-        options.inJustDecodeBounds = false;
-        Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
-        if (bitmap == null) {
-            return null;
-        }
-        return sizeBitmap(bitmap, width);
-    }
-
-    /**
-     * Calculates the sub-sampling factor (inSampleSize option from the BitmapFactory) for a given
+     * Calculates the sub-sampling factor {@link BitmapFactory#inSampleSize} option for a given
      * bitmap option, which will be used to create a bitmap of a pre-determined size (no larger than
      * |width| and |height|).
      * @param options The bitmap options to consider.
@@ -90,7 +70,7 @@ class BitmapUtils {
      * Scales a |bitmap| to a certain size.
      * @param bitmap The bitmap to scale.
      * @param scaleMaxSize What to scale it to.
-     * @param filter true if the source should be filtered.
+     * @param filter True if the source should be filtered.
      * @return The resulting scaled bitmap.
      */
     public static Bitmap scale(Bitmap bitmap, float scaleMaxSize, boolean filter) {

@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,11 +7,8 @@ package com.example.finnur.finnursphotopicker;
 import android.content.Context;
 import android.util.AttributeSet;
 
-// Chrome-specific imports:
-/*
-import org.chromium.chrome.R;
+//import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectableListToolbar;
-*/
 
 /**
  * Handles toolbar functionality for the Photo Picker class.

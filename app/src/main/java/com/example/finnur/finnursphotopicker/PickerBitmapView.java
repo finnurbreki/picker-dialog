@@ -15,7 +15,6 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -23,14 +22,11 @@ import android.view.animation.Transformation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-// Chrome-specific imports:
-/*
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.VisibleForTesting;
-import org.chromium.chrome.R;
+//import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectableItemView;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
-*/
 
 import java.util.List;
 
@@ -38,6 +34,12 @@ import java.util.List;
  * A container class for a view showing a photo in the photo picker.
  */
 public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
+    // The length of the image selection animation (in ms).
+    private int ANIMATION_DURATION = 100;
+
+    // The length of the fade in animation (in ms).
+    private int IMAGE_FADE_IN_DURATION = 200;
+
     // Our context.
     private Context mContext;
 
@@ -53,7 +55,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // The image view containing the bitmap.
     private ImageView mIconView;
 
-    // The little shader in the top left corner (provides backdrop for selection ring for
+    // The little shader in the top left corner (provides backdrop for selection ring on
     // unfavorable image backgrounds).
     private View mScrim;
 
@@ -130,7 +132,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        if (mCategoryView == null) return; // Android Studio calls onMeasure to draw the widget.
+        if (mCategoryView == null) return;
+
         int width = mCategoryView.getImageSize();
         int height = mCategoryView.getImageSize();
         setMeasuredDimension(width, height);
@@ -197,7 +200,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
                                         : mCategoryView.getImageSize();
         if (size != mIconView.getWidth()) {
             ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, size);
-            animation.setDuration(100);
+            animation.setDuration(ANIMATION_DURATION);
             // TODO: Add MD interpolator
             // animation.setInterpolator((mContext, R.interpolator.fast_out_linear_in);
             mIconView.startAnimation(animation);
@@ -212,9 +215,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mCategoryView = categoryView;
         mSelectionDelegate = mCategoryView.getSelectionDelegate();
         super.setSelectionDelegate(mSelectionDelegate);
-
-        mSelectedView.setImageBitmap(mCategoryView.getSelectionBitmap(true));
-        mUnselectedView.setImageBitmap(mCategoryView.getSelectionBitmap(false));
 
         mBorder = (int) getResources().getDimension(R.dimen.file_picker_selected_padding);
     }
@@ -259,8 +259,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         Resources resources = mContext.getResources();
         mSpecialTile.setText(labelStringId);
         Bitmap icon = BitmapFactory.decodeResource(resources, iconBitmapId);
-        DisplayMetrics metrics = resources.getDisplayMetrics();
-        float pixels = 48 * ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+        float pixels = resources.getDimensionPixelOffset(R.dimen.file_picker_special_icon_size);
         BitmapDrawable drawable = new BitmapDrawable(
                 resources, Bitmap.createScaledBitmap(icon, (int) pixels, (int) pixels, true));
         ApiCompatibilityUtils.setCompoundDrawablesRelativeWithIntrinsicBounds(
@@ -275,7 +274,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
      * Sets a thumbnail bitmap for the current view and ensures the selection border and scrim is
      * showing, if the image has already been selected.
      * @param thumbnail The Bitmap to use for the icon ImageView.
-     * @return true if no image was loaded before (e.g. not even a low-res image).
+     * @return True if no image was loaded before (e.g. not even a low-res image).
      */
     public boolean setThumbnailBitmap(Bitmap thumbnail) {
         mIconView.setImageBitmap(thumbnail);
@@ -283,8 +282,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         // If the tile has been selected before the bitmap has loaded, make sure it shows up with
         // a selection border and scrim on load.
         if (super.isChecked()) {
-            mIconView.getLayoutParams().height = mCategoryView.getImageSize() - 2 * mBorder;
-            mIconView.getLayoutParams().width = mCategoryView.getImageSize() - 2 * mBorder;
+            mIconView.getLayoutParams().height = imageSizeWithBorders();
+            mIconView.getLayoutParams().width = imageSizeWithBorders();
             addPaddingToParent(mIconView, mBorder);
             mScrim.setVisibility(View.VISIBLE);
         }
@@ -296,13 +295,18 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         return noImageWasLoaded;
     }
 
+    /* Returns the size of the image plus the pre-determined border on each side. */
+    private int imageSizeWithBorders() {
+        return mCategoryView.getImageSize() - 2 * mBorder;
+    }
+
     /**
      * Initiates fading in of the thumbnail. Note, this should not be called if a grainy version of
      * the thumbnail was loaded from cache. Otherwise a flash will appear.
      */
     public void fadeInThumbnail() {
         mIconView.setAlpha(0.0f);
-        mIconView.animate().alpha(1.0f).setDuration(200).start();
+        mIconView.animate().alpha(1.0f).setDuration(IMAGE_FADE_IN_DURATION).start();
     }
 
     @VisibleForTesting
