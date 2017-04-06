@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.graphics.drawable.VectorDrawableCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -362,7 +363,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         }
 
         Resources resources = mContext.getResources();
-        mBorderView.setBackgroundColor(ApiCompatibilityUtils.getColor(resources, bgColorId));
+        setBackgroundColor(ApiCompatibilityUtils.getColor(resources, bgColorId));
         mSpecialTile.setTextColor(ApiCompatibilityUtils.getColor(resources, fgColorId));
         Drawable[] drawables = mSpecialTile.getCompoundDrawables();
         // The textview only has a top compound drawable (2nd element).
