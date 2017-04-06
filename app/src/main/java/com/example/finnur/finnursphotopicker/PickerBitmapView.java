@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,12 +7,10 @@ package com.example.finnur.finnursphotopicker;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
+import android.support.graphics.drawable.VectorDrawableCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,7 +63,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     private ImageView mSelectedView;
 
     // The control that signifies the image has not been selected.
-    private ImageView mUnselectedView;
+    private View mUnselectedView;
 
     // The camera/gallery special tile (with icon as drawable).
     private TextView mSpecialTile;
@@ -145,7 +143,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mScrim = findViewById(R.id.scrim);
         mBorderView = findViewById(R.id.border);
         mSelectedView = (ImageView) findViewById(R.id.selected);
-        mUnselectedView = (ImageView) findViewById(R.id.unselected);
+        mUnselectedView = findViewById(R.id.unselected);
         mSpecialTile = (TextView) findViewById(R.id.special_tile);
     }
 
@@ -251,31 +249,27 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     /**
      * Initialization for the special tiles (camera/gallery icon).
-     * @param bitmapDetails The request represented by this PickerBitmapView.
+     * @param bitmapDetails The details about the bitmap represented by this PickerBitmapView.
      */
     public void initializeSpecialTile(PickerBitmap bitmapDetails) {
-        int iconBitmapId, labelStringId;
-        if (mBitmapDetails.type() == PickerBitmap.TileTypes.CAMERA) {
-            iconBitmapId = R.drawable.ic_photo_camera;
+        int labelStringId;
+        Drawable image;
+        Resources resources = mContext.getResources();
+
+        if (isCameraTile()) {
+            image = ApiCompatibilityUtils.getDrawable(resources, R.drawable.ic_photo_camera);
             labelStringId = R.string.photo_picker_camera;
         } else {
-            iconBitmapId = R.drawable.ic_collections_black_24dp;
+            image = VectorDrawableCompat.create(
+                    resources, R.drawable.ic_collections_grey, mContext.getTheme());
             labelStringId = R.string.photo_picker_browse;
         }
 
-        Resources resources = mContext.getResources();
-        Bitmap icon = BitmapFactory.decodeResource(resources, iconBitmapId);
-        float pixels = resources.getDimensionPixelOffset(R.dimen.photo_picker_special_icon_size);
-        BitmapDrawable drawable = new BitmapDrawable(
-                resources, Bitmap.createScaledBitmap(icon, (int) pixels, (int) pixels, true));
         ApiCompatibilityUtils.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                mSpecialTile, null, drawable, null, null);
+                mSpecialTile, null, image, null, null);
         mSpecialTile.setText(labelStringId);
 
-        int size = mCategoryView.getImageSize();
-        Bitmap tile = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-        tile.eraseColor(Color.argb(0, 0, 0, 0));
-        initialize(bitmapDetails, tile, false);
+        initialize(bitmapDetails, null, false);
 
         // Reset visibility, since #initialize() sets mSpecialTile visibility to GONE.
         mSpecialTile.setVisibility(View.VISIBLE);
