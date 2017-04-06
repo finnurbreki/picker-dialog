@@ -16,6 +16,6 @@ import org.chromium.chrome.browser.widget.selection.SelectableListToolbar;
 public class PhotoPickerToolbar extends SelectableListToolbar<PickerBitmap> {
     public PhotoPickerToolbar(Context context, AttributeSet attrs) {
         super(context, attrs);
-        inflateMenu(R.menu.file_picker_menu);
+        inflateMenu(R.menu.photo_picker_menu);
     }
 }

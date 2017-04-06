@@ -47,7 +47,7 @@ public class PickerCategoryView extends RelativeLayout
     // The dialog that owns us.
     private PhotoPickerDialog mDialog;
 
-    // The view containing the recycler view and the toolbar, etc.
+    // The view containing the RecyclerView and the toolbar, etc.
     private SelectableListLayout<PickerBitmap> mSelectableListLayout;
 
     // Our context.
@@ -65,13 +65,13 @@ public class PickerCategoryView extends RelativeLayout
     // The host class for the decoding service.
     private DecoderServiceHost mDecoderServiceHost;
 
-    // The recycler view showing the images.
+    // The RecyclerView showing the images.
     private RecyclerView mRecyclerView;
 
-    // The picker adapter for the RecyclerView.
+    // The {@link PickerAdapter} for the RecyclerView.
     private PickerAdapter mPickerAdapter;
 
-    // The selection delegate keeping track of which images are selected.
+    // The {@link SelectionDelegate} keeping track of which images are selected.
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
 
     // A low-resolution cache for images. Helpful for cache misses from the high-resolution cache
@@ -100,17 +100,17 @@ public class PickerCategoryView extends RelativeLayout
 
     public PickerCategoryView(Context context) {
         super(context);
-        init(context);
+        postConstruction(context);
     }
 
     public PickerCategoryView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context);
+        postConstruction(context);
     }
 
     public PickerCategoryView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init(context);
+        postConstruction(context);
     }
 
     /**
@@ -118,7 +118,7 @@ public class PickerCategoryView extends RelativeLayout
      * @param context The context to use.
      */
     @SuppressWarnings("unchecked") // mSelectableListLayout
-    private void init(Context context) {
+    private void postConstruction(Context context) {
         mContext = context;
 
         mDecoderServiceHost = new DecoderServiceHost(this);
@@ -132,15 +132,14 @@ public class PickerCategoryView extends RelativeLayout
 
         mPickerAdapter = new PickerAdapter(this);
         mRecyclerView = mSelectableListLayout.initializeRecyclerView(mPickerAdapter);
-        mSelectableListLayout.initializeToolbar(
-                R.layout.photo_picker_toolbar, mSelectionDelegate, R.string.menu_picker, null,
-                R.id.file_picker_normal_menu_group, R.id.file_picker_selection_mode_menu_group,
-                R.color.default_primary_color, false, this);
+        mSelectableListLayout.initializeToolbar(R.layout.photo_picker_toolbar, mSelectionDelegate,
+                R.string.photo_picker_select_images, null, R.id.photo_picker_normal_menu_group,
+                R.id.photo_picker_selection_mode_menu_group, R.color.default_primary_color, false,
+                this);
 
-        View view = ((Activity) context).getWindow().getDecorView();
-        int width = view.getWidth() - view.getPaddingLeft() - view.getPaddingRight();
-
-        calculateGridMetrics(width);
+        Rect appRect = new Rect();
+        ((Activity) context).getWindow().getDecorView().getWindowVisibleDisplayFrame(appRect);
+        calculateGridMetrics(appRect.width());
 
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(mContext, mColumns);
         mRecyclerView.setHasFixedSize(true);
@@ -174,18 +173,18 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     /**
-     * Sets the starting state for the PickerCategoryView object.
+     * Initializes the PickerCategoryView object.
      * @param dialog The dialog showing us.
      * @param listener The listener who should be notified of actions.
-     * @param multiSelection Whether to allow the user to select more than one image.
+     * @param multiSelectionAllowed Whether to allow the user to select more than one image.
      */
-    public void setStartingState(
-            PhotoPickerDialog dialog, PhotoPickerListener listener, boolean multiSelection) {
-        // TODOf fix
+    public void initialize(
+            PhotoPickerDialog dialog, PhotoPickerListener listener, boolean multiSelectionAllowed) {
+        // TODOf Fix this.
         // if (!multiSelection) mSelectionDelegate.setSingleSelectionMode();
 
         mDialog = dialog;
-        mMultiSelectionAllowed = multiSelection;
+        mMultiSelectionAllowed = multiSelectionAllowed;
         mListener = listener;
     }
 
@@ -223,9 +222,12 @@ public class PickerCategoryView extends RelativeLayout
 
     @Override
     public boolean onMenuItemClick(MenuItem item) {
-        if (item.getItemId() == R.id.close_menu_id
-                || item.getItemId() == R.id.selection_mode_done_menu_id) {
-            tryNotifyPhotoSet();
+        if (item.getItemId() == R.id.close_menu_id) {
+            mListener.onPickerUserAction(PhotoPickerListener.Action.CANCEL, null);
+            mDialog.dismiss();
+            return true;
+        } else if (item.getItemId() == R.id.selection_mode_done_menu_id) {
+            notifyPhotosSelected();
             mDialog.dismiss();
             return true;
         }
@@ -237,52 +239,43 @@ public class PickerCategoryView extends RelativeLayout
     public int getImageSize() {
         return mImageSize;
     }
+
     public SelectionDelegate<PickerBitmap> getSelectionDelegate() {
         return mSelectionDelegate;
     }
+
     public List<PickerBitmap> getPickerBitmaps() {
         return mPickerBitmaps;
     }
+
     public DecoderServiceHost getDecoderServiceHost() {
         return mDecoderServiceHost;
     }
+
     public LruCache<String, Bitmap> getLowResBitmaps() {
         return mLowResBitmaps;
     }
+
     public LruCache<String, Bitmap> getHighResBitmaps() {
         return mHighResBitmaps;
     }
-    public boolean isMultiSelect() {
+
+    public boolean isMultiSelectAllowed() {
         return mMultiSelectionAllowed;
     }
 
     /**
-     * Notifies the caller that the user selected to launch the gallery.
+     * Notifies the listener that the user selected to launch the gallery.
      */
     public void showGallery() {
         mListener.onPickerUserAction(PhotoPickerListener.Action.LAUNCH_GALLERY, null);
     }
 
     /**
-     * Notifies the caller that the user selected to launch the camera intent.
+     * Notifies the listener that the user selected to launch the camera intent.
      */
     public void showCamera() {
         mListener.onPickerUserAction(PhotoPickerListener.Action.LAUNCH_CAMERA, null);
-    }
-
-    /**
-     * Applies a color filter to a bitmap.
-     * @param original The bitmap to color.
-     * @param color The color to apply.
-     * @return A colored bitmap.
-     */
-    private Bitmap colorBitmap(Bitmap original, int color) {
-        Bitmap mutable = original.copy(Bitmap.Config.ARGB_8888, true);
-        Canvas canvas = new Canvas(mutable);
-        Paint paint = new Paint();
-        paint.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(mutable, 0.f, 0.f, paint);
-        return mutable;
     }
 
     /**
@@ -291,8 +284,8 @@ public class PickerCategoryView extends RelativeLayout
      */
     private void calculateGridMetrics(int width) {
         int minSize =
-                mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_min_size);
-        mPadding = mContext.getResources().getDimensionPixelSize(R.dimen.file_picker_tile_gap);
+                mContext.getResources().getDimensionPixelSize(R.dimen.photo_picker_tile_min_size);
+        mPadding = mContext.getResources().getDimensionPixelSize(R.dimen.photo_picker_tile_gap);
         mColumns = Math.max(1, (width - mPadding) / (minSize + mPadding));
         mImageSize = (width - mPadding * (mColumns + 1)) / (mColumns);
 
@@ -345,9 +338,9 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     /**
-     * Tries to notify any listeners that one or more photos have been selected.
+     * Notifies any listeners that one or more photos have been selected.
      */
-    private void tryNotifyPhotoSet() {
+    private void notifyPhotosSelected() {
         List<PickerBitmap> selectedFiles = mSelectionDelegate.getSelectedItems();
         String[] photos = new String[selectedFiles.size()];
         int i = 0;

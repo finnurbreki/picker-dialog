@@ -14,11 +14,11 @@
     <color name="appbar_background">@android:color/white</color>
     <color name="default_text_color">#333</color>
     <color name="light_active_color">#4285F4</color>
-    <color name="file_picker_tile_bg_color">#eeeeee</color>
-    <color name="file_picker_special_tile_bg_color">#263238</color>
-    <color name="file_picker_special_tile_color">#fff</color>
-    <color name="file_picker_special_tile_disabled_bg_color">#e0e0e0</color>
-    <color name="file_picker_special_tile_disabled_color">#bdbdbd</color>
+    <color name="photo_picker_tile_bg_color">#eeeeee</color>
+    <color name="photo_picker_special_tile_bg_color">#263238</color>
+    <color name="photo_picker_special_tile_color">#fff</color>
+    <color name="photo_picker_special_tile_disabled_bg_color">#e0e0e0</color>
+    <color name="photo_picker_special_tile_disabled_color">#bdbdbd</color>
     <color name="pref_accent_color">@color/light_active_color</color>
     <color name="selectable_list_item_highlight_color">#804281f4</color>
     <color name="toolbar_shadow_color">#1d000000</color>

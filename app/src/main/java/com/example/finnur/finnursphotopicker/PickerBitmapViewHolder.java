@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -15,7 +15,7 @@ import org.chromium.base.VisibleForTesting;
 import java.util.List;
 
 /**
- * Holds onto a View that displays information about a picker bitmap.
+ * Holds on to a {@link PickerBitmapView} that displays information about a picker bitmap.
  */
 public class PickerBitmapViewHolder
         extends RecyclerView.ViewHolder implements DecoderServiceHost.ImageDecodedCallback {
@@ -26,17 +26,15 @@ public class PickerBitmapViewHolder
     private final PickerBitmapView mItemView;
 
     // The request we are showing the bitmap for.
-    private PickerBitmap mRequest;
+    private PickerBitmap mBitmapDetails;
 
     /**
      * The PickerBitmapViewHolder.
-     * @param itemView The PickerBitmap view for showing the image.
+     * @param itemView The {@link PickerBitmapView} view for showing the image.
      */
-    public PickerBitmapViewHolder(View itemView) {
+    public PickerBitmapViewHolder(PickerBitmapView itemView) {
         super(itemView);
-
-        assert itemView instanceof PickerBitmapView;
-        mItemView = (PickerBitmapView) itemView;
+        mItemView = itemView;
     }
 
     // DecoderServiceHost.ImageDecodedCallback
@@ -57,7 +55,7 @@ public class PickerBitmapViewHolder
             mCategoryView.getLowResBitmaps().put(filePath, lowres);
         }
 
-        if (!TextUtils.equals(mRequest.getFilePath(), filePath)) {
+        if (!TextUtils.equals(mBitmapDetails.getFilePath(), filePath)) {
             return;
         }
 
@@ -75,19 +73,19 @@ public class PickerBitmapViewHolder
         mCategoryView = categoryView;
 
         List<PickerBitmap> pickerBitmaps = mCategoryView.getPickerBitmaps();
-        mRequest = pickerBitmaps.get(position);
+        mBitmapDetails = pickerBitmaps.get(position);
 
-        String filePath = mRequest.getFilePath();
-        if (mRequest.type() == PickerBitmap.TileTypes.CAMERA
-                || mRequest.type() == PickerBitmap.TileTypes.GALLERY) {
-            mItemView.initialize(mRequest, null, false);
-            mItemView.initializeSpecialTile();
+        String filePath = mBitmapDetails.getFilePath();
+        if (mBitmapDetails.type() == PickerBitmap.TileTypes.CAMERA
+                || mBitmapDetails.type() == PickerBitmap.TileTypes.GALLERY) {
+            mItemView.initialize(mBitmapDetails, null, false);
+            mItemView.initializeSpecialTile(mBitmapDetails);
             return;
         }
 
         Bitmap original = mCategoryView.getHighResBitmaps().get(filePath);
         if (original != null) {
-            mItemView.initialize(mRequest, original, false);
+            mItemView.initialize(mBitmapDetails, original, false);
             return;
         }
 
@@ -96,21 +94,21 @@ public class PickerBitmapViewHolder
         if (placeholder != null) {
             // Scaling the image up takes between 3-4 ms on average (Nexus 6 phone debug build).
             placeholder = BitmapUtils.scale(placeholder, size, false);
-            mItemView.initialize(mRequest, placeholder, false);
+            mItemView.initialize(mBitmapDetails, placeholder, false);
         } else {
             placeholder = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
             placeholder.eraseColor(Color.argb(0, 0, 0, 0));
-            mItemView.initialize(mRequest, placeholder, true);
+            mItemView.initialize(mBitmapDetails, placeholder, true);
         }
 
-        mCategoryView.getDecoderServiceHost().decodeImage(mRequest.getFilePath(), size, this);
+        mCategoryView.getDecoderServiceHost().decodeImage(mBitmapDetails.getFilePath(), size, this);
     }
 
     /**
      * Returns the file path of the current request.
      */
     public String getFilePath() {
-        return mRequest == null ? null : mRequest.getFilePath();
+        return mBitmapDetails == null ? null : mBitmapDetails.getFilePath();
     }
 
     @VisibleForTesting

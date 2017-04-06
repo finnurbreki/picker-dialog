@@ -12,8 +12,6 @@ import android.view.ViewGroup;
 
 // import org.chromium.chrome.R;
 
-import java.util.List;
-
 /**
  * A data adapter for the Photo Picker.
  */
@@ -36,17 +34,12 @@ public class PickerAdapter extends Adapter<ViewHolder> {
         View itemView = LayoutInflater.from(parent.getContext())
                                 .inflate(R.layout.picker_bitmap_view, parent, false);
         PickerBitmapView bitmapView = (PickerBitmapView) itemView;
-        bitmapView.preInitialize(mCategoryView);
-        return new PickerBitmapViewHolder(itemView);
+        bitmapView.setCategoryView(mCategoryView);
+        return new PickerBitmapViewHolder(bitmapView);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        onBindViewHolder(holder, position, null);
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position, List payloads) {
         if (holder instanceof PickerBitmapViewHolder) {
             PickerBitmapViewHolder myHolder = (PickerBitmapViewHolder) holder;
             myHolder.displayItem(mCategoryView, position);

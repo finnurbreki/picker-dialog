@@ -13,7 +13,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +30,7 @@ import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import java.util.List;
 
 /**
- * A container class for a view showing a photo in the photo picker.
+ * A container class for a view showing a photo in the Photo Picker.
  */
 public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // The length of the image selection animation (in ms).
@@ -50,7 +49,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
 
     // The request details (meta-data) for the bitmap shown.
-    private PickerBitmap mRequest;
+    private PickerBitmap mBitmapDetails;
 
     // The image view containing the bitmap.
     private ImageView mIconView;
@@ -152,21 +151,28 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onClick() {
-        if (mRequest.type() == PickerBitmap.TileTypes.GALLERY) {
+        if (isGalleryTile()) {
             mCategoryView.showGallery();
             return;
-        } else if (mRequest.type() == PickerBitmap.TileTypes.CAMERA) {
+        } else if (isCameraTile()) {
             mCategoryView.showCamera();
             return;
         }
 
-        mSelectionDelegate.toggleSelectionForItem(mRequest);
-        setChecked(!super.isChecked());
+        // The SelectableItemView expects long press to be the selection event, but this class wants
+        // that to happen on click instead.
+        super.onLongClick(this);
+    }
+
+    @Override
+    protected boolean toggleSelectionForItem(PickerBitmap item) {
+        if (isGalleryTile() || isCameraTile()) return false;
+        return super.toggleSelectionForItem(item);
     }
 
     @Override
     public void setChecked(boolean checked) {
-        if (mRequest.type() != PickerBitmap.TileTypes.PICTURE) {
+        if (!isPictureTile()) {
             return;
         }
 
@@ -176,6 +182,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onSelectionStateChange(List<PickerBitmap> selectedItems) {
+/*
         boolean selected = selectedItems.contains(mRequest);
 
         if (mRequest.type() != PickerBitmap.TileTypes.PICTURE) {
@@ -189,9 +196,11 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         if (!mCategoryView.isMultiSelect() && !selected && checked) {
             super.toggle();
         }
-
+*/
         updateSelectionState();
 
+/*
+        boolean checked = super.isChecked();
         if (!mImageLoaded || selected == checked) {
             return;
         }
@@ -205,68 +214,70 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             // animation.setInterpolator((mContext, R.interpolator.fast_out_linear_in);
             mIconView.startAnimation(animation);
         }
+*/
     }
 
     /**
-     * Pre-initializes the PickerBitmapView.
-     * @param categoryView The category view showing the images.
+     * Sets the {@link PickerCategoryView} for this PickerBitmapView.
+     * @param categoryView The category view showing the images. Used to access
+     *     common functionality and sizes and retrieve the {@link SelectionDelegate}.
      */
-    public void preInitialize(PickerCategoryView categoryView) {
+    public void setCategoryView(PickerCategoryView categoryView) {
         mCategoryView = categoryView;
         mSelectionDelegate = mCategoryView.getSelectionDelegate();
         super.setSelectionDelegate(mSelectionDelegate);
 
-        mBorder = (int) getResources().getDimension(R.dimen.file_picker_selected_padding);
+        mBorder = (int) getResources().getDimension(R.dimen.photo_picker_selected_padding);
     }
 
     /**
      * Completes the initialization of the PickerBitmapView. Must be called before the image can
      * respond to click events.
-     * @param request The request represented by this PickerBitmapView.
+     * @param bitmapDetails The details about the bitmap represented by this PickerBitmapView.
      * @param thumbnail The Bitmap to use for the thumbnail (or null).
      * @param placeholder Whether the image given is a placeholder or the actual image.
      */
-    public void initialize(PickerBitmap request, @Nullable Bitmap thumbnail, boolean placeholder) {
+    public void initialize(
+            PickerBitmap bitmapDetails, @Nullable Bitmap thumbnail, boolean placeholder) {
         resetTile();
 
-        mRequest = request;
-        setItem(request);
+        mBitmapDetails = bitmapDetails;
+        setItem(bitmapDetails);
         setThumbnailBitmap(thumbnail);
         mImageLoaded = !placeholder;
 
         updateSelectionState();
-
-        setOnClickListener(this);
     }
 
     /**
      * Initialization for the special tiles (camera/gallery icon).
+     * @param bitmapDetails The request represented by this PickerBitmapView.
      */
-    public void initializeSpecialTile() {
-        int size = mCategoryView.getImageSize();
-        Bitmap tile = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-        tile.eraseColor(Color.argb(0, 0, 0, 0));
-
+    public void initializeSpecialTile(PickerBitmap bitmapDetails) {
         int iconBitmapId, labelStringId;
-        if (mRequest.type() == PickerBitmap.TileTypes.CAMERA) {
+        if (mBitmapDetails.type() == PickerBitmap.TileTypes.CAMERA) {
             iconBitmapId = R.drawable.ic_photo_camera;
-            labelStringId = R.string.file_picker_camera;
+            labelStringId = R.string.photo_picker_camera;
         } else {
             iconBitmapId = R.drawable.ic_collections_black_24dp;
-            labelStringId = R.string.file_picker_browse;
+            labelStringId = R.string.photo_picker_browse;
         }
 
         Resources resources = mContext.getResources();
-        mSpecialTile.setText(labelStringId);
         Bitmap icon = BitmapFactory.decodeResource(resources, iconBitmapId);
-        float pixels = resources.getDimensionPixelOffset(R.dimen.file_picker_special_icon_size);
+        float pixels = resources.getDimensionPixelOffset(R.dimen.photo_picker_special_icon_size);
         BitmapDrawable drawable = new BitmapDrawable(
                 resources, Bitmap.createScaledBitmap(icon, (int) pixels, (int) pixels, true));
         ApiCompatibilityUtils.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 mSpecialTile, null, drawable, null, null);
+        mSpecialTile.setText(labelStringId);
 
-        initialize(mRequest, tile, false);
+        int size = mCategoryView.getImageSize();
+        Bitmap tile = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        tile.eraseColor(Color.argb(0, 0, 0, 0));
+        initialize(bitmapDetails, tile, false);
 
+        // Reset visibility, since #initialize() sets mSpecialTile visibility to GONE.
         mSpecialTile.setVisibility(View.VISIBLE);
     }
 
@@ -340,29 +351,29 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
      * Updates the selection controls for this view.
      */
     private void updateSelectionState() {
-        boolean special = mRequest.type() != PickerBitmap.TileTypes.PICTURE;
+        boolean special = !isPictureTile();
         boolean checked = super.isChecked();
         boolean anySelection =
                 mSelectionDelegate != null && mSelectionDelegate.isSelectionEnabled();
-        boolean multiSelect = mCategoryView.isMultiSelect();
         int bgColorId, fgColorId;
         if (!special) {
-            bgColorId = R.color.file_picker_tile_bg_color;
-            fgColorId = R.color.file_picker_special_tile_color;
-        } else if (!anySelection || !multiSelect) {
-            bgColorId = R.color.file_picker_special_tile_bg_color;
-            fgColorId = R.color.file_picker_special_tile_color;
+            bgColorId = R.color.photo_picker_tile_bg_color;
+            fgColorId = R.color.photo_picker_special_tile_color;
+        } else if (!anySelection) {
+            bgColorId = R.color.photo_picker_special_tile_bg_color;
+            fgColorId = R.color.photo_picker_special_tile_color;
         } else {
-            bgColorId = R.color.file_picker_special_tile_disabled_bg_color;
-            fgColorId = R.color.file_picker_special_tile_disabled_color;
+            bgColorId = R.color.photo_picker_special_tile_disabled_bg_color;
+            fgColorId = R.color.photo_picker_special_tile_disabled_color;
         }
 
-        mBorderView.setBackgroundColor(ContextCompat.getColor(mContext, bgColorId));
-        mSpecialTile.setTextColor(ContextCompat.getColor(mContext, fgColorId));
+        Resources resources = mContext.getResources();
+        mBorderView.setBackgroundColor(ApiCompatibilityUtils.getColor(resources, bgColorId));
+        mSpecialTile.setTextColor(ApiCompatibilityUtils.getColor(resources, fgColorId));
         Drawable[] drawables = mSpecialTile.getCompoundDrawables();
         // The textview only has a top compound drawable (2nd element).
         if (drawables[1] != null) {
-            int color = ContextCompat.getColor(mContext, fgColorId);
+            int color = ApiCompatibilityUtils.getColor(resources, fgColorId);
             drawables[1].setColorFilter(color, PorterDuff.Mode.SRC_IN);
         }
 
@@ -372,5 +383,18 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mUnselectedView.setVisibility(
                 !special && !checked && anySelection ? View.VISIBLE : View.GONE);
         mScrim.setVisibility(!special && !checked && anySelection ? View.VISIBLE : View.GONE);
+    }
+
+    private boolean isGalleryTile() {
+        // TODO(finnur): Remove the null checks here and below.
+        return mBitmapDetails != null && mBitmapDetails.type() == PickerBitmap.TileTypes.GALLERY;
+    }
+
+    private boolean isCameraTile() {
+        return mBitmapDetails != null && mBitmapDetails.type() == PickerBitmap.TileTypes.CAMERA;
+    }
+
+    private boolean isPictureTile() {
+        return mBitmapDetails != null && mBitmapDetails.type() == PickerBitmap.TileTypes.PICTURE;
     }
 }

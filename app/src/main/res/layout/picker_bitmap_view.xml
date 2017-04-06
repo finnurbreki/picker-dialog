@@ -12,68 +12,62 @@
     xmlns:chrome="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@color/file_picker_tile_bg_color">
+    android:background="@color/photo_picker_tile_bg_color">
 
-    <RelativeLayout
+    <FrameLayout
+        android:id="@+id/border"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:focusable="true">
-
-        <FrameLayout
-            android:id="@+id/border"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:id="@+id/bitmap_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@null" />
-
-            <View
-                android:id="@+id/scrim"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:background="@drawable/file_picker_scrim"
-                android:visibility="gone" />
-        </FrameLayout>
+        android:layout_gravity="center">
 
         <ImageView
-            android:id="@+id/selected"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="4dp"
-            android:contentDescription="@null"
-            android:scaleType="fitCenter"
-            android:src="@drawable/verify_checkmark"
-            android:visibility="gone" />
-
-        <org.chromium.chrome.browser.widget.TintedImageView
-            android:id="@+id/unselected"
+            android:id="@+id/bitmap_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="4dp"
-            android:contentDescription="@null"
-            android:visibility="gone"
-            android:src="@drawable/ic_radio_button_unchecked_black_24dp"
-            chrome:tint="@color/white_mode_tint" />
+            android:contentDescription="@null" />
 
-        <!-- Special tiles, that give access to the camera and gallery  -->
-        <TextView
-            android:id="@+id/special_tile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/file_picker_label_gap"
-            android:drawablePadding="10dp"
-            android:fontFamily="sans-serif-medium"
-            android:textStyle="bold"
-            android:textSize="14sp"
-            android:textAllCaps="true"
-            android:textColor="@color/file_picker_special_tile_color"
-            android:gravity="center"
-            android:layout_centerInParent="true" />
+        <View
+            android:id="@+id/scrim"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/file_picker_scrim"
+            android:visibility="gone" />
+    </FrameLayout>
 
-    </RelativeLayout>
+    <ImageView
+        android:id="@+id/selected"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        android:src="@drawable/verify_checkmark"
+        android:visibility="gone" />
+
+    <org.chromium.chrome.browser.widget.TintedImageView
+        android:id="@+id/unselected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:contentDescription="@null"
+        android:visibility="gone"
+        android:src="@drawable/verify_checkmark"
+        chrome:tint="@color/white_mode_tint" />
+
+    <!-- Special tiles, that give access to the camera and gallery  -->
+    <TextView
+        android:id="@+id/special_tile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/photo_picker_label_gap"
+        android:drawablePadding="10dp"
+        android:fontFamily="sans-serif-medium"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textAllCaps="true"
+        android:textColor="@color/photo_picker_special_tile_color"
+        android:gravity="center"
+        android:layout_gravity="center" />
 </view>

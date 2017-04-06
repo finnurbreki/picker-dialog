@@ -24,7 +24,7 @@
         android:textColor="@color/default_text_color"
         android:textSize="16sp" />
 
-    <com.example.finnur.finnursphotopicker.TintedImageButton
+    <org.chromium.chrome.browser.widget.TintedImageButton
         android:id="@+id/clear_text_button"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
@@ -36,5 +36,4 @@
         android:contentDescription="@string/accessibility_toolbar_btn_delete_url"
         android:visibility="invisible"
         chrome:tint="@color/dark_mode_tint" />
-
 </LinearLayout>

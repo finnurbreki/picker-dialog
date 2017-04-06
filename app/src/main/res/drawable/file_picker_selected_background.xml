@@ -8,7 +8,7 @@
     android:insetTop="2dp"
     android:insetRight="2dp"
     android:insetBottom="2dp">
-    <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <shape android:shape="oval">
         <size
             android:width="20dp"
             android:height="20dp" />
