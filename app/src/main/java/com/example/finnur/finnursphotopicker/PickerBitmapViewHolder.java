@@ -76,8 +76,8 @@ public class PickerBitmapViewHolder
         mBitmapDetails = pickerBitmaps.get(position);
 
         String filePath = mBitmapDetails.getFilePath();
-        if (mBitmapDetails.type() == PickerBitmap.TileTypes.CAMERA
-                || mBitmapDetails.type() == PickerBitmap.TileTypes.GALLERY) {
+        if (mBitmapDetails.type() == PickerBitmap.CAMERA
+                || mBitmapDetails.type() == PickerBitmap.GALLERY) {
             mItemView.initialize(mBitmapDetails, null, false);
             mItemView.initializeSpecialTile(mBitmapDetails);
             return;

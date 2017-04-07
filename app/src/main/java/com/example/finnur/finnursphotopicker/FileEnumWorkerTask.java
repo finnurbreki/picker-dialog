@@ -81,15 +81,15 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
 
                 if (isImageExtension(file.getName())) {
                     pickerBitmaps.add(new PickerBitmap(filePath + "/" + file.getName(),
-                            file.lastModified(), PickerBitmap.TileTypes.PICTURE));
+                            file.lastModified(), PickerBitmap.PICTURE));
                 }
             }
         }
 
         Collections.sort(pickerBitmaps);
 
-        pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.TileTypes.GALLERY));
-        pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.TileTypes.CAMERA));
+        pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.GALLERY));
+        pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.CAMERA));
 
         return pickerBitmaps;
     }

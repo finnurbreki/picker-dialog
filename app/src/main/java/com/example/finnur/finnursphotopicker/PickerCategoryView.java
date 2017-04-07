@@ -316,7 +316,7 @@ public class PickerCategoryView extends RelativeLayout
         for (Map.Entry<String, Long> entry : testFiles.entrySet()) {
             String key = entry.getKey();
             Long value = entry.getValue();
-            files.add(new PickerBitmap(key, value, PickerBitmap.TileTypes.PICTURE));
+            files.add(new PickerBitmap(key, value, PickerBitmap.PICTURE));
         }
         Collections.sort(files);
         filesEnumeratedCallback(files);

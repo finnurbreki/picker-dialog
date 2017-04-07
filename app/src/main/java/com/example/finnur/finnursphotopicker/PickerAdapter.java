@@ -32,7 +32,7 @@ public class PickerAdapter extends Adapter<ViewHolder> {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
-                                .inflate(R.layout.picker_bitmap_view, parent, false);
+                                .inflate(R.layout.photo_picker_bitmap_view, parent, false);
         PickerBitmapView bitmapView = (PickerBitmapView) itemView;
         bitmapView.setCategoryView(mCategoryView);
         return new PickerBitmapViewHolder(bitmapView);

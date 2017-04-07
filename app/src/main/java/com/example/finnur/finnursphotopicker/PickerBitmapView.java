@@ -127,17 +127,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        if (mCategoryView == null) return;
-
-        int width = mCategoryView.getImageSize();
-        int height = mCategoryView.getImageSize();
-        setMeasuredDimension(width, height);
-    }
-
-    @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
         mIconView = (ImageView) findViewById(R.id.bitmap_view);
@@ -146,6 +135,17 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mSelectedView = (ImageView) findViewById(R.id.selected);
         mUnselectedView = findViewById(R.id.unselected);
         mSpecialTile = (TextView) findViewById(R.id.special_tile);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        if (mCategoryView == null) return;
+
+        int width = mCategoryView.getImageSize();
+        int height = mCategoryView.getImageSize();
+        setMeasuredDimension(width, height);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
         // The SelectableItemView expects long press to be the selection event, but this class wants
         // that to happen on click instead.
-        super.onLongClick(this);
+        onLongClick(this);
     }
 
     @Override
@@ -224,7 +224,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     public void setCategoryView(PickerCategoryView categoryView) {
         mCategoryView = categoryView;
         mSelectionDelegate = mCategoryView.getSelectionDelegate();
-        super.setSelectionDelegate(mSelectionDelegate);
+        setSelectionDelegate(mSelectionDelegate);
 
         mBorder = (int) getResources().getDimension(R.dimen.photo_picker_selected_padding);
     }
@@ -350,7 +350,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         boolean checked = super.isChecked();
         boolean anySelection =
                 mSelectionDelegate != null && mSelectionDelegate.isSelectionEnabled();
-        int bgColorId, fgColorId;
+        int bgColorId;
+        int fgColorId;
         if (!special) {
             bgColorId = R.color.photo_picker_tile_bg_color;
             fgColorId = R.color.photo_picker_special_tile_color;
@@ -382,14 +383,14 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     private boolean isGalleryTile() {
         // TODO(finnur): Remove the null checks here and below.
-        return mBitmapDetails != null && mBitmapDetails.type() == PickerBitmap.TileTypes.GALLERY;
+        return mBitmapDetails != null && mBitmapDetails.type() == PickerBitmap.GALLERY;
     }
 
     private boolean isCameraTile() {
-        return mBitmapDetails != null && mBitmapDetails.type() == PickerBitmap.TileTypes.CAMERA;
+        return mBitmapDetails != null && mBitmapDetails.type() == PickerBitmap.CAMERA;
     }
 
     private boolean isPictureTile() {
-        return mBitmapDetails != null && mBitmapDetails.type() == PickerBitmap.TileTypes.PICTURE;
+        return mBitmapDetails != null && mBitmapDetails.type() == PickerBitmap.PICTURE;
     }
 }

@@ -27,8 +27,8 @@ public class PhotoPickerDialog extends AlertDialog {
      * The PhotoPickerDialog constructor.
      * @param context The context to use.
      * @param listener The listener object that gets notified when an action is taken.
-     * @param multiSelectionAllowed True if the photo picker should allow multiple items to be
-     *    selected.
+     * @param multiSelectionAllowed Whether the photo picker should allow multiple items to be
+     *                              selected.
      */
     public PhotoPickerDialog(
             Context context, PhotoPickerListener listener, boolean multiSelectionAllowed) {

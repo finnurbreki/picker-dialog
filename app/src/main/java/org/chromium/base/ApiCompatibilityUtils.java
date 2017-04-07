@@ -36,7 +36,6 @@ import android.view.inputmethod.InputMethodSubtype;
 import android.widget.TextView;
 
 import java.io.File;
-import java.lang.reflect.Method;
 
 /**
  * Utility class to use new APIs that were added after ICS (API level 14).
@@ -413,7 +412,13 @@ public class ApiCompatibilityUtils {
      */
     public static void setStatusBarColor(Window window, int statusBarColor) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            // If both system bars are black, we can remove these from our layout,
+            // removing or shrinking the SurfaceFlinger overlay required for our views.
+            if (statusBarColor == Color.BLACK && window.getNavigationBarColor() == Color.BLACK) {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            } else {
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            }
             window.setStatusBarColor(statusBarColor);
         }
     }
@@ -564,28 +569,6 @@ public class ApiCompatibilityUtils {
     }
 
     /**
-     * @param context The Android context, used to retrieve the UserManager system service.
-     * @return Whether the device is running in demo mode.
-     */
-    public static boolean isDemoUser(Context context) {
-        // UserManager#isDemoUser() is only available in Android versions greater than N.
-        if (!BuildInfo.isGreaterThanN()) return false;
-
-        try {
-            UserManager userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
-            Method isDemoUserMethod = UserManager.class.getMethod("isDemoUser");
-            boolean isDemoUser = (boolean) isDemoUserMethod.invoke(userManager);
-            return isDemoUser;
-        } catch (RuntimeException e) {
-            // Ignore to avoid crashing on startup.
-        } catch (Exception e) {
-            // Ignore.
-        }
-
-        return false;
-    }
-
-    /**
      * @see Context#checkPermission(String, int, int)
      */
     public static int checkPermission(Context context, String permission, int pid, int uid) {
@@ -615,13 +598,12 @@ public class ApiCompatibilityUtils {
      * Get a URI for |file| which has the image capture. This function assumes that path of |file|
      * is based on the result of UiUtils.getDirectoryForImageCapture().
      *
-     * @param context The application context.
      * @param file image capture file.
      * @return URI for |file|.
      */
-    public static Uri getUriForImageCaptureFile(Context context, File file) {
+    public static Uri getUriForImageCaptureFile(File file) {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
-                ? ContentUriUtils.getContentUriFromFile(context, file)
+                ? ContentUriUtils.getContentUriFromFile(file)
                 : Uri.fromFile(file);
     }
 

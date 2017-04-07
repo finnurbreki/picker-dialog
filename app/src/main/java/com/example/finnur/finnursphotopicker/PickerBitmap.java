@@ -4,13 +4,26 @@
 
 package com.example.finnur.finnursphotopicker;
 
+import android.support.annotation.IntDef;
+
+import org.chromium.base.ApiCompatibilityUtils;
+import org.chromium.base.annotations.SuppressFBWarnings;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
- * A class to keep track of the meta data associated with a an image in the
- * photo picker.
+ * A class to keep track of the meta data associated with a an image in the photo picker.
  */
+@SuppressFBWarnings("EQ_COMPARETO_USE_OBJECT_EQUALS")
 public class PickerBitmap implements Comparable<PickerBitmap> {
     // The possible types of tiles involved in the viewer.
-    public enum TileTypes { PICTURE, CAMERA, GALLERY }
+    @IntDef({PICTURE, CAMERA, GALLERY})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface TileTypes {}
+    public static final int PICTURE = 0;
+    public static final int CAMERA = 1;
+    public static final int GALLERY = 2;
 
     // The file path to the bitmap to show.
     private String mFilePath;
@@ -19,7 +32,8 @@ public class PickerBitmap implements Comparable<PickerBitmap> {
     private long mLastModified;
 
     // The type of tile involved.
-    private TileTypes mType;
+    @TileTypes
+    private int mType;
 
     /**
      * The PickerBitmap constructor.
@@ -27,7 +41,7 @@ public class PickerBitmap implements Comparable<PickerBitmap> {
      * @param lastModified When the bitmap was last modified on disk.
      * @param type The type of tile involved.
      */
-    public PickerBitmap(String filePath, long lastModified, TileTypes type) {
+    public PickerBitmap(String filePath, long lastModified, @TileTypes int type) {
         mFilePath = filePath;
         mLastModified = lastModified;
         mType = type;
@@ -45,7 +59,8 @@ public class PickerBitmap implements Comparable<PickerBitmap> {
      * Accessor for the tile type.
      * @return The type of tile involved for this bitmap object.
      */
-    public TileTypes type() {
+    @TileTypes
+    public int type() {
         return mType;
     }
 
@@ -56,27 +71,6 @@ public class PickerBitmap implements Comparable<PickerBitmap> {
      */
     @Override
     public int compareTo(PickerBitmap other) {
-        if (mLastModified < other.mLastModified) {
-            return 1;
-        } else if (mLastModified > other.mLastModified) {
-            return -1;
-        }
-        return 0;
-    }
-
-    @Override
-    public final int hashCode() {
-        return (mFilePath + mLastModified).hashCode();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (other == this) {
-            return true;
-        }
-        if (other instanceof PickerBitmap) {
-            return compareTo((PickerBitmap) other) == 0;
-        }
-        return false;
+        return ApiCompatibilityUtils.compareLong(other.mLastModified, mLastModified);
     }
 }
