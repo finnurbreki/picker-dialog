@@ -33,10 +33,10 @@ import java.util.List;
  */
 public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // The length of the image selection animation (in ms).
-    private int ANIMATION_DURATION = 100;
+    private static final int ANIMATION_DURATION = 100;
 
     // The length of the fade in animation (in ms).
-    private int IMAGE_FADE_IN_DURATION = 200;
+    private static final int IMAGE_FADE_IN_DURATION = 200;
 
     // Our context.
     private Context mContext;
@@ -56,9 +56,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // The little shader in the top left corner (provides backdrop for selection ring on
     // unfavorable image backgrounds).
     private View mScrim;
-
-    // The view behind the image, representing the selection border.
-    private View mBorderView;
 
     // The control that signifies the image has been selected.
     private ImageView mSelectedView;
@@ -131,7 +128,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         super.onFinishInflate();
         mIconView = (ImageView) findViewById(R.id.bitmap_view);
         mScrim = findViewById(R.id.scrim);
-        mBorderView = findViewById(R.id.border);
         mSelectedView = (ImageView) findViewById(R.id.selected);
         mUnselectedView = findViewById(R.id.unselected);
         mSpecialTile = (TextView) findViewById(R.id.special_tile);
@@ -210,8 +206,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         if (size != mIconView.getWidth()) {
             ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, size);
             animation.setDuration(ANIMATION_DURATION);
-            // TODO: Add MD interpolator
-            // animation.setInterpolator((mContext, R.interpolator.fast_out_linear_in);
+            // TODO(chowse): Add MD interpolator.
             mIconView.startAnimation(animation);
         }
     }
@@ -303,7 +298,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         return noImageWasLoaded;
     }
 
-    /* Returns the size of the image plus the pre-determined border on each side. */
+    /** Returns the size of the image plus the pre-determined border on each side. */
     private int imageSizeWithBorders() {
         return mCategoryView.getImageSize() - 2 * mBorder;
     }
@@ -393,6 +388,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     }
 
     private boolean isPictureTile() {
-        return mBitmapDetails != null && mBitmapDetails.type() == PickerBitmap.PICTURE;
+        return mBitmapDetails == null || mBitmapDetails.type() == PickerBitmap.PICTURE;
     }
 }
