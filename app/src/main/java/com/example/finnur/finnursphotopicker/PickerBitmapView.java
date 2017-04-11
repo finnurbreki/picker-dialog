@@ -198,12 +198,13 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 */
         updateSelectionState();
 
-/*
+        boolean selected = selectedItems.contains(mBitmapDetails);
         boolean checked = super.isChecked();
+/*
         if (!mImageLoaded || selected == checked) {
             return;
         }
-
+*/
         int size = selected && !checked ? mCategoryView.getImageSize() - 2 * mBorder
                                         : mCategoryView.getImageSize();
         if (size != mIconView.getWidth()) {
@@ -213,7 +214,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             // animation.setInterpolator((mContext, R.interpolator.fast_out_linear_in);
             mIconView.startAnimation(animation);
         }
-*/
     }
 
     /**
@@ -291,6 +291,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             mIconView.getLayoutParams().height = imageSizeWithBorders();
             mIconView.getLayoutParams().width = imageSizeWithBorders();
             addPaddingToParent(mIconView, mBorder);
+
+            // TODOf is this needed? The scrim becomes visible during updateSelectionState, right?
             mScrim.setVisibility(View.VISIBLE);
         }
 

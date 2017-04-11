@@ -180,8 +180,7 @@ public class PickerCategoryView extends RelativeLayout
      */
     public void initialize(
             PhotoPickerDialog dialog, PhotoPickerListener listener, boolean multiSelectionAllowed) {
-        // TODOf Fix this.
-        // if (!multiSelection) mSelectionDelegate.setSingleSelectionMode();
+        if (!multiSelectionAllowed) mSelectionDelegate.setSingleSelectionMode();
 
         mDialog = dialog;
         mMultiSelectionAllowed = multiSelectionAllowed;
@@ -202,8 +201,6 @@ public class PickerCategoryView extends RelativeLayout
         mPickerBitmaps = files;
         if (files != null && files.size() > 0) {
             mPickerAdapter.notifyDataSetChanged();
-        } else {
-            setVisibility(View.GONE);
         }
     }
 
@@ -333,7 +330,7 @@ public class PickerCategoryView extends RelativeLayout
             mWorkerTask.cancel(true);
         }
 
-        mWorkerTask = new FileEnumWorkerTask(this, new AttrAcceptFileFilter("image/*,video/*"));
+        mWorkerTask = new FileEnumWorkerTask(this, new ImageFileFilter("image/*"));
         mWorkerTask.execute();
     }
 

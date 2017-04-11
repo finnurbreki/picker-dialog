@@ -14,7 +14,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * A worker task to enumerate image files on disk.
@@ -35,16 +34,51 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
     private FilesEnumeratedCallback mCallback;
 
     // The filter to apply to the list.
-    private AttrAcceptFileFilter mFilter;
+    private ImageFileFilter mFilter;
+
+    // The camera directory undir DCIM.
+    private static final String SAMPLE_DCIM_SOURCE_SUB_DIRECTORY = "Camera";
 
     /**
      * A FileEnumWorkerTask constructor.
      * @param callback The callback to use to communicate back the results.
      * @param filter The file filter to apply to the list.
      */
-    public FileEnumWorkerTask(FilesEnumeratedCallback callback, AttrAcceptFileFilter filter) {
+    public FileEnumWorkerTask(FilesEnumeratedCallback callback, ImageFileFilter filter) {
         mCallback = callback;
         mFilter = filter;
+    }
+
+    /**
+     * Retrieves the DCIM/camera directory.
+     */
+    private File getCameraDirectory() {
+        return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),
+                SAMPLE_DCIM_SOURCE_SUB_DIRECTORY);
+    }
+
+    /**
+     * Recursively enumerate files in a directory (and subdirectories) and add them to a list.
+     * @param directory The parent directory to recursively traverse.
+     * @param pickerBitmaps The list to add the results to.
+     * @return True if traversing can continue, false if traversing was aborted and should stop.
+     */
+    private boolean traverseDir(File directory, List<PickerBitmap> pickerBitmaps) {
+        File[] files = directory.listFiles(mFilter);
+        if (files == null) return true;
+
+        for (File file : files) {
+            if (isCancelled()) return false;
+
+            if (file.isDirectory()) {
+                if (!traverseDir(file, pickerBitmaps)) return false;
+            } else {
+                pickerBitmaps.add(new PickerBitmap(
+                        file.getPath(), file.lastModified(), PickerBitmap.PICTURE));
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -60,30 +94,14 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
 
         List<PickerBitmap> pickerBitmaps = new ArrayList<>();
 
-        String paths[] = new String[3];
-        // TODOf look at how Google Photos and such do this.
-        paths[0] = "/DCIM/Camera";
-        paths[1] = "/Pictures/Screenshots";
-        paths[2] = "/Download";
+        File[] sourceDirs = new File[] {
+                getCameraDirectory(),
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+        };
 
-        for (int path = 0; path < paths.length; ++path) {
-            String filePath = Environment.getExternalStorageDirectory().toString() + paths[path];
-            File directory = new File(filePath);
-            File[] files = directory.listFiles(mFilter);
-            if (files == null) {
-                continue;
-            }
-
-            for (File file : files) {
-                if (isCancelled()) {
-                    return null;
-                }
-
-                if (isImageExtension(file.getName())) {
-                    pickerBitmaps.add(new PickerBitmap(filePath + "/" + file.getName(),
-                            file.lastModified(), PickerBitmap.PICTURE));
-                }
-            }
+        for (File directory : sourceDirs) {
+            if (!traverseDir(directory, pickerBitmaps)) return null;
         }
 
         Collections.sort(pickerBitmaps);
@@ -92,16 +110,6 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
         pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.CAMERA));
 
         return pickerBitmaps;
-    }
-
-    /**
-     * @param filePath The file path to consider.
-     * @return true if the |filePath| ends in an image extension.
-     */
-    private boolean isImageExtension(String filePath) {
-        // TODOf This is error prone, use MimeTypeMap instead.
-        String file = filePath.toLowerCase(Locale.US);
-        return file.endsWith(".jpg") || file.endsWith(".gif") || file.endsWith(".png");
     }
 
     /**
