@@ -32,14 +32,13 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    <ImageView
+    <View
         android:id="@+id/selected"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="4dp"
-        android:contentDescription="@null"
-        android:src="@drawable/verify_checkmark"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_marginStart="2dp"
+        android:layout_marginTop="2dp"
+        android:background="@drawable/checkmark_blue"
         android:visibility="gone" />
 
     <View

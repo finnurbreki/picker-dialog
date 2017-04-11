@@ -57,7 +57,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     private View mScrim;
 
     // The control that signifies the image has been selected.
-    private ImageView mSelectedView;
+    private View mSelectedView;
 
     // The control that signifies the image has not been selected.
     private View mUnselectedView;
@@ -84,7 +84,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         super.onFinishInflate();
         mIconView = (ImageView) findViewById(R.id.bitmap_view);
         mScrim = findViewById(R.id.scrim);
-        mSelectedView = (ImageView) findViewById(R.id.selected);
+        mSelectedView = findViewById(R.id.selected);
         mUnselectedView = findViewById(R.id.unselected);
         mSpecialTile = (TextView) findViewById(R.id.special_tile);
     }
