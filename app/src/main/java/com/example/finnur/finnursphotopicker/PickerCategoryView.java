@@ -7,10 +7,6 @@ package com.example.finnur.finnursphotopicker;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -372,7 +368,7 @@ public class PickerCategoryView extends RelativeLayout
             if (position >= 0) {
                 int column = position % mSpanCount;
 
-                left = mSpacing - column * mSpacing / mSpanCount;
+                left = mSpacing - ((column * mSpacing) / mSpanCount);
                 right = (column + 1) * mSpacing / mSpanCount;
 
                 if (position < mSpanCount) {

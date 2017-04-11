@@ -11,12 +11,11 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.graphics.drawable.VectorDrawableCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.view.animation.Transformation;
+import android.view.animation.ScaleAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -71,49 +70,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     // The amount to use for the border.
     private int mBorder;
-
-    /**
-     * A resize animation class for the images (shrinks the image on selection).
-     */
-    private static class ResizeWidthAnimation extends Animation {
-        // The view to animate size changes for.
-        private View mView;
-
-        // The starting size of the view.
-        private int mStartingSize;
-
-        // The target size we want to achieve.
-        private int mTargetSize;
-
-        /**
-         * The ResizeWidthAnimation constructor.
-         * @param view The view to animate size changes for.
-         * @param size The target size we want to achieve.
-         */
-        public ResizeWidthAnimation(View view, int size) {
-            mView = view;
-            mStartingSize = view.getWidth();
-            mTargetSize = size;
-        }
-
-        @Override
-        protected void applyTransformation(float interpolatedTime, Transformation transformation) {
-            int newSize = mStartingSize + (int) ((mTargetSize - mStartingSize) * interpolatedTime);
-            int padding = (Math.max(mStartingSize, mTargetSize) - newSize) / 2;
-
-            mView.getLayoutParams().height = newSize;
-            mView.getLayoutParams().width = newSize;
-            // Create a border around the image.
-            if (mView instanceof ImageView) {
-                addPaddingToParent(mView, padding);
-            }
-        }
-
-        @Override
-        public boolean willChangeBounds() {
-            return true;
-        }
-    }
 
     /**
      * Constructor for inflating from XML.
@@ -177,36 +133,33 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     public void onSelectionStateChange(List<PickerBitmap> selectedItems) {
-/*
-        boolean selected = selectedItems.contains(mRequest);
-
-        if (mRequest.type() != PickerBitmap.TileTypes.PICTURE) {
-            if (selected) mSelectionDelegate.toggleSelectionForItem(mRequest);
-            updateSelectionState();
-            return;
-        }
-
-        boolean checked = super.isChecked();
-
-        if (!mCategoryView.isMultiSelect() && !selected && checked) {
-            super.toggle();
-        }
-*/
         updateSelectionState();
+
+        if (!isPictureTile()) return;
 
         boolean selected = selectedItems.contains(mBitmapDetails);
         boolean checked = super.isChecked();
-/*
-        if (!mImageLoaded || selected == checked) {
-            return;
-        }
-*/
+        boolean needsResize = selected != checked;
         int size = selected && !checked ? mCategoryView.getImageSize() - 2 * mBorder
                                         : mCategoryView.getImageSize();
-        if (size != mIconView.getWidth()) {
-            ResizeWidthAnimation animation = new ResizeWidthAnimation(mIconView, size);
+        if (needsResize) {
+            float start;
+            float end;
+            if (size != mCategoryView.getImageSize()) {
+                start = 1f;
+                end = 0.8f;
+            } else {
+                start = 0.8f;
+                end = 1f;
+            }
+
+            Animation animation = new ScaleAnimation(
+                    start, end, // Values for x axis.
+                    start, end, // Values for y axis.
+                    Animation.RELATIVE_TO_SELF, 0.5f, // Pivot X-axis type and value.
+                    Animation.RELATIVE_TO_SELF, 0.5f); // Pivot Y-axis type and value.
             animation.setDuration(ANIMATION_DURATION);
-            // TODO(chowse): Add MD interpolator.
+            animation.setFillAfter(true); // Keep the results of the animation.
             mIconView.startAnimation(animation);
         }
     }
