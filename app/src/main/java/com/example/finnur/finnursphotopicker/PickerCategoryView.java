@@ -99,16 +99,6 @@ public class PickerCategoryView extends RelativeLayout
         postConstruction(context);
     }
 
-    public PickerCategoryView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        postConstruction(context);
-    }
-
-    public PickerCategoryView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        postConstruction(context);
-    }
-
     /**
      * A helper function for initializing the PickerCategoryView.
      * @param context The context to use.
@@ -160,9 +150,14 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     /**
-     * Severs the connection to the decoding utility process.
+     * Severs the connection to the decoding utility process and cancels any outstanding requests.
      */
-    public void endConnection() {
+    public void onDialogDismissed() {
+        if (mWorkerTask != null) {
+            mWorkerTask.cancel(true);
+            mWorkerTask = null;
+        }
+
         if (mDecoderServiceHost != null) {
             mDecoderServiceHost.unbind(mContext);
         }
@@ -326,7 +321,7 @@ public class PickerCategoryView extends RelativeLayout
             mWorkerTask.cancel(true);
         }
 
-        mWorkerTask = new FileEnumWorkerTask(this, new ImageFileFilter("image/*"));
+        mWorkerTask = new FileEnumWorkerTask(this, new MimeTypeFileFilter("image/*"));
         mWorkerTask.execute();
     }
 

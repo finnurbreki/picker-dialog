@@ -52,7 +52,7 @@ public class PhotoPickerDialog extends AlertDialog {
     @Override
     public void dismiss() {
         super.dismiss();
-        mCategoryView.endConnection();
+        mCategoryView.onDialogDismissed();
     }
 
     @VisibleForTesting

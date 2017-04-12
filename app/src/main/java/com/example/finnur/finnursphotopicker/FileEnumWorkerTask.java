@@ -34,7 +34,7 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
     private FilesEnumeratedCallback mCallback;
 
     // The filter to apply to the list.
-    private ImageFileFilter mFilter;
+    private MimeTypeFileFilter mFilter;
 
     // The camera directory undir DCIM.
     private static final String SAMPLE_DCIM_SOURCE_SUB_DIRECTORY = "Camera";
@@ -44,7 +44,7 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
      * @param callback The callback to use to communicate back the results.
      * @param filter The file filter to apply to the list.
      */
-    public FileEnumWorkerTask(FilesEnumeratedCallback callback, ImageFileFilter filter) {
+    public FileEnumWorkerTask(FilesEnumeratedCallback callback, MimeTypeFileFilter filter) {
         mCallback = callback;
         mFilter = filter;
     }
@@ -94,6 +94,7 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
 
         List<PickerBitmap> pickerBitmaps = new ArrayList<>();
 
+        // TODO(finnur): Figure out which directories to scan and stop hard coding "Camera" above.
         File[] sourceDirs = new File[] {
                 getCameraDirectory(),
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),

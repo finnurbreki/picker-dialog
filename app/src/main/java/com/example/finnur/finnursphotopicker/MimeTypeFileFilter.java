@@ -16,7 +16,7 @@ import java.util.Locale;
  * A file filter for handling extensions and MIME types (images/jpeg) and
  * supertypes (images/*).
  */
-class ImageFileFilter implements FileFilter {
+class MimeTypeFileFilter implements FileFilter {
     private static final String IMAGE_SUPERTYPE = "image";
     private static final String VIDEO_SUPERTYPE = "video";
 
@@ -25,7 +25,7 @@ class ImageFileFilter implements FileFilter {
     private HashSet<String> mMimeSupertypes = new HashSet<>();
     private MimeTypeMap mMimeTypeMap;
 
-    public ImageFileFilter(@NonNull String acceptAttr) {
+    public MimeTypeFileFilter(@NonNull String acceptAttr) {
         for (String field : acceptAttr.toLowerCase(Locale.US).split(",")) {
             field = field.trim();
             if (field.startsWith(".")) {
