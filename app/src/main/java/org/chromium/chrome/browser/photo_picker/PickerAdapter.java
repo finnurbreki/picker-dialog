@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package com.example.finnur.finnursphotopicker;
+package org.chromium.chrome.browser.photo_picker;
 
 import android.support.v7.widget.RecyclerView.Adapter;
 import android.support.v7.widget.RecyclerView.ViewHolder;
@@ -10,7 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-// import org.chromium.chrome.R;
+import com.example.finnur.finnursphotopicker.R;
 
 /**
  * A data adapter for the Photo Picker.
