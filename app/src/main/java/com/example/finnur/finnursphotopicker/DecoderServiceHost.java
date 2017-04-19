@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -115,7 +115,7 @@ public class DecoderServiceHost {
         return mRequests;
     }
 
-    // The callback the client wants us to use to report back when the service is ready.
+    // The callback used to notify the client when the service is ready.
     private ServiceReadyCallback mCallback;
 
     // Messenger for communicating with the remote service.
@@ -187,9 +187,9 @@ public class DecoderServiceHost {
     /**
      * Communicates with the server to decode a single bitmap.
      * @param filePath The path to the image on disk.
-     * @param width The requested width of the resulting bitmap.
+     * @param size The requested width and height of the resulting bitmap.
      */
-    private void dispatchDecodeImageRequest(String filePath, int width) {
+    private void dispatchDecodeImageRequest(String filePath, int size) {
         // Obtain a file descriptor to send over to the sandboxed process.
         File file = new File(filePath);
         FileInputStream inputFile = null;
@@ -224,7 +224,7 @@ public class DecoderServiceHost {
         // Prepare and send the data over.
         Message payload = Message.obtain(null, DecoderService.MSG_DECODE_IMAGE);
         bundle.putString(DecoderService.KEY_FILE_PATH, filePath);
-        bundle.putInt(DecoderService.KEY_WIDTH, width);
+        bundle.putInt(DecoderService.KEY_SIZE, size);
         payload.setData(bundle);
         try {
             mService.send(payload);
@@ -238,7 +238,7 @@ public class DecoderServiceHost {
 
     /**
      * Cancels a request to decode an image (if it hasn't already been dispatched).
-     * @param filePath
+     * @param filePath The path to the image to cancel decoding.
      */
     public void cancelDecodeImage(String filePath) {
         mRequests.remove(filePath);
@@ -275,11 +275,10 @@ public class DecoderServiceHost {
                     String filePath = payload.getString(DecoderService.KEY_FILE_PATH);
                     Boolean success = payload.getBoolean(DecoderService.KEY_SUCCESS);
                     Bitmap bitmap = payload.getParcelable(DecoderService.KEY_IMAGE_BITMAP);
-                    int width = payload.getInt(DecoderService.KEY_WIDTH);
-                    int height = width;
+                    int size = payload.getInt(DecoderService.KEY_SIZE);
 
                     if (!success) {
-                        closeRequest(host, filePath, createPlaceholderBitmap(width, height));
+                        closeRequest(host, filePath, createPlaceholderBitmap(size, size));
                         return;
                     }
 
@@ -298,8 +297,7 @@ public class DecoderServiceHost {
                             try {
                                 inFile.read(pixels, 0, byteCount);
                                 ByteBuffer buffer = ByteBuffer.wrap(pixels);
-                                bitmap =
-                                        Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                                bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
                                 bitmap.copyPixelsFromBuffer(buffer);
                             } catch (IOException e) {
                                 e.printStackTrace();

@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -41,7 +41,7 @@ public class DecoderService extends Service {
     static final String KEY_IMAGE_BITMAP = "image_bitmap";
     static final String KEY_IMAGE_BYTE_COUNT = "image_byte_count";
     static final String KEY_IMAGE_DESCRIPTOR = "image_descriptor";
-    static final String KEY_WIDTH = "width";
+    static final String KEY_SIZE = "size";
     static final String KEY_SUCCESS = "success";
 
     // A method for getFileDescriptor, obtained via Reflection. Can be null if not supported by
@@ -131,16 +131,16 @@ public class DecoderService extends Service {
 
                         String filePath = payload.getString(KEY_FILE_PATH);
                         ParcelFileDescriptor pfd = payload.getParcelable(KEY_FILE_DESCRIPTOR);
-                        int width = payload.getInt(KEY_WIDTH);
+                        int size = payload.getInt(KEY_SIZE);
 
                         // Setup a minimum viable response to parent process. Will be fleshed out
                         // further below.
                         bundle.putString(KEY_FILE_PATH, filePath);
-                        bundle.putInt(KEY_WIDTH, width);
+                        bundle.putInt(KEY_SIZE, size);
                         bundle.putBoolean(KEY_SUCCESS, false);
 
                         FileDescriptor fd = pfd.getFileDescriptor();
-                        Bitmap bitmap = BitmapUtils.decodeBitmapFromFileDescriptor(fd, width);
+                        Bitmap bitmap = BitmapUtils.decodeBitmapFromFileDescriptor(fd, size);
                         try {
                             pfd.close();
                         } catch (IOException e) {
@@ -170,13 +170,13 @@ public class DecoderService extends Service {
 
                                 fd = getFileDescriptor(imageFile);
                                 imagePfd = ParcelFileDescriptor.dup(fd);
+
+                                bundle.putParcelable(KEY_IMAGE_DESCRIPTOR, imagePfd);
+                                bundle.putInt(KEY_IMAGE_BYTE_COUNT, byteCount);
+                                bundle.putBoolean(KEY_SUCCESS, true);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-
-                            bundle.putParcelable(KEY_IMAGE_DESCRIPTOR, imagePfd);
-                            bundle.putInt(KEY_IMAGE_BYTE_COUNT, byteCount);
-                            bundle.putBoolean(KEY_SUCCESS, true);
                         }
 
                         try {

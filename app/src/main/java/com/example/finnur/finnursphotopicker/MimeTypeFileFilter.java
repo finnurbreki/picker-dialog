@@ -10,24 +10,26 @@ import android.webkit.MimeTypeMap;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 
 /**
- * A file filter for handling extensions and MIME types (images/jpeg) and
- * supertypes (images/*).
+ * A file filter for handling extensions mapping to MIME types (such as images/jpeg and images/*).
  */
 class MimeTypeFileFilter implements FileFilter {
-    private static final String IMAGE_SUPERTYPE = "image";
-    private static final String VIDEO_SUPERTYPE = "video";
-
     private HashSet<String> mExtensions = new HashSet<>();
     private HashSet<String> mMimeTypes = new HashSet<>();
     private HashSet<String> mMimeSupertypes = new HashSet<>();
     private MimeTypeMap mMimeTypeMap;
 
-    public MimeTypeFileFilter(@NonNull String acceptAttr) {
-        for (String field : acceptAttr.toLowerCase(Locale.US).split(",")) {
-            field = field.trim();
+    /**
+     * Contructs a MimeTypeFileFilter object.
+     * @param mimeTypes A list of MIME types this filter accepts.
+     *                  For example: images/gif, video/*.
+     */
+    public MimeTypeFileFilter(@NonNull List<String> mimeTypes) {
+        for (String field : mimeTypes) {
+            field = field.trim().toLowerCase(Locale.US);
             if (field.startsWith(".")) {
                 mExtensions.add(field.substring(1));
             } else if (field.endsWith("/*")) {
@@ -56,30 +58,13 @@ class MimeTypeFileFilter implements FileFilter {
 
         String mimeType = getMimeTypeFromExtension(ext);
         if (mimeType != null) {
-            if (mMimeTypes.contains(mimeType)) {
-                return true;
-            }
-            if (mMimeSupertypes.contains(getMimeSupertype(mimeType))) {
+            if (mMimeTypes.contains(mimeType)
+                    || mMimeSupertypes.contains(getMimeSupertype(mimeType))) {
                 return true;
             }
         }
 
         return false;
-    }
-
-    public boolean acceptsImages() {
-        return getAcceptedSupertypes().contains(IMAGE_SUPERTYPE);
-    }
-
-    public boolean acceptsVideos() {
-        return getAcceptedSupertypes().contains(VIDEO_SUPERTYPE);
-    }
-
-    public boolean acceptsOther() {
-        HashSet<String> supertypes = getAcceptedSupertypes();
-        supertypes.remove(IMAGE_SUPERTYPE);
-        supertypes.remove(VIDEO_SUPERTYPE);
-        return !supertypes.isEmpty();
     }
 
     private HashSet<String> getAcceptedSupertypes() {

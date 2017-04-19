@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -25,6 +25,7 @@ import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import org.chromium.ui.PhotoPickerListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -160,6 +161,7 @@ public class PickerCategoryView extends RelativeLayout
 
         if (mDecoderServiceHost != null) {
             mDecoderServiceHost.unbind(mContext);
+            mDecoderServiceHost = null;
         }
     }
 
@@ -178,13 +180,6 @@ public class PickerCategoryView extends RelativeLayout
         mListener = listener;
     }
 
-    // DecoderServiceHost.ServiceReadyCallback:
-
-    @Override
-    public void serviceReady() {
-        prepareBitmaps();
-    }
-
     // FileEnumWorkerTask.FilesEnumeratedCallback:
 
     @Override
@@ -193,6 +188,13 @@ public class PickerCategoryView extends RelativeLayout
         if (files != null && files.size() > 0) {
             mPickerAdapter.notifyDataSetChanged();
         }
+    }
+
+    // DecoderServiceHost.ServiceReadyCallback:
+
+    @Override
+    public void serviceReady() {
+        prepareBitmaps();
     }
 
     // RecyclerView.RecyclerListener:
@@ -321,7 +323,8 @@ public class PickerCategoryView extends RelativeLayout
             mWorkerTask.cancel(true);
         }
 
-        mWorkerTask = new FileEnumWorkerTask(this, new MimeTypeFileFilter("image/*"));
+        mWorkerTask =
+                new FileEnumWorkerTask(this, new MimeTypeFileFilter(Arrays.asList("image/*")));
         mWorkerTask.execute();
     }
 

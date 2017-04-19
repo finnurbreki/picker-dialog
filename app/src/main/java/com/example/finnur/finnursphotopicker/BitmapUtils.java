@@ -9,6 +9,9 @@ import android.graphics.BitmapFactory;
 
 import java.io.FileDescriptor;
 
+/**
+ * A collection of utility functions for dealing with bitmaps.
+ */
 class BitmapUtils {
     /**
      * Takes a |bitmap| and returns a square thumbnail of |width| from the center of the bitmap
@@ -24,45 +27,39 @@ class BitmapUtils {
     }
 
     /**
-     * Given a FileDescriptor, decodes the contents and returns a bitmap of size |width|x|width|.
+     * Given a FileDescriptor, decodes the contents and returns a bitmap of
+     * dimensions |size|x|size|.
      * @param descriptor The FileDescriptor for the file to read.
-     * @param width The width of the bitmap to return.
+     * @param size The width and height of the bitmap to return.
      * @return The resulting bitmap.
      */
-    public static Bitmap decodeBitmapFromFileDescriptor(FileDescriptor descriptor, int width) {
+    public static Bitmap decodeBitmapFromFileDescriptor(FileDescriptor descriptor, int size) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFileDescriptor(descriptor, null, options);
-        options.inSampleSize = calculateInSampleSize(options, width, width);
+        options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, size);
         options.inJustDecodeBounds = false;
         Bitmap bitmap = BitmapFactory.decodeFileDescriptor(descriptor, null, options);
 
         if (bitmap == null) return null;
 
-        return sizeBitmap(bitmap, width);
+        return sizeBitmap(bitmap, size);
     }
 
     /**
      * Calculates the sub-sampling factor {@link BitmapFactory#inSampleSize} option for a given
-     * bitmap option, which will be used to create a bitmap of a pre-determined size (no larger than
-     * |width| and |height|).
-     * @param options The bitmap options to consider.
-     * @param width The requested width.
-     * @param height The requested height.
+     * image dimensions, which will be used to create a bitmap of a pre-determined size (no larger
+     * than |size|x|size|).
+     * @param width The calculated width of the image to decode.
+     * @param height The calculated height of the image to decode.
+     * @param maxSize The maximum size the image should be (in either dimension).
      * @return The sub-sampling factor (1 = no change, 2 = half-size, etc).
      */
-    private static int calculateInSampleSize(BitmapFactory.Options options, int width, int height) {
+    private static int calculateInSampleSize(int width, int height, int maxSize) {
         int inSampleSize = 1;
-
-        if (options.outHeight > height || options.outWidth > width) {
-            final int halfHeight = options.outHeight / 2;
-            final int halfWidth = options.outWidth / 2;
-
-            while ((halfHeight / inSampleSize) >= height || (halfWidth / inSampleSize) >= width) {
-                inSampleSize *= 2;
-            }
+        while ((height / inSampleSize) >= maxSize || (width / inSampleSize) >= maxSize) {
+            inSampleSize *= 2;
         }
-
         return inSampleSize;
     }
 
