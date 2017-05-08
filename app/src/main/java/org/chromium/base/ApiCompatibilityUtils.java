@@ -28,6 +28,8 @@ import android.os.Process;
 import android.os.StatFs;
 import android.os.UserManager;
 import android.provider.Settings;
+import android.text.Html;
+import android.text.Spanned;
 import android.view.View;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.view.Window;
@@ -278,6 +280,19 @@ public class ApiCompatibilityUtils {
             textView.setCompoundDrawablesRelativeWithIntrinsicBounds(start, top, end, bottom);
         } else {
             textView.setCompoundDrawablesWithIntrinsicBounds(start, top, end, bottom);
+        }
+    }
+
+    /**
+     * @see android.text.Html#toHtml(Spanned, int)
+     * @param option is ignored on below N
+     */
+    @SuppressWarnings("deprecation")
+    public static String toHtml(Spanned spanned, int option) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return Html.toHtml(spanned, option);
+        } else {
+            return Html.toHtml(spanned);
         }
     }
 
@@ -569,6 +584,21 @@ public class ApiCompatibilityUtils {
     }
 
     /**
+     * @param context The Android context, used to retrieve the UserManager system service.
+     * @return Whether the device is running in demo mode.
+     */
+    /*
+    @SuppressWarnings("NewApi")
+    public static boolean isDemoUser(Context context) {
+        // UserManager#isDemoUser() is only available in Android NMR1+.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) return false;
+
+        UserManager userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
+        return userManager.isDemoUser();
+    }
+    */
+
+    /**
      * @see Context#checkPermission(String, int, int)
      */
     public static int checkPermission(Context context, String permission, int pid, int uid) {
@@ -606,6 +636,20 @@ public class ApiCompatibilityUtils {
                 ? ContentUriUtils.getContentUriFromFile(file)
                 : Uri.fromFile(file);
     }
+
+    /**
+     * Get the URI for a downloaded file.
+     *
+     * @param file A downloaded file.
+     * @return URI for |file|.
+     */
+    /*
+    public static Uri getUriForDownloadedFile(File file) {
+        return Build.VERSION.SDK_INT > Build.VERSION_CODES.M
+                ? FileUtils.getUriForFile(file)
+                : Uri.fromFile(file);
+    }
+    */
 
     /**
      * @see android.view.Window#FEATURE_INDETERMINATE_PROGRESS

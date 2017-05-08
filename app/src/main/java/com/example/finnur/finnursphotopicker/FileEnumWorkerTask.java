@@ -2,12 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package org.chromium.chrome.browser.photo_picker;
+package com.example.finnur.finnursphotopicker;
 
 import android.os.AsyncTask;
 import android.os.Environment;
 
-// Chrome-specific imports:
 // import org.chromium.base.ThreadUtils;
 
 import java.io.File;

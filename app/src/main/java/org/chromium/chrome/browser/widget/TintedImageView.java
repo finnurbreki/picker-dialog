@@ -13,8 +13,6 @@ import android.util.AttributeSet;
 
 import com.example.finnur.finnursphotopicker.R;
 
-// import org.chromium.chrome.R;
-
 /**
  * Implementation of ImageView that allows to tint the color of the image view for all
  * image view states using chrome:tint attribute in XML.

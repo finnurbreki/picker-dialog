@@ -13,8 +13,6 @@ import android.widget.ImageButton;
 
 import com.example.finnur.finnursphotopicker.R;
 
-// import org.chromium.chrome.R;
-
 /**
  * Implementation of ImageButton that allows to tint the color of the image button for all
  * image button states using chrome:tint attribute in XML.

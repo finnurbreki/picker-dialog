@@ -109,6 +109,22 @@ public class BuildInfo {
         return msg;
     }
 
+    /** Returns a string that is different each time the apk changes. */
+    @CalledByNative
+    public static String getExtractedFileSuffix() {
+        PackageManager pm = ContextUtils.getApplicationContext().getPackageManager();
+        try {
+            PackageInfo pi =
+                    pm.getPackageInfo(ContextUtils.getApplicationContext().getPackageName(), 0);
+            // Use lastUpdateTime when developing locally, since versionCode does not normally
+            // change in this case.
+            long version = pi.versionCode > 10 ? pi.versionCode : pi.lastUpdateTime;
+            return "@" + Long.toHexString(version);
+        } catch (PackageManager.NameNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @CalledByNative
     public static String getPackageLabel() {
         // Third-party code does disk read on the getApplicationInfo call. http://crbug.com/614343
@@ -156,15 +172,23 @@ public class BuildInfo {
      * @return Whether the current device is running Android O release or newer.
      */
     public static boolean isAtLeastO() {
-        return !"REL".equals(Build.VERSION.CODENAME)
-                && ("O".equals(Build.VERSION.CODENAME) || Build.VERSION.CODENAME.startsWith("OMR"));
+        if ("REL".equals(Build.VERSION.CODENAME)) return Build.VERSION.SDK_INT >= 26;
+
+        // The following allows pre-releases of Android O to be identified as Android O.
+        // TODO(crbug/685808): Remove this and simplify check above once Android O is available.
+        return "O".equals(Build.VERSION.CODENAME) || Build.VERSION.CODENAME.startsWith("OMR");
     }
 
     /**
      * @return Whether the current app targets the SDK for at least O
      */
     public static boolean targetsAtLeastO(Context appContext) {
-        return isAtLeastO()
+        if (appContext.getApplicationInfo().targetSdkVersion >= 26) return true;
+
+        // The following accepts target SDK version to be |CUR_DEVELOPMENT| when the platform Chrome
+        // is running on is a pre-release of Android O.
+        // TODO(crbug/685808): Remove this and simplify the check above once Android O is available.
+        return ("O".equals(Build.VERSION.CODENAME) || Build.VERSION.CODENAME.startsWith("OMR"))
                 && appContext.getApplicationInfo().targetSdkVersion
                 == Build.VERSION_CODES.CUR_DEVELOPMENT;
     }

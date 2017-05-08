@@ -11,10 +11,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 
-import com.example.finnur.finnursphotopicker.R;
-
 import org.chromium.base.ApiCompatibilityUtils;
-//import org.chromium.chrome.R;
+import com.example.finnur.finnursphotopicker.R;
 
 /**
  * Implementation of BitmapDrawable that allows to tint the color of the drawable for all

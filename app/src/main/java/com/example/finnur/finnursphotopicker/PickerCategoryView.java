@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package org.chromium.chrome.browser.photo_picker;
+package com.example.finnur.finnursphotopicker;
 
 import android.app.Activity;
 import android.content.Context;
@@ -19,7 +19,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 
 import org.chromium.base.VisibleForTesting;
-import com.example.finnur.finnursphotopicker.R;
+// import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectableListLayout;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import org.chromium.ui.PhotoPickerListener;
@@ -35,10 +35,8 @@ import java.util.Map;
  * the photo picker, for example the RecyclerView and the bitmap caches.
  */
 public class PickerCategoryView extends RelativeLayout
-        implements FileEnumWorkerTask.FilesEnumeratedCallback,
-                   RecyclerView.RecyclerListener,
-                   DecoderServiceHost.ServiceReadyCallback,
-                   OnMenuItemClickListener {
+        implements FileEnumWorkerTask.FilesEnumeratedCallback, RecyclerView.RecyclerListener,
+                   DecoderServiceHost.ServiceReadyCallback, OnMenuItemClickListener {
     private static final int KILOBYTE = 1024;
 
     // The dialog that owns us.
@@ -72,8 +70,8 @@ public class PickerCategoryView extends RelativeLayout
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
 
     // A low-resolution cache for images. Helpful for cache misses from the high-resolution cache
-    // to avoid showing gray squares (show pixelated versions instead until image can be loaded off
-    // disk).
+    // to avoid showing gray squares (we show pixelated versions instead until image can be loaded
+    // off disk, which is much less jarring).
     private LruCache<String, Bitmap> mLowResBitmaps;
 
     // A high-resolution cache for images.
@@ -95,6 +93,9 @@ public class PickerCategoryView extends RelativeLayout
     // A worker task for asynchronously enumerating files off the main thread.
     private FileEnumWorkerTask mWorkerTask;
 
+    // Whether the connection to the service has been established.
+    private boolean mServiceReady;
+
     public PickerCategoryView(Context context) {
         super(context);
         postConstruction(context);
@@ -111,6 +112,8 @@ public class PickerCategoryView extends RelativeLayout
         mDecoderServiceHost = new DecoderServiceHost(this);
         mDecoderServiceHost.bind(mContext);
 
+        enumerateBitmaps();
+
         mSelectionDelegate = new SelectionDelegate<PickerBitmap>();
 
         View root = LayoutInflater.from(context).inflate(R.layout.photo_picker_dialog, this);
@@ -121,8 +124,7 @@ public class PickerCategoryView extends RelativeLayout
         mRecyclerView = mSelectableListLayout.initializeRecyclerView(mPickerAdapter);
         mSelectableListLayout.initializeToolbar(R.layout.photo_picker_toolbar, mSelectionDelegate,
                 R.string.photo_picker_select_images, null, R.id.photo_picker_normal_menu_group,
-                R.id.photo_picker_selection_mode_menu_group, R.color.default_primary_color, false,
-                this);
+                R.id.photo_picker_selection_mode_menu_group, R.color.default_primary_color, this);
 
         Rect appRect = new Rect();
         ((Activity) context).getWindow().getDecorView().getWindowVisibleDisplayFrame(appRect);
@@ -185,16 +187,15 @@ public class PickerCategoryView extends RelativeLayout
     @Override
     public void filesEnumeratedCallback(List<PickerBitmap> files) {
         mPickerBitmaps = files;
-        if (files != null && files.size() > 0) {
-            mPickerAdapter.notifyDataSetChanged();
-        }
+        processBitmaps();
     }
 
     // DecoderServiceHost.ServiceReadyCallback:
 
     @Override
     public void serviceReady() {
-        prepareBitmaps();
+        mServiceReady = true;
+        processBitmaps();
     }
 
     // RecyclerView.RecyclerListener:
@@ -222,6 +223,16 @@ public class PickerCategoryView extends RelativeLayout
             return true;
         }
         return false;
+    }
+
+    /**
+     * Start loading of bitmaps, once files have been enumerated and service is
+     * ready to decode.
+     */
+    private void processBitmaps() {
+        if (mServiceReady && mPickerBitmaps != null) {
+            mPickerAdapter.notifyDataSetChanged();
+        }
     }
 
     // Simple accessors:
@@ -314,10 +325,10 @@ public class PickerCategoryView extends RelativeLayout
     }
 
     /**
-     * Prepares bitmaps for loading.
+     * Asynchronously enumerates bitmaps on disk.
      */
-    private void prepareBitmaps() {
-        if (loadTestFiles()) return;
+    private void enumerateBitmaps() {
+        // if (loadTestFiles()) return; TODOf figure out
 
         if (mWorkerTask != null) {
             mWorkerTask.cancel(true);

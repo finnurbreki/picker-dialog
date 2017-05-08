@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package org.chromium.chrome.browser.photo_picker;
+package com.example.finnur.finnursphotopicker;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -11,7 +11,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 
 import org.chromium.base.VisibleForTesting;
-import com.example.finnur.finnursphotopicker.R;
+// import org.chromium.chrome.R;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import org.chromium.ui.PhotoPickerListener;
 

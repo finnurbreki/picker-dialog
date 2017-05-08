@@ -2,27 +2,30 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package org.chromium.chrome.browser.photo_picker;
+package com.example.finnur.finnursphotopicker;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 import java.io.FileDescriptor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A collection of utility functions for dealing with bitmaps.
  */
 class BitmapUtils {
     /**
-     * Takes a |bitmap| and returns a square thumbnail of |width| from the center of the bitmap
-     * specified.
+     * Takes a |bitmap| and returns a square thumbnail of |size|x|size| from the center of the
+     * bitmap specified.
      * @param bitmap The bitmap to adjust.
-     * @param width The desired width.
+     * @param size The desired size (width and height).
      * @return The new bitmap thumbnail.
      */
-    public static Bitmap sizeBitmap(Bitmap bitmap, int width) {
-        bitmap = ensureMinSize(bitmap, width);
-        bitmap = cropToSquare(bitmap, width);
+    private static Bitmap sizeBitmap(Bitmap bitmap, int size) {
+        // TODO(finnur): Investigate options that require fewer bitmaps to be created.
+        bitmap = ensureMinSize(bitmap, size);
+        bitmap = cropToSquare(bitmap, size);
         return bitmap;
     }
 
@@ -48,35 +51,19 @@ class BitmapUtils {
 
     /**
      * Calculates the sub-sampling factor {@link BitmapFactory#inSampleSize} option for a given
-     * image dimensions, which will be used to create a bitmap of a pre-determined size (no larger
-     * than |size|x|size|).
+     * image dimensions, which will be used to create a bitmap of a pre-determined size (as small as
+     * possible without either dimension shrinking below |minSize|.
      * @param width The calculated width of the image to decode.
      * @param height The calculated height of the image to decode.
-     * @param maxSize The maximum size the image should be (in either dimension).
-     * @return The sub-sampling factor (1 = no change, 2 = half-size, etc).
+     * @param minSize The maximum size the image should be (in either dimension).
+     * @return The sub-sampling factor (power of two: 1 = no change, 2 = half-size, etc).
      */
-    private static int calculateInSampleSize(int width, int height, int maxSize) {
+    private static int calculateInSampleSize(int width, int height, int minSize) {
         int inSampleSize = 1;
-        while ((height / inSampleSize) >= maxSize || (width / inSampleSize) >= maxSize) {
-            inSampleSize *= 2;
+        if (width > minSize && height > minSize) {
+            inSampleSize = Math.min(width, height) / minSize;
         }
         return inSampleSize;
-    }
-
-    /**
-     * Scales a |bitmap| to a certain size.
-     * @param bitmap The bitmap to scale.
-     * @param scaleMaxSize What to scale it to.
-     * @param filter True if the source should be filtered.
-     * @return The resulting scaled bitmap.
-     */
-    public static Bitmap scale(Bitmap bitmap, float scaleMaxSize, boolean filter) {
-        float ratio = Math.min((float) scaleMaxSize / bitmap.getWidth(),
-                (float) scaleMaxSize / bitmap.getHeight());
-        int height = Math.round(ratio * bitmap.getHeight());
-        int width = Math.round(ratio * bitmap.getWidth());
-
-        return Bitmap.createScaledBitmap(bitmap, width, height, filter);
     }
 
     /**
@@ -88,6 +75,8 @@ class BitmapUtils {
     private static Bitmap ensureMinSize(Bitmap bitmap, int size) {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
+        if (width >= size && height >= size) return bitmap;
+
         if (width < size) {
             float scale = (float) size / width;
             width = size;
@@ -114,9 +103,26 @@ class BitmapUtils {
         int y = 0;
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
+        if (width == size && height == size) return bitmap;
 
         if (width > size) x = (width - size) / 2;
         if (height > size) y = (height - size) / 2;
         return Bitmap.createBitmap(bitmap, x, y, size, size);
+    }
+
+    /**
+     * Scales a |bitmap| to a certain size.
+     * @param bitmap The bitmap to scale.
+     * @param scaleMaxSize What to scale it to.
+     * @param filter True if the source should be filtered.
+     * @return The resulting scaled bitmap.
+     */
+    public static Bitmap scale(Bitmap bitmap, float scaleMaxSize, boolean filter) {
+        float ratio = Math.min((float) scaleMaxSize / bitmap.getWidth(),
+                (float) scaleMaxSize / bitmap.getHeight());
+        int height = Math.round(ratio * bitmap.getHeight());
+        int width = Math.round(ratio * bitmap.getWidth());
+
+        return Bitmap.createScaledBitmap(bitmap, width, height, filter);
     }
 }

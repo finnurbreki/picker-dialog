@@ -12,9 +12,7 @@ import android.util.Property;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-//import org.chromium.chrome.R;
 import com.example.finnur.finnursphotopicker.R;
-
 import org.chromium.ui.interpolators.BakedBezierInterpolator;
 
 import java.text.NumberFormat;

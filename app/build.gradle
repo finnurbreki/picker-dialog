@@ -26,6 +26,8 @@ android {
             signingConfig signingConfigs.config
         }
     }
+    productFlavors {
+    }
 }
 
 dependencies {

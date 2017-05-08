@@ -2,13 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package org.chromium.chrome.browser.photo_picker;
+package com.example.finnur.finnursphotopicker;
 
 import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.support.v7.widget.RecyclerView;
+import android.os.AsyncTask;
+import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.TextUtils;
-import android.view.View;
 
 import org.chromium.base.VisibleForTesting;
 
@@ -18,12 +17,18 @@ import java.util.List;
  * Holds on to a {@link PickerBitmapView} that displays information about a picker bitmap.
  */
 public class PickerBitmapViewHolder
-        extends RecyclerView.ViewHolder implements DecoderServiceHost.ImageDecodedCallback {
+        extends ViewHolder implements DecoderServiceHost.ImageDecodedCallback {
+    // The size (in dp) of the low-res thumbnails.
+    private static final int GRAINY_THUMBNAIL_SIZE_DP = 12;
+
     // Our parent category.
     private PickerCategoryView mCategoryView;
 
     // The bitmap view we are holding on to.
     private final PickerBitmapView mItemView;
+
+    // The screen density.
+    private final float mDensity;
 
     // The request we are showing the bitmap for.
     private PickerBitmap mBitmapDetails;
@@ -35,6 +40,7 @@ public class PickerBitmapViewHolder
     public PickerBitmapViewHolder(PickerBitmapView itemView) {
         super(itemView);
         mItemView = itemView;
+        mDensity = itemView.getContext().getResources().getDisplayMetrics().density;
     }
 
     // DecoderServiceHost.ImageDecodedCallback
@@ -50,9 +56,9 @@ public class PickerBitmapViewHolder
         }
 
         if (mCategoryView.getLowResBitmaps().get(filePath) == null) {
-            // Scaling the image down takes between 0-1 ms on average (Nexus 6 phone debug build).
-            Bitmap lowres = BitmapUtils.scale(bitmap, 40, false);
-            mCategoryView.getLowResBitmaps().put(filePath, lowres);
+            new BitmapScalerTask(mCategoryView.getLowResBitmaps(), filePath,
+                    (int) (GRAINY_THUMBNAIL_SIZE_DP * mDensity))
+                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, bitmap);
         }
 
         if (!TextUtils.equals(mBitmapDetails.getFilePath(), filePath)) {
@@ -75,14 +81,13 @@ public class PickerBitmapViewHolder
         List<PickerBitmap> pickerBitmaps = mCategoryView.getPickerBitmaps();
         mBitmapDetails = pickerBitmaps.get(position);
 
-        String filePath = mBitmapDetails.getFilePath();
         if (mBitmapDetails.type() == PickerBitmap.CAMERA
                 || mBitmapDetails.type() == PickerBitmap.GALLERY) {
             mItemView.initialize(mBitmapDetails, null, false);
-            mItemView.initializeSpecialTile(mBitmapDetails);
             return;
         }
 
+        String filePath = mBitmapDetails.getFilePath();
         Bitmap original = mCategoryView.getHighResBitmaps().get(filePath);
         if (original != null) {
             mItemView.initialize(mBitmapDetails, original, false);
@@ -94,14 +99,12 @@ public class PickerBitmapViewHolder
         if (placeholder != null) {
             // Scaling the image up takes between 3-4 ms on average (Nexus 6 phone debug build).
             placeholder = BitmapUtils.scale(placeholder, size, false);
-            mItemView.initialize(mBitmapDetails, placeholder, false);
-        } else {
-            placeholder = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-            placeholder.eraseColor(Color.argb(0, 0, 0, 0));
             mItemView.initialize(mBitmapDetails, placeholder, true);
+        } else {
+            mItemView.initialize(mBitmapDetails, null, true);
         }
 
-        mCategoryView.getDecoderServiceHost().decodeImage(mBitmapDetails.getFilePath(), size, this);
+        mCategoryView.getDecoderServiceHost().decodeImage(filePath, size, this);
     }
 
     /**

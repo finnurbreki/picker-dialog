@@ -11,10 +11,8 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Checkable;
 
-import com.example.finnur.finnursphotopicker.R;
-
 import org.chromium.base.ApiCompatibilityUtils;
-//import org.chromium.chrome.R;
+import com.example.finnur.finnursphotopicker.R;
 
 /**
  * Highlight overlay view for selectable items.
