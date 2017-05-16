@@ -25,4 +25,9 @@
         <item name="colorAccent">@color/light_active_color</item>
         <item name="windowNoTitle">true</item>
     </style>
+
+    <style name="PhotoPickerDialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/design_bottom_sheet_slide_in</item>
+        <item name="android:windowExitAnimation">@null</item>
+    </style>
 </resources>

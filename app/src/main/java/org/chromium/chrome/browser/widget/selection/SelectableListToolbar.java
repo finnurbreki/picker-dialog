@@ -551,7 +551,7 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
         updateDisplayStyleIfNecessary();
     }
 
-    private void showSelectionView(List<E> selectedItems, boolean wasSelectionEnabled) {
+    protected void showSelectionView(List<E> selectedItems, boolean wasSelectionEnabled) {
         getMenu().setGroupVisible(mNormalGroupResId, false);
         getMenu().setGroupVisible(mSelectedGroupResId, true);
         if (mHasSearchView) mSearchView.setVisibility(View.GONE);
@@ -559,11 +559,8 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
         setNavigationButton(NAVIGATION_BUTTON_SELECTION_BACK);
         setBackgroundColor(mSelectionBackgroundColor);
         setOverflowIcon(mSelectionMenuButton);
-        setTitle(null);
 
-        mNumberRollView.setVisibility(View.VISIBLE);
-        if (!wasSelectionEnabled) mNumberRollView.setNumber(0, false);
-        mNumberRollView.setNumber(selectedItems.size(), true);
+        switchToNumberRollView(selectedItems, wasSelectionEnabled);
 
         if (mIsSearching) UiUtils.hideKeyboard(mSearchEditText);
 
@@ -583,6 +580,13 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
         updateDisplayStyleIfNecessary();
     }
 
+    protected void switchToNumberRollView(List<E> selectedItems, boolean wasSelectionEnabled) {
+        setTitle(null);
+        mNumberRollView.setVisibility(View.VISIBLE);
+        if (!wasSelectionEnabled) mNumberRollView.setNumber(0, false);
+        mNumberRollView.setNumber(selectedItems.size(), true);
+    }
+
     /**
      * Update internal state and notify observers that the theme color changed.
      * @param isLightTheme Whether or not the theme color is light.
@@ -592,7 +596,7 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
         for (SelectableListToolbarObserver o : mObservers) o.onThemeColorChanged(isLightTheme);
     }
 
-    private void updateDisplayStyleIfNecessary() {
+    protected void updateDisplayStyleIfNecessary() {
         if (mUiConfig != null) onDisplayStyleChanged(mUiConfig.getCurrentDisplayStyle());
     }
 

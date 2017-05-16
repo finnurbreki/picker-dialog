@@ -122,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 };
 
                 mDialog = new PhotoPickerDialog(getWindow().getContext(), listener, mMultiSelect);
+                mDialog.getWindow().getAttributes().windowAnimations = R.style.PhotoPickerDialogAnimation;
                 // This removes the padding around the dialog.
                 mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
                 mDialog.show();

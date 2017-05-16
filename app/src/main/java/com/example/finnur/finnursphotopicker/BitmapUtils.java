@@ -6,10 +6,8 @@ package com.example.finnur.finnursphotopicker;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 
 import java.io.FileDescriptor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A collection of utility functions for dealing with bitmaps.

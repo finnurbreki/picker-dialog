@@ -4,6 +4,7 @@
 
 package com.example.finnur.finnursphotopicker;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView.ViewHolder;
@@ -18,17 +19,11 @@ import java.util.List;
  */
 public class PickerBitmapViewHolder
         extends ViewHolder implements DecoderServiceHost.ImageDecodedCallback {
-    // The size (in dp) of the low-res thumbnails.
-    private static final int GRAINY_THUMBNAIL_SIZE_DP = 12;
-
     // Our parent category.
     private PickerCategoryView mCategoryView;
 
     // The bitmap view we are holding on to.
     private final PickerBitmapView mItemView;
-
-    // The screen density.
-    private final float mDensity;
 
     // The request we are showing the bitmap for.
     private PickerBitmap mBitmapDetails;
@@ -40,7 +35,6 @@ public class PickerBitmapViewHolder
     public PickerBitmapViewHolder(PickerBitmapView itemView) {
         super(itemView);
         mItemView = itemView;
-        mDensity = itemView.getContext().getResources().getDisplayMetrics().density;
     }
 
     // DecoderServiceHost.ImageDecodedCallback
@@ -56,8 +50,9 @@ public class PickerBitmapViewHolder
         }
 
         if (mCategoryView.getLowResBitmaps().get(filePath) == null) {
+            Resources resources = mItemView.getContext().getResources();
             new BitmapScalerTask(mCategoryView.getLowResBitmaps(), filePath,
-                    (int) (GRAINY_THUMBNAIL_SIZE_DP * mDensity))
+                    resources.getDimensionPixelSize(R.dimen.photo_picker_grainy_thumbnail_size))
                     .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, bitmap);
         }
 
@@ -97,7 +92,7 @@ public class PickerBitmapViewHolder
         int size = mCategoryView.getImageSize();
         Bitmap placeholder = mCategoryView.getLowResBitmaps().get(filePath);
         if (placeholder != null) {
-            // Scaling the image up takes between 3-4 ms on average (Nexus 6 phone debug build).
+            // For performance stats see http://crbug.com/719919.
             placeholder = BitmapUtils.scale(placeholder, size, false);
             mItemView.initialize(mBitmapDetails, placeholder, true);
         } else {

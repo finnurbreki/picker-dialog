@@ -11,7 +11,7 @@ import android.util.LruCache;
 // import org.chromium.base.ThreadUtils;
 
 /**
- * A worker task to enumerate image files on disk.
+ * A worker task to scale bitmaps in the background.
  */
 class BitmapScalerTask extends AsyncTask<Bitmap, Void, Bitmap> {
     private final LruCache<String, Bitmap> mCache;
@@ -28,7 +28,7 @@ class BitmapScalerTask extends AsyncTask<Bitmap, Void, Bitmap> {
     }
 
     /**
-     * Enumerates (in the background) the image files on disk. Called on a non-UI thread
+     * Scales the image provided. Called on a non-UI thread.
      * @param params Ignored, do not use.
      * @return A sorted list of images (by last-modified first).
      */
@@ -43,7 +43,7 @@ class BitmapScalerTask extends AsyncTask<Bitmap, Void, Bitmap> {
 
     /**
      * Communicates the results back to the client. Called on the UI thread.
-     * @param result The resulting scaled bitmap
+     * @param result The resulting scaled bitmap.
      */
     @Override
     protected void onPostExecute(Bitmap result) {
