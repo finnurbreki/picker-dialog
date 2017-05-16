@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     static final int TAKE_PHOTO_REQUEST = 2;
 
     // Whether multi-select should be enabled.
-    static final boolean mMultiSelect = true;
+    static final boolean mMultiSelect = false;
 
     // The path to the photo captured from the camera.
     private String mCurrentPhotoPath;

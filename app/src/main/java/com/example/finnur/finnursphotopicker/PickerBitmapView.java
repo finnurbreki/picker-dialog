@@ -147,6 +147,13 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
         boolean selected = selectedItems.contains(mBitmapDetails);
         boolean checked = super.isChecked();
+
+        // In single-selection mode, the list needs to be updated to account for items that were
+        // checked before but no longer are (because something else was selected).
+        if (!mCategoryView.isMultiSelectAllowed() && !selected && checked) {
+            super.toggle();
+        }
+
         boolean needsResize = selected != checked;
         int size = selected && !checked ? mCategoryView.getImageSize() - 2 * mBorder
                                         : mCategoryView.getImageSize();
@@ -237,8 +244,8 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     }
 
     /**
-     * Sets a thumbnail bitmap for the current view and ensures the selection border and scrim is
-     * showing, if the image has already been selected.
+     * Sets a thumbnail bitmap for the current view and ensures the selection border is showing, if
+     * the image has already been selected.
      * @param thumbnail The Bitmap to use for the icon ImageView.
      * @return True if no image was loaded before (e.g. not even a low-res image).
      */
@@ -246,14 +253,11 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mIconView.setImageBitmap(thumbnail);
 
         // If the tile has been selected before the bitmap has loaded, make sure it shows up with
-        // a selection border and scrim on load.
+        // a selection border on load.
         if (super.isChecked()) {
             mIconView.getLayoutParams().height = imageSizeWithBorders();
             mIconView.getLayoutParams().width = imageSizeWithBorders();
             addPaddingToParent(mIconView, mBorder);
-
-            // TODOf is this needed? The scrim becomes visible during updateSelectionState, right?
-            mScrim.setVisibility(View.VISIBLE);
         }
 
         boolean noImageWasLoaded = !mImageLoaded;
