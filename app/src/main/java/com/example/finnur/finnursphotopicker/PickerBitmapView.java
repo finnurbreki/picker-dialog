@@ -337,6 +337,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             Drawable drawable = mSpecialTileIcon.getDrawable();
             int color = ApiCompatibilityUtils.getColor(resources, fgColorId);
             drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+            mSpecialTileIcon.invalidate();
         }
 
         setBackgroundColor(ApiCompatibilityUtils.getColor(resources, bgColorId));

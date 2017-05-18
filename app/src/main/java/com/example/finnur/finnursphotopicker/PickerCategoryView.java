@@ -305,29 +305,10 @@ public class PickerCategoryView extends RelativeLayout
         return mSelectionDelegate;
     }
 
-    @VisibleForTesting
-    private boolean loadTestFiles() {
-        Map<String, Long> testFiles = mListener.getFilesForTesting();
-        if (testFiles == null) {
-            return false;
-        }
-
-        List<PickerBitmap> files = new ArrayList<>();
-        for (Map.Entry<String, Long> entry : testFiles.entrySet()) {
-            String key = entry.getKey();
-            Long value = entry.getValue();
-            files.add(new PickerBitmap(key, value, PickerBitmap.PICTURE));
-        }
-        Collections.sort(files);
-        filesEnumeratedCallback(files);
-        return true;
-    }
-
     /**
      * Asynchronously enumerates bitmaps on disk.
      */
     private void enumerateBitmaps() {
-        // if (loadTestFiles()) return; TODOf figure out
 
         if (mWorkerTask != null) {
             mWorkerTask.cancel(true);
