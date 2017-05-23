@@ -12,7 +12,6 @@ import android.view.WindowManager;
 
 import org.chromium.base.VisibleForTesting;
 // import org.chromium.chrome.R;
-import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
 import org.chromium.ui.PhotoPickerListener;
 
 /**
@@ -56,12 +55,7 @@ public class PhotoPickerDialog extends AlertDialog {
     }
 
     @VisibleForTesting
-    public PickerCategoryView getPickerCategoryViewForTesting() {
+    public PickerCategoryView getCategoryViewForTesting() {
         return mCategoryView;
-    }
-
-    @VisibleForTesting
-    public SelectionDelegate<PickerBitmap> getSelectionDelegateForTesting() {
-        return mCategoryView.getSelectionDelegateForTesting();
     }
 }

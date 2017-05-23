@@ -10,8 +10,6 @@ import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.TextUtils;
 
-import org.chromium.base.VisibleForTesting;
-
 import java.util.List;
 
 /**
@@ -107,10 +105,5 @@ public class PickerBitmapViewHolder
      */
     public String getFilePath() {
         return mBitmapDetails == null ? null : mBitmapDetails.getFilePath();
-    }
-
-    @VisibleForTesting
-    public boolean getImageLoadedForTesting() {
-        return mItemView.getImageLoadedForTesting();
     }
 }

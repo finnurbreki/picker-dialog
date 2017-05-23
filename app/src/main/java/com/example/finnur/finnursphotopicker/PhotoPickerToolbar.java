@@ -29,7 +29,7 @@ public class PhotoPickerToolbar extends SelectableListToolbar<PickerBitmap> {
 
         setNavigationIcon(R.drawable.btn_close);
         setNavigationContentDescription(R.string.close);
-        
+
         TextView up = (TextView) mNumberRollView.findViewById(R.id.up);
         TextView down = (TextView) mNumberRollView.findViewById(R.id.down);
         up.setTextColor(Color.BLACK);
@@ -37,8 +37,7 @@ public class PhotoPickerToolbar extends SelectableListToolbar<PickerBitmap> {
     }
 
     @Override
-    protected void setNavigationButton(int navigationButton) {
-    }
+    protected void setNavigationButton(int navigationButton) {}
 
     @Override
     protected void showSelectionView(

@@ -24,9 +24,7 @@ import org.chromium.ui.PhotoPickerListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A class for keeping track of common data associated with showing photos in
@@ -93,6 +91,9 @@ public class PickerCategoryView extends RelativeLayout
 
     // Whether the connection to the service has been established.
     private boolean mServiceReady;
+
+    // A list of files to use for testing (instead of reading files on disk).
+    private static List<PickerBitmap> sTestFiles;
 
     public PickerCategoryView(Context context) {
         super(context);
@@ -295,20 +296,14 @@ public class PickerCategoryView extends RelativeLayout
         }
     }
 
-    @VisibleForTesting
-    public RecyclerView getRecyclerViewForTesting() {
-        return mRecyclerView;
-    }
-
-    @VisibleForTesting
-    public SelectionDelegate<PickerBitmap> getSelectionDelegateForTesting() {
-        return mSelectionDelegate;
-    }
-
     /**
      * Asynchronously enumerates bitmaps on disk.
      */
     private void enumerateBitmaps() {
+        if (sTestFiles != null) {
+            filesEnumeratedCallback(sTestFiles);
+            return;
+        }
 
         if (mWorkerTask != null) {
             mWorkerTask.cancel(true);
@@ -368,5 +363,16 @@ public class PickerCategoryView extends RelativeLayout
 
             outRect.set(left, top, right, bottom);
         }
+    }
+
+    /** Sets a list of files to use as data for the dialog. For testing use only. */
+    @VisibleForTesting
+    public static void setTestFiles(List<PickerBitmap> testFiles) {
+        sTestFiles = new ArrayList<>(testFiles);
+    }
+
+    @VisibleForTesting
+    public SelectionDelegate<PickerBitmap> getSelectionDelegateForTesting() {
+        return mSelectionDelegate;
     }
 }

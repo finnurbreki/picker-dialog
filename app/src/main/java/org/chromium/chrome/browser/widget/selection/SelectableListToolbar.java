@@ -596,7 +596,7 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
         for (SelectableListToolbarObserver o : mObservers) o.onThemeColorChanged(isLightTheme);
     }
 
-    protected void updateDisplayStyleIfNecessary() {
+    private void updateDisplayStyleIfNecessary() {
         if (mUiConfig != null) onDisplayStyleChanged(mUiConfig.getCurrentDisplayStyle());
     }
 
