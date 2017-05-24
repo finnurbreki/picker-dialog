@@ -114,11 +114,6 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                         }
                     }
-
-                    @Override
-                    public Map<String, Long> getFilesForTesting() {
-                        return null;
-                    }
                 };
 
                 mDialog = new PhotoPickerDialog(getWindow().getContext(), listener, mMultiSelect);
