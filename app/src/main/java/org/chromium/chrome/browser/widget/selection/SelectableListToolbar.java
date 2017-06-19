@@ -30,6 +30,8 @@ import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.ObserverList;
 import org.chromium.base.VisibleForTesting;
 import com.example.finnur.finnursphotopicker.R;
+import org.chromium.chrome.browser.toolbar.ActionModeController;
+import org.chromium.chrome.browser.toolbar.ToolbarActionModeCallback;
 import org.chromium.chrome.browser.widget.NumberRollView;
 import org.chromium.chrome.browser.widget.TintedDrawable;
 import org.chromium.chrome.browser.widget.TintedImageButton;
@@ -79,6 +81,11 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
          *                     parameter is true, it indicates that dark drawables should be used.
          */
         void onThemeColorChanged(boolean isLightTheme);
+
+        /**
+         * A notification that search mode has been activated for this toolbar.
+         */
+        void onStartSearch();
     }
 
     /** No navigation button is displayed. **/
@@ -99,6 +106,7 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
 
     private boolean mHasSearchView;
     private LinearLayout mSearchView;
+    private EditText mSearchText;
     private EditText mSearchEditText;
     private TintedImageButton mClearTextButton;
     private SearchDelegate mSearchDelegate;
@@ -215,6 +223,7 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
         LayoutInflater.from(getContext()).inflate(R.layout.search_toolbar, this);
 
         mSearchView = (LinearLayout) findViewById(R.id.search_view);
+        mSearchText = (EditText) mSearchView.findViewById(R.id.search_text);
 
         mSearchEditText = (EditText) findViewById(R.id.search_text);
         mSearchEditText.setHint(hintStringResId);
@@ -377,10 +386,21 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
         mSelectionDelegate.clearSelection();
 
         showSearchViewInternal();
+        for (SelectableListToolbarObserver o : mObservers) o.onStartSearch();
 
         mSearchEditText.requestFocus();
         UiUtils.showKeyboard(mSearchEditText);
         setTitle(null);
+    }
+
+    /**
+     * Set a custom delegate for when the action mode starts showing for the search view.
+     * @param delegate The delegate to use.
+     */
+    public void setActionBarDelegate(ActionModeController.ActionBarDelegate delegate) {
+        ToolbarActionModeCallback callback = new ToolbarActionModeCallback();
+        callback.setActionModeController(new ActionModeController(getContext(), delegate));
+        mSearchText.setCustomSelectionActionModeCallback(callback);
     }
 
     /**

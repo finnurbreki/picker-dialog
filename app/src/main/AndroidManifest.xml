@@ -19,7 +19,7 @@
         <!-- Service for decoding images in a sandboxed process. -->
         <service
             android:description="@string/decoder_description"
-            android:name=".DecoderService"
+            android:name=".DecoderServiceImpl"
             android:isolatedProcess="true"
             android:process=":decoder_service">
         </service>
