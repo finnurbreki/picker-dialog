@@ -21,5 +21,7 @@
         android:enabled="false"
         android:text="@string/done"
         android:textColor="@color/blue_when_enabled"
-        app:textAllCaps="true" />
+        android:textSize="14sp"
+        app:textAllCaps="true"
+        style="@style/RobotoMediumStyle" />
 </com.example.finnur.finnursphotopicker.PhotoPickerToolbar>

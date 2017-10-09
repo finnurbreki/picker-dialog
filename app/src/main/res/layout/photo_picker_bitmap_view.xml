@@ -10,8 +10,8 @@
 <view class="com.example.finnur.finnursphotopicker.PickerBitmapView"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <FrameLayout
         android:id="@+id/border"
@@ -77,11 +77,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/photo_picker_label_gap"
-            android:fontFamily="sans-serif-medium"
             android:gravity="center"
-            android:textStyle="bold"
+            android:textColor="@color/photo_picker_special_tile_color"
             android:textSize="14sp"
-            android:textAllCaps="true"
-            android:textColor="@color/photo_picker_special_tile_color" />
+            style="@style/RobotoMediumStyle" />
     </LinearLayout>
 </view>

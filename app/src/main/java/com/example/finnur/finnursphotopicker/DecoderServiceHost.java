@@ -11,14 +11,15 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.os.StrictMode;
 import android.os.SystemClock;
+import android.support.annotation.Nullable;
 
 import org.chromium.base.Log;
 import org.chromium.base.ThreadUtils;
+import org.chromium.base.VisibleForTesting;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.chrome.browser.util.ConversionUtils;
 
@@ -26,22 +27,29 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A class to communicate with the {@link DecoderServiceImpl}.
+ * A class to communicate with the {@link DecoderService}.
  */
-public class DecoderServiceHost extends IDecoderServiceListener.Stub {
+public class DecoderServiceHost extends IDecoderServiceCallback.Stub {
     // A tag for logging error messages.
     private static final String TAG = "ImageDecoderHost";
+
+    // A callback to use for testing to see if decoder is ready.
+    static ServiceReadyCallback sReadyCallbackForTesting;
 
     IDecoderService mIRemoteService;
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             mIRemoteService = IDecoderService.Stub.asInterface(service);
             mBound = true;
-            mCallback.serviceReady();
+            for (ServiceReadyCallback callback : mCallbacks) {
+                callback.serviceReady();
+            }
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -102,35 +110,38 @@ public class DecoderServiceHost extends IDecoderServiceListener.Stub {
         return mRequests;
     }
 
-    // The callback used to notify the client when the service is ready.
-    private ServiceReadyCallback mCallback;
+    // The callbacks used to notify the clients when the service is ready.
+    List<ServiceReadyCallback> mCallbacks = new ArrayList<ServiceReadyCallback>();
 
     // Flag indicating whether we are bound to the service.
-    boolean mBound;
+    private boolean mBound;
 
-    private Context mContext;
+    private final Context mContext;
 
     /**
      * The DecoderServiceHost constructor.
      * @param callback The callback to use when communicating back to the client.
      */
     public DecoderServiceHost(ServiceReadyCallback callback, Context context) {
-        mCallback = callback;
+        mCallbacks.add(callback);
+        if (sReadyCallbackForTesting != null) {
+            mCallbacks.add(sReadyCallbackForTesting);
+        }
         mContext = context;
     }
 
     /**
-     * Initiate binding with the {@link DecoderServiceImpl}.
+     * Initiate binding with the {@link DecoderService}.
      * @param context The context to use.
      */
     public void bind(Context context) {
-        Intent intent = new Intent(mContext, DecoderServiceImpl.class);
+        Intent intent = new Intent(mContext, DecoderService.class);
         intent.setAction(IDecoderService.class.getName());
         mContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     /**
-     * Unbind from the {@link DecoderServiceImpl}.
+     * Unbind from the {@link DecoderService}.
      * @param context The context to use.
      */
     public void unbind(Context context) {
@@ -166,16 +177,19 @@ public class DecoderServiceHost extends IDecoderServiceListener.Stub {
 
     @Override
     public void onDecodeImageDone(final Bundle payload) {
+        // As per the Android documentation, AIDL callbacks can (and will) happen on any thread, so
+        // make sure the code runs on the UI thread, since further down the callchain the code will
+        // end up creating UI objects.
         ThreadUtils.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 // Read the reply back from the service.
-                String filePath = payload.getString(DecoderServiceImpl.KEY_FILE_PATH);
-                Boolean success = payload.getBoolean(DecoderServiceImpl.KEY_SUCCESS);
+                String filePath = payload.getString(DecoderService.KEY_FILE_PATH);
+                Boolean success = payload.getBoolean(DecoderService.KEY_SUCCESS);
                 Bitmap bitmap = success
-                        ? (Bitmap) payload.getParcelable(DecoderServiceImpl.KEY_IMAGE_BITMAP)
+                        ? (Bitmap) payload.getParcelable(DecoderService.KEY_IMAGE_BITMAP)
                         : null;
-                long decodeTime = payload.getLong(DecoderServiceImpl.KEY_DECODE_TIME);
+                long decodeTime = payload.getLong(DecoderService.KEY_DECODE_TIME);
                 closeRequest(filePath, bitmap, decodeTime);
             }
         });
@@ -186,10 +200,10 @@ public class DecoderServiceHost extends IDecoderServiceListener.Stub {
      * decoding process back to the client, and takes care of house-keeping chores regarding
      * the request queue).
      * @param filePath The path to the image that was just decoded.
-     * @param bitmap The resulting decoded bitmap.
+     * @param bitmap The resulting decoded bitmap, or null if decoding fails.
      * @param decodeTime The length of time it took to decode the bitmap.
      */
-    public void closeRequest(String filePath, Bitmap bitmap, long decodeTime) {
+    public void closeRequest(String filePath, @Nullable Bitmap bitmap, long decodeTime) {
         DecoderServiceParams params = getRequests().get(filePath);
         if (params != null) {
             long endRpcCall = SystemClock.elapsedRealtime();
@@ -198,7 +212,7 @@ public class DecoderServiceHost extends IDecoderServiceListener.Stub {
 
             params.mCallback.imageDecodedCallback(filePath, bitmap);
 
-            if (decodeTime != -1) {
+            if (decodeTime != -1 && bitmap != null) {
                 RecordHistogram.recordTimesHistogram(
                         "Android.PhotoPicker.ImageDecodeTime", decodeTime, TimeUnit.MILLISECONDS);
 
@@ -231,7 +245,7 @@ public class DecoderServiceHost extends IDecoderServiceListener.Stub {
                 inputFile = new FileInputStream(file);
                 FileDescriptor fd = inputFile.getFD();
                 pfd = ParcelFileDescriptor.dup(fd);
-                bundle.putParcelable(DecoderServiceImpl.KEY_FILE_DESCRIPTOR, pfd);
+                bundle.putParcelable(DecoderService.KEY_FILE_DESCRIPTOR, pfd);
             } catch (IOException e) {
                 Log.e(TAG, "Unable to obtain FileDescriptor: " + e);
                 closeRequest(filePath, null, -1);
@@ -248,10 +262,8 @@ public class DecoderServiceHost extends IDecoderServiceListener.Stub {
         if (pfd == null) return;
 
         // Prepare and send the data over.
-        Message payload = Message.obtain();
-        bundle.putString(DecoderServiceImpl.KEY_FILE_PATH, filePath);
-        bundle.putInt(DecoderServiceImpl.KEY_SIZE, size);
-        payload.setData(bundle);
+        bundle.putString(DecoderService.KEY_FILE_PATH, filePath);
+        bundle.putInt(DecoderService.KEY_SIZE, size);
         try {
             mIRemoteService.decodeImage(bundle, this);
             pfd.close();
@@ -270,5 +282,11 @@ public class DecoderServiceHost extends IDecoderServiceListener.Stub {
      */
     public void cancelDecodeImage(String filePath) {
         mRequests.remove(filePath);
+    }
+
+    /** Sets a callback to use when the service is ready. For testing use only. */
+    @VisibleForTesting
+    public static void setReadyCallback(ServiceReadyCallback callback) {
+        sReadyCallbackForTesting = callback;
     }
 }

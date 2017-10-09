@@ -9,7 +9,7 @@ import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.util.LruCache;
 
-// import org.chromium.base.ThreadUtils;
+import org.chromium.base.ThreadUtils;
 import org.chromium.base.metrics.RecordHistogram;
 
 import java.util.concurrent.TimeUnit;
@@ -38,7 +38,7 @@ class BitmapScalerTask extends AsyncTask<Bitmap, Void, Bitmap> {
      */
     @Override
     protected Bitmap doInBackground(Bitmap... bitmaps) {
-        // assert !ThreadUtils.runningOnUiThread();
+        assert !ThreadUtils.runningOnUiThread();
 
         if (isCancelled()) return null;
 

@@ -161,11 +161,11 @@ public class RecordHistogram {
     }
 
     /**
-     * Records a sparse histogram. This is the Java equivalent of UMA_HISTOGRAM_SPARSE_SLOWLY.
-     * @param name name of the histogram
-     * @param sample sample to be recorded. All values of |sample| are valid, including negative
-     *        values.
-     */
+    * Records a sparse histogram. This is the Java equivalent of UMA_HISTOGRAM_SPARSE_SLOWLY.
+    * @param name name of the histogram
+    * @param sample sample to be recorded. All values of |sample| are valid, including negative
+    *        values.
+    */
     public static void recordSparseSlowlyHistogram(String name, int sample) {
         if (sDisabledBy != null) return;
         long key = getCachedHistogramKey(name);
@@ -270,6 +270,15 @@ public class RecordHistogram {
     }
 
     /**
+     * Returns the number of samples recorded for the given histogram.
+     * @param name name of the histogram to look up.
+     */
+    @VisibleForTesting
+    public static int getHistogramTotalCountForTesting(String name) {
+        return nativeGetHistogramTotalCountForTesting(name);
+    }
+
+    /**
      * Initializes the metrics system.
      */
     public static void initialize() {
@@ -277,6 +286,7 @@ public class RecordHistogram {
         nativeInitialize();
     }
 
+    // Not relevant to Android Studio project:
     private static long nativeRecordCustomTimesHistogramMilliseconds(
             String name, long key, int duration, int min, int max, int numBuckets) { return 0; }
 
@@ -288,6 +298,8 @@ public class RecordHistogram {
     private static long nativeRecordLinearCountHistogram(
             String name, long key, int sample, int min, int max, int numBuckets) { return 0; }
     private static long nativeRecordSparseHistogram(String name, long key, int sample) { return 0; }
+
     private static int nativeGetHistogramValueCountForTesting(String name, int sample) { return 0; }
+    private static int nativeGetHistogramTotalCountForTesting(String name) { return 0; }
     private static void nativeInitialize() {}
 }

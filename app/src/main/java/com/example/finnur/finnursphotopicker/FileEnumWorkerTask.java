@@ -7,7 +7,7 @@ package com.example.finnur.finnursphotopicker;
 import android.os.AsyncTask;
 import android.os.Environment;
 
-// import org.chromium.base.ThreadUtils;
+import org.chromium.base.ThreadUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -87,7 +87,7 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
      */
     @Override
     protected List<PickerBitmap> doInBackground(Void... params) {
-        // assert !ThreadUtils.runningOnUiThread();
+        assert !ThreadUtils.runningOnUiThread();
 
         if (isCancelled()) return null;
 

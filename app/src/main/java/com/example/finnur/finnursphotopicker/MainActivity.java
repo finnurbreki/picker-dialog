@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
-import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import org.chromium.ui.PhotoPickerListener;
@@ -31,7 +30,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -113,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                                 mDialog.dismiss();
+                                break;
+                            case CANCEL:
+                                Log.e("***** ", "**** Cancelled");
                                 break;
                         }
                     }

@@ -15,9 +15,11 @@
     <string name="decoder_description">Image decoder</string>
     <string name="done">Done</string>
     <string name="failed_to_launch_photo_activity">Error launching photo activity</string>
+    <string name="hide_info">Hide Info</string>
     <string name="menu_picker">Photo picker</string>
     <string name="photo_picker_browse">Browse</string>
     <string name="photo_picker_camera">Camera</string>
     <string name="photo_picker_dialog_title">Select</string>
     <string name="photo_picker_select_images">Select images</string>
+    <string name="show_info">Show Info</string>
 </resources>

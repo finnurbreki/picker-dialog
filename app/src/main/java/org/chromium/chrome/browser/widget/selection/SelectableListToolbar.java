@@ -7,6 +7,7 @@ package org.chromium.chrome.browser.widget.selection;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.CallSuper;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -18,6 +19,7 @@ import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
@@ -32,6 +34,7 @@ import org.chromium.base.VisibleForTesting;
 import com.example.finnur.finnursphotopicker.R;
 import org.chromium.chrome.browser.toolbar.ActionModeController;
 import org.chromium.chrome.browser.toolbar.ToolbarActionModeCallback;
+import org.chromium.chrome.browser.util.FeatureUtilities;
 import org.chromium.chrome.browser.widget.NumberRollView;
 import org.chromium.chrome.browser.widget.TintedDrawable;
 import org.chromium.chrome.browser.widget.TintedImageButton;
@@ -111,6 +114,7 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
     private TintedImageButton mClearTextButton;
     private SearchDelegate mSearchDelegate;
     private boolean mIsLightTheme = true;
+    private boolean mSelectableListHasItems;
 
     protected NumberRollView mNumberRollView;
     private DrawerLayout mDrawerLayout;
@@ -121,6 +125,7 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
     private int mNavigationButton;
     private int mTitleResId;
     private int mSearchMenuItemId;
+    private int mInfoMenuItemId;
     private int mNormalGroupResId;
     private int mSelectedGroupResId;
 
@@ -129,14 +134,11 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
     private int mSearchBackgroundColor;
 
     private UiConfig mUiConfig;
-    private int mDefaultTitleMarginStartPx;
-    private int mWideDisplayLateralOffsetPx;
-    private int mWideDisplayEndOffsetPx;
-    private int mWideDisplayNavButtonOffsetPx;
-    private int mOriginalContentInsetStart;
-    private int mOriginalContentInsetEnd;
-    private int mOriginalContentInsetStartWithNavigation;
-    private int mOriginalContentInsetEndWithActions;
+    private int mWideDisplayStartOffsetPx;
+    private int mModernSearchViewStartOffsetPx;
+    private int mModernNavButtonStartOffsetPx;
+    private int mModernToolbarActionMenuEndOffsetPx;
+    private int mModernToolbarSearchIconOffsetPx;
 
     private boolean mIsDestroyed;
 
@@ -183,6 +185,15 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
         mSelectionDelegate = delegate;
         mSelectionDelegate.addObserver(this);
 
+        mModernSearchViewStartOffsetPx = getResources().getDimensionPixelSize(
+                R.dimen.toolbar_modern_search_view_start_offset);
+        mModernNavButtonStartOffsetPx = getResources().getDimensionPixelSize(
+                R.dimen.selectable_list_toolbar_nav_button_start_offset);
+        mModernToolbarActionMenuEndOffsetPx = getResources().getDimensionPixelSize(
+                R.dimen.selectable_list_action_bar_end_padding);
+        mModernToolbarSearchIconOffsetPx = getResources().getDimensionPixelSize(
+                R.dimen.selectable_list_search_icon_end_padding);
+
         if (mDrawerLayout != null) initActionBarDrawerToggle();
 
         normalBackgroundColorResId = normalBackgroundColorResId != null
@@ -199,10 +210,14 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
 
         // TODO(twellington): add the concept of normal & selected tint to apply to all toolbar
         //                    buttons.
-        mNormalMenuButton = TintedDrawable.constructTintedDrawable(getResources(),
-                R.drawable.btn_menu);
-        mSelectionMenuButton = TintedDrawable.constructTintedDrawable(getResources(),
-                R.drawable.btn_menu, android.R.color.white);
+        mNormalMenuButton = TintedDrawable.constructTintedDrawable(
+                getResources(), R.drawable.ic_more_vert_black_24dp);
+        mSelectionMenuButton = TintedDrawable.constructTintedDrawable(
+                getResources(), R.drawable.ic_more_vert_black_24dp, android.R.color.white);
+
+        if (!FeatureUtilities.isChromeHomeEnabled()) {
+            setTitleTextAppearance(getContext(), R.style.BlackHeadline2);
+        }
     }
 
     /**
@@ -250,6 +265,13 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
                 mSearchEditText.setText("");
             }
         });
+
+        if (FeatureUtilities.isChromeHomeEnabled()) {
+            mClearTextButton.setPadding(ApiCompatibilityUtils.getPaddingStart(mClearTextButton),
+                    mClearTextButton.getPaddingTop(),
+                    getResources().getDimensionPixelSize(R.dimen.clear_text_button_end_padding),
+                    mClearTextButton.getPaddingBottom());
+        }
     }
 
     @Override
@@ -258,12 +280,7 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
 
         LayoutInflater.from(getContext()).inflate(R.layout.number_roll_view, this);
         mNumberRollView = (NumberRollView) findViewById(R.id.selection_mode_number);
-        // mNumberRollView.setContentDescriptionString(R.plurals.accessibility_selected_items);
-
-        mOriginalContentInsetStart = getContentInsetStart();
-        mOriginalContentInsetEnd = getContentInsetEnd();
-        mOriginalContentInsetStartWithNavigation = getContentInsetStartWithNavigation();
-        mOriginalContentInsetEndWithActions = getContentInsetEndWithActions();
+        //mNumberRollView.setString(R.plurals.selected_items);
     }
 
     @Override
@@ -425,8 +442,10 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
      */
     protected void onDataChanged(int numItems) {
         if (mHasSearchView) {
-            getMenu().findItem(mSearchMenuItemId).setVisible(
-                    !mIsSelectionEnabled && !mIsSearching && numItems != 0);
+            mSelectableListHasItems = numItems != 0;
+            getMenu()
+                    .findItem(mSearchMenuItemId)
+                    .setVisible(!mIsSelectionEnabled && !mIsSearching && mSelectableListHasItems);
         }
     }
 
@@ -455,17 +474,11 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
      * UiConfig#WIDE_DISPLAY_STYLE_MIN_WIDTH_DP, the toolbar contents will be visually centered by
      * adding padding to both sides.
      *
-     * @param wideDisplayLateralOffsetPx The offset to use for the lateral padding when in
-     *                                   {@link HorizontalDisplayStyle#WIDE}.
      * @param uiConfig The UiConfig used to observe display style changes.
      */
-    public void configureWideDisplayStyle(int wideDisplayLateralOffsetPx, UiConfig uiConfig) {
-        mWideDisplayLateralOffsetPx = wideDisplayLateralOffsetPx;
-        mDefaultTitleMarginStartPx = getTitleMarginStart();
-        mWideDisplayNavButtonOffsetPx =
-                getResources().getDimensionPixelSize(R.dimen.toolbar_wide_display_nav_icon_offset);
-        mWideDisplayEndOffsetPx = getResources().getDimensionPixelSize(
-                R.dimen.toolbar_wide_display_end_offset);
+    public void configureWideDisplayStyle(UiConfig uiConfig) {
+        mWideDisplayStartOffsetPx =
+                getResources().getDimensionPixelSize(R.dimen.toolbar_wide_display_start_offset);
 
         mUiConfig = uiConfig;
         mUiConfig.addObserver(this);
@@ -477,40 +490,39 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
         int padding =
                 SelectableListLayout.getPaddingForDisplayStyle(newDisplayStyle, getResources());
         int paddingStartOffset = 0;
-        int paddingEndOffset = 0;
-        int contentInsetStart = mOriginalContentInsetStart;
-        int contentInsetStartWithNavigation = mOriginalContentInsetStartWithNavigation;
-        int contentInsetEnd = mOriginalContentInsetEnd;
-        int contentInsetEndWithActions = mOriginalContentInsetEndWithActions;
+        boolean isModernSearchViewEnabled =
+                mIsSearching && !mIsSelectionEnabled && FeatureUtilities.isChromeHomeEnabled();
+        MarginLayoutParams params = (MarginLayoutParams) getLayoutParams();
 
-        if (newDisplayStyle.horizontal == HorizontalDisplayStyle.WIDE) {
-            paddingStartOffset = mWideDisplayLateralOffsetPx;
-
-            // The title and nav buttons are inset in the normal display style. In the wide display
-            // style they should be aligned with the starting edge of the list elements.
-            if (mIsSearching || mIsSelectionEnabled
-                    || mNavigationButton != NAVIGATION_BUTTON_NONE) {
-                paddingStartOffset += mWideDisplayNavButtonOffsetPx;
-            } else {
-                paddingStartOffset -= mDefaultTitleMarginStartPx;
-            }
-
-            // The end button is also inset in the normal display. In the wide display it should be
-            // aligned with the ending edge of the list elements.
-            paddingEndOffset = mWideDisplayLateralOffsetPx + mWideDisplayEndOffsetPx;
-
-            contentInsetStart = 0;
-            contentInsetStartWithNavigation = 0;
-            contentInsetEnd = 0;
-            contentInsetEndWithActions = 0;
+        if (newDisplayStyle.horizontal == HorizontalDisplayStyle.WIDE
+                && !(mIsSearching || mIsSelectionEnabled
+                           || mNavigationButton != NAVIGATION_BUTTON_NONE)) {
+            // The title in the wide display should be aligned with the texts of the list elements.
+            paddingStartOffset = mWideDisplayStartOffsetPx;
         }
 
+        // The margin instead of padding will be set to adjust the modern search view background
+        // in search mode.
+        if (newDisplayStyle.horizontal == HorizontalDisplayStyle.WIDE
+                && isModernSearchViewEnabled) {
+            params.setMargins(padding, params.topMargin, padding, params.bottomMargin);
+            padding = 0;
+        } else {
+            params.setMargins(0, params.topMargin, 0, params.bottomMargin);
+        }
+        setLayoutParams(params);
+        // Navigation button should have more padding start in the modern search view.
+        if (isModernSearchViewEnabled) paddingStartOffset += mModernSearchViewStartOffsetPx;
+
+        int navigationButtonStartOffsetPx =
+                mNavigationButton != NAVIGATION_BUTTON_NONE ? mModernNavButtonStartOffsetPx : 0;
+
+        int actionMenuBarEndOffsetPx = mIsSelectionEnabled ? mModernToolbarActionMenuEndOffsetPx
+                                                           : mModernToolbarSearchIconOffsetPx;
+
         ApiCompatibilityUtils.setPaddingRelative(this,
-                padding + paddingStartOffset, this.getPaddingTop(),
-                padding + paddingEndOffset, this.getPaddingBottom());
-        setContentInsetsRelative(contentInsetStart, contentInsetEnd);
-        setContentInsetStartWithNavigation(contentInsetStartWithNavigation);
-        setContentInsetEndWithActions(contentInsetEndWithActions);
+                padding + paddingStartOffset + navigationButtonStartOffsetPx, this.getPaddingTop(),
+                padding + actionMenuBarEndOffsetPx, this.getPaddingBottom());
     }
 
     /**
@@ -554,10 +566,13 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
         mActionBarDrawerToggle.syncState();
     }
 
-    private void showNormalView() {
+    protected void showNormalView() {
         getMenu().setGroupVisible(mNormalGroupResId, true);
         getMenu().setGroupVisible(mSelectedGroupResId, false);
-        if (mHasSearchView) mSearchView.setVisibility(View.GONE);
+        if (mHasSearchView) {
+            mSearchView.setVisibility(View.GONE);
+            getMenu().findItem(mSearchMenuItemId).setVisible(mSelectableListHasItems);
+        }
 
         setNavigationButton(NAVIGATION_BUTTON_MENU);
         setBackgroundColor(mNormalBackgroundColor);
@@ -591,10 +606,15 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
     private void showSearchViewInternal() {
         getMenu().setGroupVisible(mNormalGroupResId, false);
         getMenu().setGroupVisible(mSelectedGroupResId, false);
+        mNumberRollView.setVisibility(View.GONE);
         mSearchView.setVisibility(View.VISIBLE);
 
         setNavigationButton(NAVIGATION_BUTTON_BACK);
-        setBackgroundColor(mSearchBackgroundColor);
+        if (FeatureUtilities.isChromeHomeEnabled()) {
+            setBackgroundResource(R.drawable.search_toolbar_modern_bg);
+        } else {
+            setBackgroundColor(mSearchBackgroundColor);
+        }
 
         onThemeChanged(true);
         updateDisplayStyleIfNecessary();
@@ -618,6 +638,32 @@ public class SelectableListToolbar<E> extends Toolbar implements SelectionObserv
 
     private void updateDisplayStyleIfNecessary() {
         if (mUiConfig != null) onDisplayStyleChanged(mUiConfig.getCurrentDisplayStyle());
+    }
+
+    /**
+     * Set info menu item used to toggle info header.
+     * @param infoMenuItemId The menu item to show or hide information.
+     */
+    public void setInfoMenuItem(int infoMenuItemId) {
+        mInfoMenuItemId = infoMenuItemId;
+    }
+
+    /**
+     * Update icon, title, and visibility of info menu item.
+     * @param showItem Whether or not info menu item should show.
+     * @param infoShowing Whether or not info header is currently showing.
+     */
+    public void updateInfoMenuItem(boolean showItem, boolean infoShowing) {
+        MenuItem infoMenuItem = getMenu().findItem(mInfoMenuItemId);
+        if (infoMenuItem != null) {
+            Drawable iconDrawable =
+                    TintedDrawable.constructTintedDrawable(getResources(), R.drawable.btn_info,
+                            infoShowing ? R.color.light_active_color : R.color.light_normal_color);
+
+            infoMenuItem.setIcon(iconDrawable);
+            infoMenuItem.setTitle(infoShowing ? R.string.hide_info : R.string.show_info);
+            infoMenuItem.setVisible(showItem);
+        }
     }
 
     @VisibleForTesting

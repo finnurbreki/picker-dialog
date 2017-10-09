@@ -6,8 +6,16 @@ package com.example.finnur.finnursphotopicker;
 
 import android.os.Bundle;
 
-import com.example.finnur.finnursphotopicker.IDecoderServiceListener;
+import com.example.finnur.finnursphotopicker.IDecoderServiceCallback;
 
+/**
+ * This interface is called by the Photo Picker to start image decoding jobs in
+ * a separate process.
+ */
 interface IDecoderService {
-  oneway void decodeImage(in Bundle payload, IDecoderServiceListener listener);
+  /**
+   * Decode an image.
+   * @param payload The data containing the details for the decoding request.
+   */
+  oneway void decodeImage(in Bundle payload, IDecoderServiceCallback listener);
 }
