@@ -26,7 +26,9 @@
     <dimen name="selectable_list_search_icon_end_padding">4dp</dimen>
     <dimen name="selectable_list_toolbar_nav_button_start_offset">4dp</dimen>
     <dimen name="tab_strip_height">0dp</dimen>
+    <dimen name="text_size_medium">14sp</dimen>
     <dimen name="text_size_medium_dense">13sp</dimen>
+    <dimen name="text_size_large">16sp</dimen>
     <dimen name="toolbar_height_no_shadow">56dp</dimen>
     <dimen name="toolbar_modern_search_view_start_offset">4dp</dimen>
     <dimen name="toolbar_wide_display_end_offset">-14dp</dimen>

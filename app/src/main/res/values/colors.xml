@@ -2,8 +2,11 @@
 <resources>
     <color name="light_normal_color">#5A5A5A</color>
     <color name="black_alpha_20">#33000000</color>
+    <color name="black_alpha_24">#3D000000</color>
     <color name="black_alpha_30">#4d000000</color>
+    <color name="black_alpha_38">#61000000</color>
     <color name="black_alpha_54">#8A000000</color>
+    <color name="black_alpha_65">#A6000000</color>
     <color name="black_alpha_87">#DE000000</color>
     <color name="default_primary_color">#f2f2f2</color>
     <color name="google_blue_500">#4285f4</color>
@@ -24,6 +27,7 @@
     <color name="default_text_color">#333</color>
     <color name="light_active_color">#4285F4</color>
     <color name="modern_light_grey">#F1F3F4</color>
+    <color name="modern_primary_color">@android:color/white</color>
     <color name="modern_toolbar_bg">#E6FFFFFF</color>
     <color name="photo_picker_tile_bg_color">#eeeeee</color>
     <color name="photo_picker_special_tile_bg_color">#263238</color>
@@ -31,6 +35,7 @@
     <color name="photo_picker_special_tile_disabled_bg_color">#e0e0e0</color>
     <color name="photo_picker_special_tile_disabled_color">#bdbdbd</color>
     <color name="pref_accent_color">@color/light_active_color</color>
+    <color name="search_box_hint">@color/black_alpha_54</color>
     <color name="selectable_list_item_highlight_color">#804281f4</color>
     <color name="toolbar_shadow_color">#1d000000</color>
 </resources>
