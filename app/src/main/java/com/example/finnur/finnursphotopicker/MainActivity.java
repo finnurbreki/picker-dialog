@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 PhotoPickerListener listener = new PhotoPickerListener() {
                     @Override
-                    public void onPickerUserAction(
+                    public void onPhotoPickerUserAction(
                             PhotoPickerListener.Action action, String[] photos) {
                         switch (action) {
                             case PHOTOS_SELECTED:

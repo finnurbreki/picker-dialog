@@ -4,10 +4,14 @@
 
 package com.example.finnur.finnursphotopicker;
 
+import android.Manifest;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.provider.MediaStore;
 
 import org.chromium.base.ThreadUtils;
+//import org.chromium.ui.base.WindowAndroid;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -73,7 +77,7 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
                 if (!traverseDir(file, pickerBitmaps)) return false;
             } else {
                 pickerBitmaps.add(new PickerBitmap(
-                        file.getPath(), file.lastModified(), PickerBitmap.PICTURE));
+                        file.getPath(), file.lastModified(), PickerBitmap.TileTypes.PICTURE));
             }
         }
 
@@ -106,8 +110,17 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
 
         Collections.sort(pickerBitmaps);
 
-        pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.GALLERY));
-        pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.CAMERA));
+        pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.TileTypes.GALLERY));
+        /*
+        boolean hasCameraAppAvailable = true;
+                mWindowAndroid.canResolveActivity(new Intent(MediaStore.ACTION_IMAGE_CAPTURE));
+        boolean hasOrCanRequestCameraPermission = true;
+                mWindowAndroid.hasPermission(Manifest.permission.CAMERA)
+                || mWindowAndroid.canRequestPermission(Manifest.permission.CAMERA);
+        if (hasCameraAppAvailable && hasOrCanRequestCameraPermission) {
+        */
+            pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.TileTypes.CAMERA));
+        //}
 
         return pickerBitmaps;
     }

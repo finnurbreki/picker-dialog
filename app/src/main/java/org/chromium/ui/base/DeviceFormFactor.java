@@ -5,7 +5,6 @@
 package org.chromium.ui.base;
 
 import android.content.Context;
-import android.os.Build;
 import android.support.annotation.UiThread;
 
 import org.chromium.base.ContextUtils;
@@ -96,20 +95,16 @@ public class DeviceFormFactor {
     }
     */
 
+    /**
+     * Detect the screen width bucket by loading the min_screen_width_bucket value (Android will
+     * select the value from the correct directory; values, *-sw600dp, *-sw720dp). We can't use any
+     * shortcuts here since there are several devices that are phone or tablet, but load each
+     * others' resources (see https://crbug.com/850096 and https://crbug.com/669974 for more info).
+     * @param context An Android context to read resources from.
+     * @return The screen width bucket the device is in (see constants at the top of this class).
+     */
     /* Not needed for Android Studio project.
     private static int detectScreenWidthBucket(Context context) {
-        // Pre-JB MR1, Display.getSize() is used rather than Display.getRealSize().
-        // For our query, getSize() is not always correct. https://crbug.com/829318
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1
-                // TODO(agrieve): Remove thread check and audit for background usages.
-                //     https://crbug.com/669974
-                && ThreadUtils.runningOnUiThread()
-                && !isTabletDisplay(DisplayAndroid.getNonMultiDisplay(context))) {
-            // There have been no cases where tablet resources end up being used on phone-sized
-            // displays. Short-circuit this common-case since checking resources is slower (and
-            // triggers a strict-mode violation when value is not cached).
-            return 0;
-        }
         return context.getResources().getInteger(R.integer.min_screen_width_bucket);
     }
     */
@@ -118,11 +113,10 @@ public class DeviceFormFactor {
     private static int detectScreenWidthBucket(WindowAndroid windowAndroid) {
         ThreadUtils.assertOnUiThread();
         Context context = windowAndroid.getContext().get();
-        if (context == null || !isTabletDisplay(windowAndroid.getDisplay())) {
-            return 0;
-        }
+        if (context == null) return 0;
         return context.getResources().getInteger(R.integer.min_screen_width_bucket);
     }
+    */
 
     /**
      * @return The minimum width in px at which the display should be treated like a tablet for
@@ -142,13 +136,6 @@ public class DeviceFormFactor {
     /* Not needed for Android Studio project.
     public static int getMinimumTabletWidthPx(DisplayAndroid display) {
         return DisplayUtil.dpToPx(display, DeviceFormFactor.MINIMUM_TABLET_WIDTH_DP);
-    }
-    */
-
-    /* Not needed for Android Studio project.
-    // Function is private to ensure that Context is also consulted when answering this query.
-    private static boolean isTabletDisplay(DisplayAndroid display) {
-        return DisplayUtil.getSmallestWidth(display) >= getMinimumTabletWidthPx(display);
     }
     */
 }
