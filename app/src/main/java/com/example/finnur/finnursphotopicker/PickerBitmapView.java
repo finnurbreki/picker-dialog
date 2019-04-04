@@ -128,7 +128,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     protected boolean toggleSelectionForItem(PickerBitmap item) {
-        if (isGalleryTile() || isCameraTile()) return false;
+        if (!isPictureTile()) return false;
         return super.toggleSelectionForItem(item);
     }
 
@@ -228,7 +228,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
         mBitmapDetails = bitmapDetails;
         setItem(bitmapDetails);
-        if (isCameraTile() || isGalleryTile()) {
+        if (!isPictureTile()) {
             initializeSpecialTile(mBitmapDetails);
             mImageLoaded = true;
         } else {
@@ -244,18 +244,20 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
      * @param bitmapDetails The details about the bitmap represented by this PickerBitmapView.
      */
     public void initializeSpecialTile(PickerBitmap bitmapDetails) {
-        int labelStringId;
-        Drawable image;
+        int labelStringId = 0;
+        Drawable image = null;
         Resources resources = mContext.getResources();
 
         if (isCameraTile()) {
             image = VectorDrawableCompat.create(
                     resources, R.drawable.ic_photo_camera_grey, mContext.getTheme());
             labelStringId = R.string.photo_picker_camera;
-        } else {
+        } else if (isGalleryTile()) {
             image = VectorDrawableCompat.create(
                     resources, R.drawable.ic_collections_grey, mContext.getTheme());
             labelStringId = R.string.photo_picker_browse;
+        } else {
+            assert false;
         }
 
         mSpecialTileIcon.setImageDrawable(image);
@@ -282,6 +284,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             mIconView.getLayoutParams().height = imageSizeWithBorders();
             mIconView.getLayoutParams().width = imageSizeWithBorders();
             addPaddingToParent(mIconView, mBorder);
+        } else {
+            mIconView.getLayoutParams().height = mCategoryView.getImageSize();
+            mIconView.getLayoutParams().width = mCategoryView.getImageSize();
         }
 
         boolean noImageWasLoaded = !mImageLoaded;

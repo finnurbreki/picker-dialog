@@ -6,16 +6,15 @@ package com.example.finnur.finnursphotopicker;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.text.TextUtils;
 
 import org.chromium.base.metrics.RecordHistogram;
+import org.chromium.base.task.AsyncTask;
 //import org.chromium.chrome.R;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Holds on to a {@link PickerBitmapView} that displays information about a picker bitmap.
@@ -55,11 +54,12 @@ public class PickerBitmapViewHolder
         if (mCategoryView.getLowResBitmaps().get(filePath) == null) {
             Resources resources = mItemView.getContext().getResources();
             new BitmapScalerTask(mCategoryView.getLowResBitmaps(), filePath,
-                    resources.getDimensionPixelSize(R.dimen.photo_picker_grainy_thumbnail_size))
-                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, bitmap);
+                    resources.getDimensionPixelSize(R.dimen.photo_picker_grainy_thumbnail_size),
+                    bitmap)
+                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
 
-        if (!TextUtils.equals(mBitmapDetails.getFilePath(), filePath)) {
+        if (!TextUtils.equals(mBitmapDetails.getUri().getPath(), filePath)) {
             return;
         }
 
@@ -87,7 +87,7 @@ public class PickerBitmapViewHolder
             return PickerAdapter.DecodeActions.NO_ACTION;
         }
 
-        String filePath = mBitmapDetails.getFilePath();
+        String filePath = mBitmapDetails.getUri().getPath();
         Bitmap original = mCategoryView.getHighResBitmaps().get(filePath);
         if (original != null) {
             mItemView.initialize(mBitmapDetails, original, false);
@@ -102,21 +102,24 @@ public class PickerBitmapViewHolder
             placeholder = BitmapUtils.scale(placeholder, size, false);
             long scaleTime = SystemClock.elapsedRealtime() - begin;
             RecordHistogram.recordTimesHistogram(
-                    "Android.PhotoPicker.UpscaleLowResBitmap", scaleTime, TimeUnit.MILLISECONDS);
+                    "Android.PhotoPicker.UpscaleLowResBitmap", scaleTime);
 
             mItemView.initialize(mBitmapDetails, placeholder, true);
         } else {
             mItemView.initialize(mBitmapDetails, null, true);
         }
 
-        mCategoryView.getDecoderServiceHost().decodeImage(filePath, size, this);
+        mCategoryView.getDecoderServiceHost().decodeImage(mBitmapDetails.getUri(), size, this);
         return PickerAdapter.DecodeActions.DECODE;
     }
 
     /**
-     * Returns the file path of the current request.
+     * Returns the file path of the current request, or null if no request is in progress for this
+     * holder.
      */
     public String getFilePath() {
-        return mBitmapDetails == null ? null : mBitmapDetails.getFilePath();
+        if (mBitmapDetails == null || mBitmapDetails.type() != PickerBitmap.TileTypes.PICTURE)
+            return null;
+        return mBitmapDetails.getUri().getPath();
     }
 }

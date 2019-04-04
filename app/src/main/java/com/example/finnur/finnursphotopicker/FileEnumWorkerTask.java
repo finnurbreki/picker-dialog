@@ -5,23 +5,28 @@
 package com.example.finnur.finnursphotopicker;
 
 import android.Manifest;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 
+import org.chromium.base.BuildInfo;
 import org.chromium.base.ThreadUtils;
+import org.chromium.base.task.AsyncTask;
+import org.chromium.net.MimeTypeFilter;
 //import org.chromium.ui.base.WindowAndroid;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * A worker task to enumerate image files on disk.
  */
-class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
+class FileEnumWorkerTask extends AsyncTask<List<PickerBitmap>> {
     /**
      * An interface to use to communicate back the results to the client.
      */
@@ -33,23 +38,33 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
         void filesEnumeratedCallback(List<PickerBitmap> files);
     }
 
+    //private final WindowAndroid mWindowAndroid;
+
     // The callback to use to communicate the results.
     private FilesEnumeratedCallback mCallback;
 
     // The filter to apply to the list.
-    private MimeTypeFileFilter mFilter;
+    private MimeTypeFilter mFilter;
+
+    // The ContentResolver to use to retrieve image metadata from disk.
+    private ContentResolver mContentResolver;
 
     // The camera directory undir DCIM.
     private static final String SAMPLE_DCIM_SOURCE_SUB_DIRECTORY = "Camera";
 
     /**
      * A FileEnumWorkerTask constructor.
+     * @param windowAndroid The window wrapper associated with the current activity.
      * @param callback The callback to use to communicate back the results.
      * @param filter The file filter to apply to the list.
+     * @param contentResolver The ContentResolver to use to retrieve image metadata from disk.
      */
-    public FileEnumWorkerTask(FilesEnumeratedCallback callback, MimeTypeFileFilter filter) {
+    public FileEnumWorkerTask(/*WindowAndroid windowAndroid,*/ FilesEnumeratedCallback callback,
+            MimeTypeFilter filter, ContentResolver contentResolver) {
+        //mWindowAndroid = windowAndroid;
         mCallback = callback;
         mFilter = filter;
+        mContentResolver = contentResolver;
     }
 
     /**
@@ -61,66 +76,67 @@ class FileEnumWorkerTask extends AsyncTask<Void, Void, List<PickerBitmap>> {
     }
 
     /**
-     * Recursively enumerate files in a directory (and subdirectories) and add them to a list.
-     * @param directory The parent directory to recursively traverse.
-     * @param pickerBitmaps The list to add the results to.
-     * @return True if traversing can continue, false if traversing was aborted and should stop.
-     */
-    private boolean traverseDir(File directory, List<PickerBitmap> pickerBitmaps) {
-        File[] files = directory.listFiles(mFilter);
-        if (files == null) return true;
-
-        for (File file : files) {
-            if (isCancelled()) return false;
-
-            if (file.isDirectory()) {
-                if (!traverseDir(file, pickerBitmaps)) return false;
-            } else {
-                pickerBitmaps.add(new PickerBitmap(
-                        file.getPath(), file.lastModified(), PickerBitmap.TileTypes.PICTURE));
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * Enumerates (in the background) the image files on disk. Called on a non-UI thread
      * @param params Ignored, do not use.
      * @return A sorted list of images (by last-modified first).
      */
     @Override
-    protected List<PickerBitmap> doInBackground(Void... params) {
+    protected List<PickerBitmap> doInBackground() {
         assert !ThreadUtils.runningOnUiThread();
 
         if (isCancelled()) return null;
 
         List<PickerBitmap> pickerBitmaps = new ArrayList<>();
 
-        // TODO(finnur): Figure out which directories to scan and stop hard coding "Camera" above.
-        File[] sourceDirs = new File[] {
-                getCameraDirectory(),
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-        };
+        final String[] selectColumns = {MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DATE_TAKEN, MediaStore.Images.Media.DATA};
 
-        for (File directory : sourceDirs) {
-            if (!traverseDir(directory, pickerBitmaps)) return null;
+        String whereClause = null;
+        String[] whereArgs = null;
+        // Looks like we loose access to the filter, starting with the Q SDK.
+        if (!BuildInfo.isAtLeastQ()) {
+            whereClause = "(" + MediaStore.Images.Media.DATA + " LIKE ? OR "
+                    + MediaStore.Images.Media.DATA + " LIKE ? OR " + MediaStore.Images.Media.DATA
+                    + " LIKE ?) AND " + MediaStore.Images.Media.DATA + " NOT LIKE ?";
+
+            whereArgs = new String[] {
+                    // Include:
+                    getCameraDirectory().toString() + "%",
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                            + "%",
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                            + "%",
+                    // Exclude low-quality sources, such as the screenshots directory:
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                            + "/Screenshots/"
+                            + "%"};
         }
 
-        Collections.sort(pickerBitmaps);
+        final String orderBy = MediaStore.Images.Media.DATE_TAKEN + " DESC";
 
-        pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.TileTypes.GALLERY));
-        /*
-        boolean hasCameraAppAvailable = true;
-                mWindowAndroid.canResolveActivity(new Intent(MediaStore.ACTION_IMAGE_CAPTURE));
-        boolean hasOrCanRequestCameraPermission = true;
-                mWindowAndroid.hasPermission(Manifest.permission.CAMERA)
-                || mWindowAndroid.canRequestPermission(Manifest.permission.CAMERA);
+        Cursor imageCursor = mContentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                selectColumns, whereClause, whereArgs, orderBy);
+
+        while (imageCursor.moveToNext()) {
+            int dataIndex = imageCursor.getColumnIndex(MediaStore.Images.Media.DATA);
+            int dateTakenIndex = imageCursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN);
+            int idIndex = imageCursor.getColumnIndex(MediaStore.Images.ImageColumns._ID);
+            Uri uri = ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageCursor.getInt(idIndex));
+            long dateTaken = imageCursor.getLong(dateTakenIndex);
+            pickerBitmaps.add(new PickerBitmap(uri, dateTaken, PickerBitmap.TileTypes.PICTURE));
+        }
+        imageCursor.close();
+
+        pickerBitmaps.add(0, new PickerBitmap(null, 0, PickerBitmap.TileTypes.GALLERY));
+        boolean hasCameraAppAvailable = true;  // Avoid mWindowAndroid outside Chromium.
+        //        mWindowAndroid.canResolveActivity(new Intent(MediaStore.ACTION_IMAGE_CAPTURE));
+        boolean hasOrCanRequestCameraPermission = true;  // Hard-coded in Android Studio project.
+        //        mWindowAndroid.hasPermission(Manifest.permission.CAMERA)
+        //        || mWindowAndroid.canRequestPermission(Manifest.permission.CAMERA);
         if (hasCameraAppAvailable && hasOrCanRequestCameraPermission) {
-        */
-            pickerBitmaps.add(0, new PickerBitmap("", 0, PickerBitmap.TileTypes.CAMERA));
-        //}
+            pickerBitmaps.add(0, new PickerBitmap(null, 0, PickerBitmap.TileTypes.CAMERA));
+        }
 
         return pickerBitmaps;
     }

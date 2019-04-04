@@ -4,8 +4,10 @@
 
 package com.example.finnur.finnursphotopicker;
 
+import android.Manifest;
 import android.content.ClipData;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
@@ -42,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     static final int TAKE_PHOTO_REQUEST = 2;
 
     // Whether multi-select should be enabled.
-    static final boolean mMultiSelect = false;
+    static final boolean mMultiSelect = true;
 
     // The path to the photo captured from the camera.
     private String mCurrentPhotoPath;
@@ -50,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -61,16 +64,16 @@ public class MainActivity extends AppCompatActivity {
                 PhotoPickerListener listener = new PhotoPickerListener() {
                     @Override
                     public void onPhotoPickerUserAction(
-                            PhotoPickerListener.Action action, String[] photos) {
+                            @PhotoPickerAction int action, Uri[] photos) {
                         switch (action) {
-                            case PHOTOS_SELECTED:
+                            case PhotoPickerAction.PHOTOS_SELECTED:
                                 if (photos != null) {
-                                    for (String path : photos) {
-                                        Log.e("***** ", "**** Photo selected: " + path);
+                                    for (Uri photoUri : photos) {
+                                        Log.e("***** ", "**** Photo selected: " + photoUri.getPath());
                                     }
                                 }
                                 break;
-                            case LAUNCH_GALLERY:
+                            case PhotoPickerAction.LAUNCH_GALLERY:
                                 Intent intent = new Intent();
                                 intent.setType("image/*");
                                 if (mMultiSelect) {
@@ -83,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 mDialog.dismiss();
                                 break;
-                            case LAUNCH_CAMERA:
+                            case PhotoPickerAction.LAUNCH_CAMERA:
                                 Intent takePictureIntent = new Intent(
                                         MediaStore.ACTION_IMAGE_CAPTURE);
                                 if (takePictureIntent.resolveActivity(
@@ -112,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 mDialog.dismiss();
                                 break;
-                            case CANCEL:
+                            case PhotoPickerAction.CANCEL:
                                 Log.e("***** ", "**** Cancelled");
                                 break;
                         }
@@ -190,5 +193,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 }

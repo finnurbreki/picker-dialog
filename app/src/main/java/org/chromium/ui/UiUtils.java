@@ -8,9 +8,14 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Environment;
 import android.os.StrictMode;
+import android.support.annotation.ColorRes;
+import android.support.annotation.DrawableRes;
+import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.text.TextUtils;
 import android.view.SurfaceView;
 import android.view.View;
@@ -57,7 +62,7 @@ public class UiUtils {
         sAndroidUiThemeBlacklist.put("xiaomi", Build.VERSION_CODES.N);
         // HTC doesn't respect theming flags on activity restart until Android O; this affects both
         // the system nav and status bar. More info at https://crbug.com/831737.
-        // sAndroidUiThemeBlacklist.put("htc", Build.VERSION_CODES.O);
+        sAndroidUiThemeBlacklist.put("htc", Build.VERSION_CODES.O);
     }
 
     /** Whether theming the Android system UI has been disabled. */
@@ -85,10 +90,15 @@ public class UiUtils {
          * @param listener The listener that will be notified of the action the user took in the
          *                 picker.
          * @param allowMultiple Whether to allow multiple contacts to be picked.
-         * @param mimeTypes A list of mime types requested.
+         * @param includeNames Whether to include names of the contacts shared.
+         * @param includeEmails Whether to include emails of the contacts shared.
+         * @param includeTel Whether to include telephone numbers of the contacts shared.
+         * @param formattedOrigin The origin the data will be shared with, formatted for display
+         *                        with the scheme omitted.
          */
         void showContactsPicker(Context context, ContactsPickerListener listener,
-                boolean allowMultiple, List<String> mimeTypes);
+                boolean allowMultiple, boolean includeNames, boolean includeEmails,
+                boolean includeTel, String formattedOrigin);
 
         /**
          * Called when the contacts picker dialog has been dismissed.
@@ -128,23 +138,22 @@ public class UiUtils {
     }
 
     /**
-     * Returns whether a contacts picker should be called.
-     */
-    public static boolean shouldShowContactsPicker() {
-        return sContactsPickerDelegate != null;
-    }
-
-    /**
      * Called to display the contacts picker.
      * @param context  The context to use.
      * @param listener The listener that will be notified of the action the user took in the
      *                 picker.
-     * @param mimeTypes A list of mime types requested.
+     * @param allowMultiple Whether to allow multiple contacts to be selected.
+     * @param includeNames Whether to include names in the contact data returned.
+     * @param includeEmails Whether to include emails in the contact data returned.
+     * @param includeTel Whether to include telephone numbers in the contact data returned.
+     * @param formattedOrigin The origin the data will be shared with.
      */
     public static boolean showContactsPicker(Context context, ContactsPickerListener listener,
-            boolean allowMultiple, List<String> mimeTypes) {
+            boolean allowMultiple, boolean includeNames, boolean includeEmails, boolean includeTel,
+            String formattedOrigin) {
         if (sContactsPickerDelegate == null) return false;
-        sContactsPickerDelegate.showContactsPicker(context, listener, allowMultiple, mimeTypes);
+        sContactsPickerDelegate.showContactsPicker(context, listener, allowMultiple, includeNames,
+                includeEmails, includeTel, formattedOrigin);
         return true;
     }
 
@@ -449,6 +458,22 @@ public class UiUtils {
             }
         }
         return indexInParent;
+    }
+
+    /**
+     * Gets a drawable from the resources and applies the specified tint to it. Uses Support Library
+     * for vector drawables and tinting on older Android versions.
+     * @param drawableId The resource id for the drawable.
+     * @param tintColorId The resource id for the color or ColorStateList.
+     */
+    public static Drawable getTintedDrawable(
+            Context context, @DrawableRes int drawableId, @ColorRes int tintColorId) {
+        Drawable drawable = AppCompatResources.getDrawable(context, drawableId);
+        assert drawable != null;
+        drawable = DrawableCompat.wrap(drawable).mutate();
+        DrawableCompat.setTintList(
+                drawable, AppCompatResources.getColorStateList(context, tintColorId));
+        return drawable;
     }
 
     /**

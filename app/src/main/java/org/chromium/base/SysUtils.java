@@ -38,7 +38,7 @@ public class SysUtils {
     /* Not needed for Android Studio project.
     private static CachedMetrics.BooleanHistogramSample sLowEndMatches =
             new CachedMetrics.BooleanHistogramSample("Android.SysUtilsLowEndMatches");
-            */
+    */
 
     private SysUtils() { }
 
