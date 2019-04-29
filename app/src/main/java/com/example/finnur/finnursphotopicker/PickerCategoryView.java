@@ -9,8 +9,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,8 +21,12 @@ import android.util.DisplayMetrics;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.MediaController;
 import android.widget.RelativeLayout;
+import android.widget.VideoView;
 
 //import org.chromium.base.DiscardableReferencePool.DiscardableReference;
 import org.chromium.base.VisibleForTesting;
@@ -30,7 +37,6 @@ import org.chromium.base.task.AsyncTask;
 import org.chromium.chrome.browser.util.ConversionUtils;
 import org.chromium.chrome.browser.widget.selection.SelectableListLayout;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
-import org.chromium.net.MimeTypeFilter;
 import org.chromium.ui.PhotoPickerListener;
 import org.chromium.ui.UiUtils;
 
@@ -52,6 +58,17 @@ public class PickerCategoryView extends RelativeLayout
     private static final int ACTION_NEW_PHOTO = 2;
     private static final int ACTION_BROWSE = 3;
     private static final int ACTION_BOUNDARY = 4;
+
+    // A container class for keeping track of details about a thumbnail in the photo picker.
+    static public class Thumbnail {
+        Bitmap bitmap;
+        String videoDuration;
+
+        Thumbnail(Bitmap bitmap, String videoDuration) {
+            this.bitmap = bitmap;
+            this.videoDuration = videoDuration;
+        }
+    }
 
     // The dialog that owns us.
     private PhotoPickerDialog mDialog;
@@ -89,13 +106,13 @@ public class PickerCategoryView extends RelativeLayout
     // The {@link SelectionDelegate} keeping track of which images are selected.
     private SelectionDelegate<PickerBitmap> mSelectionDelegate;
 
-    // A low-resolution cache for images, lazily created. Helpful for cache misses from the
+    // A low-resolution cache for thumbnails, lazily created. Helpful for cache misses from the
     // high-resolution cache to avoid showing gray squares (we show pixelated versions instead until
     // image can be loaded off disk, which is much less jarring).
-    private /*DiscardableReference<*/ LruCache<String, Bitmap> /*>*/ mLowResBitmaps;
+    private /*DiscardableReference<*/ LruCache<String, Thumbnail> /*>*/ mLowResThumbnails;
 
-    // A high-resolution cache for images, lazily created.
-    private /*DiscardableReference<*/ LruCache<String, Bitmap> /*>*/ mHighResBitmaps;
+    // A high-resolution cache for thumbnails, lazily created.
+    private /*DiscardableReference<*/ LruCache<String, Thumbnail> /*>*/ mHighResThumbnails;
 
     // The size of the low-res cache.
     private int mCacheSizeLarge;
@@ -131,6 +148,12 @@ public class PickerCategoryView extends RelativeLayout
     // A list of files to use for testing (instead of reading files on disk).
     private static List<PickerBitmap> sTestFiles;
 
+    // The video preview view.
+    private VideoView mVideoView;
+
+    // The media controls to show with the video (play/pause, etc).
+    private MediaController mMediaController;
+
     /**
      * @param context The context to use.
      * @param multiSelectionAllowed Whether to allow the user to select more than one image.
@@ -161,6 +184,7 @@ public class PickerCategoryView extends RelativeLayout
         toolbar.setNavigationOnClickListener(this);
         Button doneButton = (Button) toolbar.findViewById(R.id.done);
         doneButton.setOnClickListener(this);
+        mVideoView = findViewById(R.id.video_player);
 
         calculateGridMetrics();
 
@@ -176,16 +200,16 @@ public class PickerCategoryView extends RelativeLayout
         mCacheSizeSmall = (int) (maxMemory / 8); // 1/8th of the available memory.
 
         // Android Studio project only:
-        mLowResBitmaps = new LruCache<String, Bitmap>(mCacheSizeSmall) {
+        mLowResThumbnails = new LruCache<String, Thumbnail>(mCacheSizeSmall) {
             @Override
-            protected int sizeOf(String key, Bitmap bitmap) {
-                return (int) ConversionUtils.bytesToKilobytes(bitmap.getByteCount());
+            protected int sizeOf(String key, Thumbnail thumbnail) {
+                return (int) ConversionUtils.bytesToKilobytes(thumbnail.bitmap.getByteCount());
             }
         };
-        mHighResBitmaps = new LruCache<String, Bitmap>(mCacheSizeLarge) {
+        mHighResThumbnails = new LruCache<String, Thumbnail>(mCacheSizeLarge) {
             @Override
-            protected int sizeOf(String key, Bitmap bitmap) {
-                return (int) ConversionUtils.bytesToKilobytes(bitmap.getByteCount());
+            protected int sizeOf(String key, Thumbnail thumbnail) {
+                return (int) ConversionUtils.bytesToKilobytes(thumbnail.bitmap.getByteCount());
             }
         };
     }
@@ -216,6 +240,48 @@ public class PickerCategoryView extends RelativeLayout
             mDecoderServiceHost.unbind(mActivity);
             mDecoderServiceHost = null;
         }
+    }
+
+    public void playVideo(Uri uri) {
+        findViewById(R.id.playback_container).setVisibility(View.VISIBLE);
+        findViewById(R.id.close).setOnClickListener(this);
+
+        mMediaController = new MediaController(mActivity, false) {
+            @Override
+            public void hide() {
+                // Making sure the controls never hide prevents the seekbar from no longer updating
+                // in the middle of playing a video.
+                this.show();
+            }
+        };
+        mVideoView.setMediaController(mMediaController);
+        mVideoView.setVisibility(View.VISIBLE);
+        mVideoView.setVideoURI(uri);
+
+        mVideoView.setOnPreparedListener((MediaPlayer mp) -> {
+            mp.setOnVideoSizeChangedListener((MediaPlayer player, int width, int height) -> {
+                // To get the media controls to show up in a dialog, the view needs to be
+                // re-parented.
+                ((ViewGroup) mMediaController.getParent()).removeView(mMediaController);
+                ((FrameLayout) findViewById(R.id.controls_wrapper)).addView(mMediaController);
+                mMediaController.setVisibility(View.VISIBLE);
+
+                mMediaController.setAnchorView(mVideoView);
+                mMediaController.setEnabled(true);
+                mMediaController.show(0);
+            });
+
+            mVideoView.start();
+        });
+    }
+
+    private void stopVideo() {
+        findViewById(R.id.playback_container).setVisibility(View.GONE);
+        mVideoView.stopPlayback();
+        mVideoView.setMediaController(null);
+        // The MediaController needs a little bit of time to go away fully. Hide it in the meantime.
+        mMediaController.setVisibility(View.GONE);
+        mMediaController = null;
     }
 
     /**
@@ -279,8 +345,11 @@ public class PickerCategoryView extends RelativeLayout
 
     @Override
     public void onClick(View view) {
-        if (view.getId() == R.id.done) {
+        int id = view.getId();
+        if (id == R.id.done) {
             notifyPhotosSelected();
+        } else if (id == R.id.close) {
+            stopVideo();
         } else {
             executeAction(PhotoPickerListener.PhotoPickerAction.CANCEL, null, ACTION_CANCEL);
         }
@@ -314,26 +383,26 @@ public class PickerCategoryView extends RelativeLayout
         return mDecoderServiceHost;
     }
 
-    public LruCache<String, Bitmap> getLowResBitmaps() {
+    public LruCache<String, Thumbnail> getLowResThumbnails() {
         /* Not used for the Android project, but used in Chrome.
-        if (mLowResBitmaps == null || mLowResBitmaps.get() == null) {
-            mLowResBitmaps =
-                    mActivity.getReferencePool().put(new LruCache<String, Bitmap>(mCacheSizeSmall));
+        if (mLowResThumbnails == null || mLowResThumbnails.get() == null) {
+            mLowResThumbnails =
+                    mActivity.getReferencePool().put(new LruCache<String, Thumbnail>(mCacheSizeSmall));
         }
-        return mLowResBitmaps.get();
+        return mLowResThumbnails.get();
         */
-        return mLowResBitmaps;
+        return mLowResThumbnails;
     }
 
-    public LruCache<String, Bitmap> getHighResBitmaps() {
+    public LruCache<String, Thumbnail> getHighResThumbnails() {
         /* Not used for the Android project, but used in Chrome.
-        if (mHighResBitmaps == null || mHighResBitmaps.get() == null) {
-            mHighResBitmaps =
-                    mActivity.getReferencePool().put(new LruCache<String, Bitmap>(mCacheSizeLarge));
+        if (mHighResThumbnails == null || mHighResThumbnails.get() == null) {
+            mHighResThumbnails =
+                    mActivity.getReferencePool().put(new LruCache<String, Thumbnail>(mCacheSizeLarge));
         }
-        return mHighResBitmaps.get();
+        return mHighResThumbnails.get();
         */
-        return mHighResBitmaps;
+        return mHighResThumbnails;
     }
 
     public boolean isMultiSelectAllowed() {
@@ -389,8 +458,7 @@ public class PickerCategoryView extends RelativeLayout
 
         mEnumStartTime = SystemClock.elapsedRealtime();
         // Android Studio project does not use WindowAndroid class.
-        mWorkerTask = new FileEnumWorkerTask(this,
-                new MimeTypeFilter(mMimeTypes, true), mActivity.getContentResolver());
+        mWorkerTask = new FileEnumWorkerTask(this, mMimeTypes, mActivity.getContentResolver());
         mWorkerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 

@@ -11,6 +11,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -32,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -122,7 +124,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 };
 
-                mDialog = new PhotoPickerDialog(getWindow().getContext(), listener, mMultiSelect, Arrays.asList("image/*"));
+                List<String> mimeTypes = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    mimeTypes = Arrays.asList("video/*", "image/*");
+                } else {
+                    mimeTypes = Arrays.asList("image/*");
+                }
+                mDialog = new PhotoPickerDialog(getWindow().getContext(), listener, mMultiSelect, mimeTypes);
                 mDialog.getWindow().getAttributes().windowAnimations = R.style.PhotoPickerDialogAnimation;
                 // This removes the padding around the dialog.
                 mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));

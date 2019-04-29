@@ -46,25 +46,37 @@ class FileEnumWorkerTask extends AsyncTask<List<PickerBitmap>> {
     // The filter to apply to the list.
     private MimeTypeFilter mFilter;
 
+    // Whether any image MIME types were requested.
+    private boolean mIncludeImages;
+
+    // Whether any video MIME types were requested.
+    private boolean mIncludeVideos;
+
     // The ContentResolver to use to retrieve image metadata from disk.
     private ContentResolver mContentResolver;
 
-    // The camera directory undir DCIM.
+    // The camera directory under DCIM.
     private static final String SAMPLE_DCIM_SOURCE_SUB_DIRECTORY = "Camera";
 
     /**
      * A FileEnumWorkerTask constructor.
      * @param windowAndroid The window wrapper associated with the current activity.
      * @param callback The callback to use to communicate back the results.
-     * @param filter The file filter to apply to the list.
+     * @param mimeTypes The MIME type filter to apply to the list.
      * @param contentResolver The ContentResolver to use to retrieve image metadata from disk.
      */
     public FileEnumWorkerTask(/*WindowAndroid windowAndroid,*/ FilesEnumeratedCallback callback,
-            MimeTypeFilter filter, ContentResolver contentResolver) {
+          List<String> mimeTypes, ContentResolver contentResolver) {
         //mWindowAndroid = windowAndroid;
         mCallback = callback;
-        mFilter = filter;
+        mFilter = new MimeTypeFilter(mimeTypes, true);
         mContentResolver = contentResolver;
+
+        for (String mimeType : mimeTypes) {
+            if (mimeType.startsWith("image/")) mIncludeImages = true;
+            else if (mimeType.startsWith("video/")) mIncludeVideos = true;
+            if (mIncludeImages && mIncludeVideos) break;
+        }
     }
 
     /**
@@ -77,7 +89,6 @@ class FileEnumWorkerTask extends AsyncTask<List<PickerBitmap>> {
 
     /**
      * Enumerates (in the background) the image files on disk. Called on a non-UI thread
-     * @param params Ignored, do not use.
      * @return A sorted list of images (by last-modified first).
      */
     @Override
@@ -88,16 +99,30 @@ class FileEnumWorkerTask extends AsyncTask<List<PickerBitmap>> {
 
         List<PickerBitmap> pickerBitmaps = new ArrayList<>();
 
-        final String[] selectColumns = {MediaStore.Images.Media._ID,
-                MediaStore.Images.Media.DATE_TAKEN, MediaStore.Images.Media.DATA};
+        final String[] selectColumns = {
+                MediaStore.Files.FileColumns._ID,
+                MediaStore.Files.FileColumns.DATE_ADDED,
+                MediaStore.Files.FileColumns.MEDIA_TYPE,
+                MediaStore.Files.FileColumns.MIME_TYPE,
+                MediaStore.Files.FileColumns.DATA};
 
-        String whereClause = null;
+        String whereClause = "";
+        if (mIncludeImages) {
+            whereClause += MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+                    + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
+        }
+        if (mIncludeVideos) {
+            if (mIncludeImages) whereClause += " OR ";
+            whereClause += MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+                    + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+        }
         String[] whereArgs = null;
         // Looks like we loose access to the filter, starting with the Q SDK.
         if (!BuildInfo.isAtLeastQ()) {
-            whereClause = "(" + MediaStore.Images.Media.DATA + " LIKE ? OR "
-                    + MediaStore.Images.Media.DATA + " LIKE ? OR " + MediaStore.Images.Media.DATA
-                    + " LIKE ?) AND " + MediaStore.Images.Media.DATA + " NOT LIKE ?";
+            if (!whereClause.isEmpty()) whereClause = "(" + whereClause + ") AND ";
+            whereClause += "(" + MediaStore.Files.FileColumns.DATA + " LIKE ? OR "
+                    + MediaStore.Files.FileColumns.DATA + " LIKE ? OR " + MediaStore.Files.FileColumns.DATA
+                    + " LIKE ?) AND " + MediaStore.Files.FileColumns.DATA + " NOT LIKE ?";
 
             whereArgs = new String[] {
                     // Include:
@@ -112,19 +137,31 @@ class FileEnumWorkerTask extends AsyncTask<List<PickerBitmap>> {
                             + "%"};
         }
 
-        final String orderBy = MediaStore.Images.Media.DATE_TAKEN + " DESC";
+        final String orderBy = MediaStore.MediaColumns.DATE_ADDED + " DESC";
 
-        Cursor imageCursor = mContentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        Uri contentUri = MediaStore.Files.getContentUri("external");
+        Cursor imageCursor = mContentResolver.query(contentUri,
                 selectColumns, whereClause, whereArgs, orderBy);
 
         while (imageCursor.moveToNext()) {
-            int dataIndex = imageCursor.getColumnIndex(MediaStore.Images.Media.DATA);
-            int dateTakenIndex = imageCursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN);
-            int idIndex = imageCursor.getColumnIndex(MediaStore.Images.ImageColumns._ID);
-            Uri uri = ContentUris.withAppendedId(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageCursor.getInt(idIndex));
+            int mimeTypeIndex = imageCursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE);
+            String mimeType = imageCursor.getString(mimeTypeIndex);
+            if (!mFilter.accept(null, mimeType)) continue;
+
+            int dateTakenIndex = imageCursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED);
+            int idIndex = imageCursor.getColumnIndex(MediaStore.Files.FileColumns._ID);
+            Uri uri = ContentUris.withAppendedId(contentUri, imageCursor.getInt(idIndex));
             long dateTaken = imageCursor.getLong(dateTakenIndex);
-            pickerBitmaps.add(new PickerBitmap(uri, dateTaken, PickerBitmap.TileTypes.PICTURE));
+
+            int dataIndex = imageCursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+            String data = imageCursor.getString(dataIndex);
+
+            String filename = uri.getPath();
+            @PickerBitmap.TileTypes
+            int type = PickerBitmap.TileTypes.PICTURE;
+            if (mimeType.startsWith("video/")) type = PickerBitmap.TileTypes.VIDEO;
+
+            pickerBitmaps.add(new PickerBitmap(uri, dateTaken, type));
         }
         imageCursor.close();
 
