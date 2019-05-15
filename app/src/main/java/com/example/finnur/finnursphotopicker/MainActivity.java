@@ -70,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
                         switch (action) {
                             case PhotoPickerAction.PHOTOS_SELECTED:
                                 if (photos != null) {
-                                    for (Uri photoUri : photos) {
-                                        Log.e("***** ", "**** Photo selected: " + photoUri.getPath());
+                                    for (Uri mediaUri : photos) {
+                                        Log.e("***** ", "**** Media selected: " + mediaUri.getPath());
                                     }
                                 }
                                 break;

@@ -289,46 +289,47 @@ public class DecoderServiceHost extends IDecoderServiceCallback.Stub implements 
             assert Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
             mWorkerTask = new DecodeVideoTask(this, mContentResolver, uri, size);
             mWorkerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        } else {
-            // Obtain a file descriptor to send over to the sandboxed process.
-            ParcelFileDescriptor pfd = null;
-            Bundle bundle = new Bundle();
+            return;
+        }
 
-            // The restricted utility process can't open the file to read the
-            // contents, so we need to obtain a file descriptor to pass over.
-            StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
-            try {
-                AssetFileDescriptor afd = null;
-                try {
-                    afd = mContentResolver.openAssetFileDescriptor(uri, "r");
-                } catch (FileNotFoundException e) {
-                    Log.e(TAG, "Unable to obtain FileDescriptor: " + e);
-                    closeRequest(uri.getPath(), null, null, -1);
-                    return;
-                }
-                pfd = afd.getParcelFileDescriptor();
-                if (pfd == null) {
-                    closeRequest(uri.getPath(), null, null, -1);
-                    return;
-                }
-            } finally {
-                StrictMode.setThreadPolicy(oldPolicy);
-            }
+        // Obtain a file descriptor to send over to the sandboxed process.
+        ParcelFileDescriptor pfd = null;
+        Bundle bundle = new Bundle();
 
-            // Prepare and send the data over.
-            bundle.putString(DecoderService.KEY_FILE_PATH, uri.getPath());
-            bundle.putParcelable(DecoderService.KEY_FILE_DESCRIPTOR, pfd);
-            bundle.putInt(DecoderService.KEY_SIZE, size);
+        // The restricted utility process can't open the file to read the
+        // contents, so we need to obtain a file descriptor to pass over.
+        StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
+        try {
+            AssetFileDescriptor afd = null;
             try {
-                mIRemoteService.decodeImage(bundle, this);
-                pfd.close();
-            } catch (RemoteException e) {
-                Log.e(TAG, "Communications failed (Remote): " + e);
+                afd = mContentResolver.openAssetFileDescriptor(uri, "r");
+            } catch (FileNotFoundException e) {
+                Log.e(TAG, "Unable to obtain FileDescriptor: " + e);
                 closeRequest(uri.getPath(), null, null, -1);
-            } catch (IOException e) {
-                Log.e(TAG, "Communications failed (IO): " + e);
-                closeRequest(uri.getPath(), null, null, -1);
+                return;
             }
+            pfd = afd.getParcelFileDescriptor();
+            if (pfd == null) {
+                closeRequest(uri.getPath(), null, null, -1);
+                return;
+            }
+        } finally {
+            StrictMode.setThreadPolicy(oldPolicy);
+        }
+
+        // Prepare and send the data over.
+        bundle.putString(DecoderService.KEY_FILE_PATH, uri.getPath());
+        bundle.putParcelable(DecoderService.KEY_FILE_DESCRIPTOR, pfd);
+        bundle.putInt(DecoderService.KEY_SIZE, size);
+        try {
+            mIRemoteService.decodeImage(bundle, this);
+            pfd.close();
+        } catch (RemoteException e) {
+            Log.e(TAG, "Communications failed (Remote): " + e);
+            closeRequest(uri.getPath(), null, null, -1);
+        } catch (IOException e) {
+            Log.e(TAG, "Communications failed (IO): " + e);
+            closeRequest(uri.getPath(), null, null, -1);
         }
     }
 
