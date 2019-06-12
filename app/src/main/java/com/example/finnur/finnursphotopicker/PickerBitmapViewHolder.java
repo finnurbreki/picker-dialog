@@ -48,12 +48,14 @@ public class PickerBitmapViewHolder
         }
 
         if (mCategoryView.getHighResThumbnails().get(filePath) == null) {
-            mCategoryView.getHighResThumbnails().put(filePath, new PickerCategoryView.Thumbnail(bitmap, videoDuration));
+            mCategoryView.getHighResThumbnails().put(
+                    filePath, new PickerCategoryView.Thumbnail(bitmap, videoDuration));
         }
 
         if (mCategoryView.getLowResThumbnails().get(filePath) == null) {
             Resources resources = mItemView.getContext().getResources();
-            new BitmapScalerTask(mCategoryView.getLowResThumbnails(), bitmap, filePath, videoDuration,
+            new BitmapScalerTask(mCategoryView.getLowResThumbnails(), bitmap, filePath,
+                    videoDuration,
                     resources.getDimensionPixelSize(R.dimen.photo_picker_grainy_thumbnail_size))
                     .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
@@ -109,7 +111,8 @@ public class PickerBitmapViewHolder
             mItemView.initialize(mBitmapDetails, null, null, true);
         }
 
-        mCategoryView.getDecoderServiceHost().decodeImage(mBitmapDetails.getUri(), mBitmapDetails.type(), size, this);
+        mCategoryView.getDecoderServiceHost().decodeImage(
+                mBitmapDetails.getUri(), mBitmapDetails.type(), size, this);
         return PickerAdapter.DecodeActions.DECODE;
     }
 

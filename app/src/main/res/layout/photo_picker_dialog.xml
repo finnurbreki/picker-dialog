@@ -7,8 +7,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_width="match_parent">
+    android:background="@color/default_bg_color_elev_0" >
 
     <org.chromium.chrome.browser.widget.selection.SelectableListLayout
         android:id="@+id/selectable_list"
@@ -38,7 +39,6 @@
                 android:layout_marginBottom="8dp"
                 android:layout_marginEnd="4dp"
                 android:layout_marginTop="8dp"
-                android:layout_alignParentRight="true"
                 tools:ignore="ContentDescription"
                 app:srcCompat="@drawable/ic_cancel" />
 
@@ -46,8 +46,7 @@
                 android:id="@+id/video_player"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_centerInParent="true" />
+                android:layout_gravity="center" />
 
             <FrameLayout
                 android:id="@+id/controls_wrapper"

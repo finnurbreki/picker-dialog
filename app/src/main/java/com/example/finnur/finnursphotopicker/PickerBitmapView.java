@@ -13,7 +13,10 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.graphics.drawable.VectorDrawableCompat;
+import android.support.v4.widget.ImageViewCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -38,6 +41,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     // The length of the fade in animation (in ms).
     private static final int IMAGE_FADE_IN_DURATION = 200;
+
+    // How far from the border to animate the duration string (in dp).
+    private static final int VIDEO_DURATION_OFFSET_DP = 16;
 
     // Our context.
     private Context mContext;
@@ -150,7 +156,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     @Override
     protected boolean toggleSelectionForItem(PickerBitmap item) {
-        if (!isPictureTile()) return false;
+        if (isGalleryTile() || isCameraTile()) return false;
         return super.toggleSelectionForItem(item);
     }
 
@@ -194,14 +200,18 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             float end;
             float videoDurationOffsetX;
             float videoDurationOffsetY;
+
             if (size != mCategoryView.getImageSize()) {
                 start = 1f;
                 end = 0.8f;
-                videoDurationOffsetX = -45f;
-                videoDurationOffsetY = 45f;
+
+                float pixels = VIDEO_DURATION_OFFSET_DP * ((float) mContext.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+                videoDurationOffsetX = -pixels;
+                videoDurationOffsetY = pixels;
             } else {
                 start = 0.8f;
                 end = 1f;
+
                 videoDurationOffsetX = 0;
                 videoDurationOffsetY = 0;
             }
@@ -216,9 +226,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             mIconView.startAnimation(animation);
 
             ObjectAnimator videoDurationX =
-                    ObjectAnimator.ofFloat(mVideoDuration, "translationX", videoDurationOffsetX);
+                    ObjectAnimator.ofFloat(mVideoDuration, View.TRANSLATION_X, videoDurationOffsetX);
             ObjectAnimator videoDurationY =
-                    ObjectAnimator.ofFloat(mVideoDuration, "translationY", videoDurationOffsetY);
+                    ObjectAnimator.ofFloat(mVideoDuration, View.TRANSLATION_Y, videoDurationOffsetY);
             AnimatorSet animatorSet = new AnimatorSet();
             animatorSet.playTogether(videoDurationX, videoDurationY);
             animatorSet.setDuration(ANIMATION_DURATION);
@@ -266,7 +276,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
         mBitmapDetails = bitmapDetails;
         setItem(bitmapDetails);
-        if (!isPictureTile()) {
+        if (isCameraTile() || isGalleryTile()) {
             initializeSpecialTile(mBitmapDetails);
             mImageLoaded = true;
         } else {
@@ -299,6 +309,10 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         }
 
         mSpecialTileIcon.setImageDrawable(image);
+        ApiCompatibilityUtils.setImageTintList(mSpecialTileIcon,
+                AppCompatResources.getColorStateList(
+                        mContext, R.color.default_icon_color_secondary_list));
+        ImageViewCompat.setImageTintMode(mSpecialTileIcon, PorterDuff.Mode.SRC_IN);
         mSpecialTileLabel.setText(labelStringId);
 
         // Reset visibility, since #initialize() sets mSpecialTile visibility to GONE.
@@ -390,19 +404,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             bgColorId = R.color.photo_picker_tile_bg_color;
         } else {
             bgColorId = R.color.photo_picker_special_tile_bg_color;
-            int fgColorId;
-            if (!anySelection) {
-                fgColorId = R.color.photo_picker_special_tile_color;
-            } else {
-                fgColorId = R.color.photo_picker_special_tile_disabled_color;
-            }
-
+            mSpecialTileLabel.setEnabled(!anySelection);
+            mSpecialTileIcon.setEnabled(!anySelection);
             setEnabled(!anySelection);
-            mSpecialTileLabel.setTextColor(ApiCompatibilityUtils.getColor(resources, fgColorId));
-            Drawable drawable = mSpecialTileIcon.getDrawable();
-            int color = ApiCompatibilityUtils.getColor(resources, fgColorId);
-            drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-            mSpecialTileIcon.invalidate();
         }
 
         setBackgroundColor(ApiCompatibilityUtils.getColor(resources, bgColorId));
@@ -414,7 +418,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
                 && mCategoryView.isMultiSelectAllowed();
         mUnselectedView.setVisibility(showUnselectedToggle ? View.VISIBLE : View.GONE);
         mScrim.setVisibility(showUnselectedToggle ? View.VISIBLE : View.GONE);
-        mPlayButton.setVisibility(mImageLoaded && mBitmapDetails.type() == PickerBitmap.TileTypes.VIDEO ? View.VISIBLE : View.GONE);
+        mPlayButton.setVisibility(
+                mImageLoaded && mBitmapDetails.type() == PickerBitmap.TileTypes.VIDEO ? View.VISIBLE
+                                                                                      : View.GONE);
     }
 
     private boolean isGalleryTile() {

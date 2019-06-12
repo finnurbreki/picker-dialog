@@ -25,8 +25,8 @@ class BitmapScalerTask extends AsyncTask<Bitmap> {
     /**
      * A BitmapScalerTask constructor.
      */
-    public BitmapScalerTask(
-            LruCache<String, PickerCategoryView.Thumbnail> cache, Bitmap bitmap, String filePath, String videoDuration, int size) {
+    public BitmapScalerTask(LruCache<String, PickerCategoryView.Thumbnail> cache, Bitmap bitmap,
+            String filePath, String videoDuration, int size) {
         mCache = cache;
         mFilePath = filePath;
         mSize = size;

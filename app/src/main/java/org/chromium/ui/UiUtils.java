@@ -125,6 +125,11 @@ public class UiUtils {
          * Called when the photo picker dialog has been dismissed.
          */
         void onPhotoPickerDismissed();
+
+        /**
+         * Returns whether video decoding support is supported in the photo picker.
+         */
+        boolean supportsVideos();
     }
 
     // ContactsPickerDelegate:
@@ -180,6 +185,15 @@ public class UiUtils {
      */
     public static boolean shouldShowPhotoPicker() {
         return sPhotoPickerDelegate != null;
+    }
+
+    /**
+     * Returns whether the photo picker supports showing videos.
+     */
+    public static boolean photoPickerSupportsVideo() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return false;
+        if (!shouldShowPhotoPicker()) return false;
+        return sPhotoPickerDelegate.supportsVideos();
     }
 
     /**
@@ -489,5 +503,23 @@ public class UiUtils {
             }
         }
         return sSystemUiThemingDisabled;
+    }
+
+    /**
+     * Sets the navigation bar icons to dark or light. Note that this is only valid for Android
+     * O_MR1+.
+     * @param rootView The root view used to request updates to the system UI theme.
+     * @param useDarkIcons Whether the navigation bar icons should be dark.
+     */
+    public static void setNavigationBarIconColor(View rootView, boolean useDarkIcons) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) return;
+
+        int systemUiVisibility = rootView.getSystemUiVisibility();
+        if (useDarkIcons) {
+            systemUiVisibility |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        } else {
+            systemUiVisibility &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        }
+        rootView.setSystemUiVisibility(systemUiVisibility);
     }
 }

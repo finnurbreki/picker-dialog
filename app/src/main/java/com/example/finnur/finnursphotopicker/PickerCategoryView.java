@@ -9,11 +9,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -37,6 +35,7 @@ import org.chromium.base.task.AsyncTask;
 import org.chromium.chrome.browser.util.ConversionUtils;
 import org.chromium.chrome.browser.widget.selection.SelectableListLayout;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
+import org.chromium.net.MimeTypeFilter;
 import org.chromium.ui.PhotoPickerListener;
 import org.chromium.ui.UiUtils;
 
@@ -59,10 +58,12 @@ public class PickerCategoryView extends RelativeLayout
     private static final int ACTION_BROWSE = 3;
     private static final int ACTION_BOUNDARY = 4;
 
-    // A container class for keeping track of details about a thumbnail in the photo picker.
+    /**
+     * A container class for keeping track of details about a thumbnail in the photo picker.
+     */
     static public class Thumbnail {
-        Bitmap bitmap;
-        String videoDuration;
+        public Bitmap bitmap;
+        public String videoDuration;
 
         Thumbnail(Bitmap bitmap, String videoDuration) {
             this.bitmap = bitmap;
@@ -179,7 +180,7 @@ public class PickerCategoryView extends RelativeLayout
         int titleId = multiSelectionAllowed ? R.string.photo_picker_select_images
                                             : R.string.photo_picker_select_image;
         PhotoPickerToolbar toolbar = (PhotoPickerToolbar) mSelectableListLayout.initializeToolbar(
-                R.layout.photo_picker_toolbar, mSelectionDelegate, titleId, null, 0, 0, null, false,
+                R.layout.photo_picker_toolbar, mSelectionDelegate, titleId, 0, 0, null, false,
                 false);
         toolbar.setNavigationOnClickListener(this);
         Button doneButton = (Button) toolbar.findViewById(R.id.done);
@@ -224,7 +225,11 @@ public class PickerCategoryView extends RelativeLayout
         mSpacingDecoration = new GridSpacingItemDecoration(mColumns, mPadding);
         mRecyclerView.addItemDecoration(mSpacingDecoration);
 
-        mPickerAdapter.notifyDataSetChanged();
+        // Configuration change can happen at any time, even before the photos have been
+        // enumerated (when mPickerBitmaps is null, causing: https://crbug.com/947657). There's no
+        // need to call notifyDataSetChanged in that case because it will be called once the photo
+        // list becomes ready.
+        if (mPickerBitmaps != null) mPickerAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -386,8 +391,8 @@ public class PickerCategoryView extends RelativeLayout
     public LruCache<String, Thumbnail> getLowResThumbnails() {
         /* Not used for the Android project, but used in Chrome.
         if (mLowResThumbnails == null || mLowResThumbnails.get() == null) {
-            mLowResThumbnails =
-                    mActivity.getReferencePool().put(new LruCache<String, Thumbnail>(mCacheSizeSmall));
+            mLowResThumbnails = mActivity.getReferencePool().put(
+                    new LruCache<String, Thumbnail>(mCacheSizeSmall));
         }
         return mLowResThumbnails.get();
         */
@@ -397,8 +402,8 @@ public class PickerCategoryView extends RelativeLayout
     public LruCache<String, Thumbnail> getHighResThumbnails() {
         /* Not used for the Android project, but used in Chrome.
         if (mHighResThumbnails == null || mHighResThumbnails.get() == null) {
-            mHighResThumbnails =
-                    mActivity.getReferencePool().put(new LruCache<String, Thumbnail>(mCacheSizeLarge));
+            mHighResThumbnails = mActivity.getReferencePool().put(
+                    new LruCache<String, Thumbnail>(mCacheSizeLarge));
         }
         return mHighResThumbnails.get();
         */
@@ -458,7 +463,7 @@ public class PickerCategoryView extends RelativeLayout
 
         mEnumStartTime = SystemClock.elapsedRealtime();
         // Android Studio project does not use WindowAndroid class.
-        mWorkerTask = new FileEnumWorkerTask(this, mMimeTypes, mActivity.getContentResolver());
+        mWorkerTask = new FileEnumWorkerTask(this, new MimeTypeFilter(mMimeTypes, true), mMimeTypes, mActivity.getContentResolver());
         mWorkerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 

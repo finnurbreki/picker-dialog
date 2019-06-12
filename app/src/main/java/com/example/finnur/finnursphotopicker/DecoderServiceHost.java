@@ -38,7 +38,8 @@ import java.util.List;
 /**
  * A class to communicate with the {@link DecoderService}.
  */
-public class DecoderServiceHost extends IDecoderServiceCallback.Stub implements DecodeVideoTask.VideoDecodingCallback {
+public class DecoderServiceHost
+        extends IDecoderServiceCallback.Stub implements DecodeVideoTask.VideoDecodingCallback {
     // A tag for logging error messages.
     private static final String TAG = "ImageDecoderHost";
 
@@ -113,7 +114,8 @@ public class DecoderServiceHost extends IDecoderServiceCallback.Stub implements 
         public int mSize;
 
         // The type of media being decoded.
-        @PickerBitmap.TileTypes int mFileType;
+        @PickerBitmap.TileTypes
+        int mFileType;
 
         // The callback to use to communicate the results of the decoding.
         ImageDecodedCallback mCallback;
@@ -121,7 +123,8 @@ public class DecoderServiceHost extends IDecoderServiceCallback.Stub implements 
         // The timestamp for when the request was sent for decoding.
         long mTimestamp;
 
-        public DecoderServiceParams(Uri uri, int size, @PickerBitmap.TileTypes int fileType, ImageDecodedCallback callback) {
+        public DecoderServiceParams(Uri uri, int size, @PickerBitmap.TileTypes int fileType,
+                ImageDecodedCallback callback) {
             mUri = uri;
             mSize = size;
             mFileType = fileType;
@@ -185,7 +188,8 @@ public class DecoderServiceHost extends IDecoderServiceCallback.Stub implements 
      * @param size The requested size (width and height) of the resulting bitmap.
      * @param callback The callback to use to communicate the decoding results.
      */
-    public void decodeImage(Uri uri, @PickerBitmap.TileTypes int fileType, int size, ImageDecodedCallback callback) {
+    public void decodeImage(Uri uri, @PickerBitmap.TileTypes int fileType, int size,
+            ImageDecodedCallback callback) {
         DecoderServiceParams params = new DecoderServiceParams(uri, size, fileType, callback);
         mRequests.put(uri.getPath(), params);
         if (mRequests.size() == 1) dispatchNextDecodeImageRequest();
@@ -219,7 +223,7 @@ public class DecoderServiceHost extends IDecoderServiceCallback.Stub implements 
 
     @Override
     public void videoDecodedCallback(Uri uri, Bitmap bitmap, String duration) {
-        // TODOf UMA for video decoding?
+        // TODO(finnur): Add corresponding UMA for video decoding.
         closeRequest(uri.getPath(), bitmap, duration, -1);
     }
 
@@ -255,7 +259,8 @@ public class DecoderServiceHost extends IDecoderServiceCallback.Stub implements 
      * @param bitmap The resulting decoded bitmap, or null if decoding fails.
      * @param decodeTime The length of time it took to decode the bitmap.
      */
-    public void closeRequest(String filePath, @Nullable Bitmap bitmap, String videoDuration, long decodeTime) {
+    public void closeRequest(
+            String filePath, @Nullable Bitmap bitmap, String videoDuration, long decodeTime) {
         DecoderServiceParams params = getRequests().get(filePath);
         if (params != null) {
             long endRpcCall = SystemClock.elapsedRealtime();
@@ -282,10 +287,11 @@ public class DecoderServiceHost extends IDecoderServiceCallback.Stub implements 
      * @param uri The URI of the image on disk.
      * @param size The requested width and height of the resulting bitmap.
      */
-    private void dispatchDecodeImageRequest(Uri uri, @PickerBitmap.TileTypes int fileType, int size) {
+    private void dispatchDecodeImageRequest(
+            Uri uri, @PickerBitmap.TileTypes int fileType, int size) {
         if (fileType == PickerBitmap.TileTypes.VIDEO) {
-            // Videos are decoded by the system (on N+) using a restricted helper process, so there's no need
-            // to use our custom sandboxed process.
+            // Videos are decoded by the system (on N+) using a restricted helper process, so
+            // there's no need to use our custom sandboxed process.
             assert Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
             mWorkerTask = new DecodeVideoTask(this, mContentResolver, uri, size);
             mWorkerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
