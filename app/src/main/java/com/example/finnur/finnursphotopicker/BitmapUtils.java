@@ -71,8 +71,7 @@ class BitmapUtils {
     }
 
     /**
-     * Given a FileDescriptor, decodes the video and returns a bitmap of
-     * dimensions |size|x|size|.
+     * Given a FileDescriptor, decodes the video and returns a bitmap of dimensions |size|x|size|.
      * @param descriptor The FileDescriptor for the file to read.
      * @param size The width and height of the bitmap to return.
      * @return The resulting bitmap.

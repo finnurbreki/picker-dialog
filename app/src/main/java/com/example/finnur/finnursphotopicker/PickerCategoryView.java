@@ -4,6 +4,7 @@
 
 package com.example.finnur.finnursphotopicker;
 
+import android.Manifest;
 import android.app.Activity;  // Android Studio only.
 import android.content.Context;
 import android.content.DialogInterface;
@@ -59,7 +60,8 @@ public class PickerCategoryView extends RelativeLayout
     private static final int ACTION_BOUNDARY = 4;
 
     /**
-     * A container class for keeping track of details about a thumbnail in the photo picker.
+     * A container class for keeping track of the data we need to show a photo/video tile in the
+     * photo picker (the data we store in the cache).
      */
     static public class Thumbnail {
         public Bitmap bitmap;
@@ -247,6 +249,10 @@ public class PickerCategoryView extends RelativeLayout
         }
     }
 
+    /**
+     * Start playback of a video in an overlay above the photo picker.
+     * @param uri The uri of the video to start playing.
+     */
     public void playVideo(Uri uri) {
         findViewById(R.id.playback_container).setVisibility(View.VISIBLE);
         findViewById(R.id.close).setOnClickListener(this);
@@ -460,6 +466,14 @@ public class PickerCategoryView extends RelativeLayout
         if (mWorkerTask != null) {
             mWorkerTask.cancel(true);
         }
+
+        // TODO(finnur): Remove once we figure out the cause of crbug.com/950024.
+        /*
+        if (!mActivity.getWindowAndroid().hasPermission(
+                    Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            throw new RuntimeException("Bitmap enumeration without storage read permission");
+        }
+        */
 
         mEnumStartTime = SystemClock.elapsedRealtime();
         // Android Studio project does not use WindowAndroid class.

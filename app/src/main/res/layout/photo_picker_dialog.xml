@@ -15,7 +15,7 @@
         android:id="@+id/selectable_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/default_primary_color" />
+        android:background="@color/modern_primary_color" />
 
     <RelativeLayout
         android:id="@+id/playback_container"
@@ -39,8 +39,9 @@
                 android:layout_marginBottom="8dp"
                 android:layout_marginEnd="4dp"
                 android:layout_marginTop="8dp"
-                tools:ignore="ContentDescription"
-                app:srcCompat="@drawable/ic_cancel" />
+                android:tint="@android:color/white"
+                android:contentDescription="@string/close"
+                app:srcCompat="@drawable/ic_cancel_circle" />
 
             <VideoView
                 android:id="@+id/video_player"

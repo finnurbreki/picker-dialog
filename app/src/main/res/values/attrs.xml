@@ -12,6 +12,7 @@
         <attr name="buttonColor" format="color"/>
         <attr name="rippleColor" format="color"/>
         <attr name="buttonRaised" format="boolean"/>
+        <attr name="verticalInset"/>
     </declare-styleable>
 
     <declare-styleable name="TextViewWithCompoundDrawables">
@@ -20,4 +21,5 @@
         <!-- drawableTint wasn't added in Android until API level 23. -->
         <attr name="chromeDrawableTint" format="color"/>
     </declare-styleable>
+
 </resources>

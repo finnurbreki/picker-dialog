@@ -73,10 +73,11 @@ class FileEnumWorkerTask extends AsyncTask<List<PickerBitmap>> {
         mContentResolver = contentResolver;
 
         for (String mimeType : mimeTypes) {
-            if (mimeType.startsWith("image/"))
+            if (mimeType.startsWith("image/")) {
                 mIncludeImages = true;
-            else if (mimeType.startsWith("video/"))
+            } else if (mimeType.startsWith("video/")) {
                 mIncludeVideos = true;
+            }
 
             if (mIncludeImages && mIncludeVideos) break;
         }
@@ -109,7 +110,8 @@ class FileEnumWorkerTask extends AsyncTask<List<PickerBitmap>> {
                 MediaStore.Files.FileColumns.DATE_ADDED,
                 MediaStore.Files.FileColumns.MEDIA_TYPE,
                 MediaStore.Files.FileColumns.MIME_TYPE,
-                directoryColumnName};
+                directoryColumnName,
+        };
 
         String whereClause = "(" + directoryColumnName + " LIKE ? OR " + directoryColumnName
                 + " LIKE ? OR " + directoryColumnName + " LIKE ?) AND " + directoryColumnName
@@ -140,9 +142,12 @@ class FileEnumWorkerTask extends AsyncTask<List<PickerBitmap>> {
 
         String[] whereArgs = new String[] {
                 // Include:
-                cameraDir + "%", picturesDir + "%", downloadsDir + "%",
+                cameraDir + "%",
+                picturesDir + "%",
+                downloadsDir + "%",
                 // Exclude low-quality sources, such as the screenshots directory:
-                screenshotsDir + "%"};
+                screenshotsDir + "%",
+        };
 
         final String orderBy = MediaStore.MediaColumns.DATE_ADDED + " DESC";
 

@@ -16,7 +16,6 @@ import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v4.widget.ImageViewCompat;
 import android.support.v7.content.res.AppCompatResources;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -41,9 +40,6 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
 
     // The length of the fade in animation (in ms).
     private static final int IMAGE_FADE_IN_DURATION = 200;
-
-    // How far from the border to animate the duration string (in dp).
-    private static final int VIDEO_DURATION_OFFSET_DP = 16;
 
     // Our context.
     private Context mContext;
@@ -200,12 +196,12 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             float end;
             float videoDurationOffsetX;
             float videoDurationOffsetY;
-
             if (size != mCategoryView.getImageSize()) {
                 start = 1f;
                 end = 0.8f;
 
-                float pixels = VIDEO_DURATION_OFFSET_DP * ((float) mContext.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+                float pixels = getResources().getDimensionPixelSize(
+                        R.dimen.photo_picker_video_duration_offset);
                 videoDurationOffsetX = -pixels;
                 videoDurationOffsetY = pixels;
             } else {
@@ -225,10 +221,10 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             animation.setFillAfter(true); // Keep the results of the animation.
             mIconView.startAnimation(animation);
 
-            ObjectAnimator videoDurationX =
-                    ObjectAnimator.ofFloat(mVideoDuration, View.TRANSLATION_X, videoDurationOffsetX);
-            ObjectAnimator videoDurationY =
-                    ObjectAnimator.ofFloat(mVideoDuration, View.TRANSLATION_Y, videoDurationOffsetY);
+            ObjectAnimator videoDurationX = ObjectAnimator.ofFloat(
+                    mVideoDuration, View.TRANSLATION_X, videoDurationOffsetX);
+            ObjectAnimator videoDurationY = ObjectAnimator.ofFloat(
+                    mVideoDuration, View.TRANSLATION_Y, videoDurationOffsetY);
             AnimatorSet animatorSet = new AnimatorSet();
             animatorSet.playTogether(videoDurationX, videoDurationY);
             animatorSet.setDuration(ANIMATION_DURATION);

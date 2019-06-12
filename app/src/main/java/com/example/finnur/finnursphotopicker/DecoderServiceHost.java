@@ -221,6 +221,12 @@ public class DecoderServiceHost
         }
     }
 
+    /**
+     * A callback that receives the results of the video decoding.
+     * @param uri The uri of the decoded video.
+     * @param bitmap The thumbnail representing the decoded video.
+     * @param duration The video duration (a formatted human-readable string, for example "3:00").
+     */
     @Override
     public void videoDecodedCallback(Uri uri, Bitmap bitmap, String duration) {
         // TODO(finnur): Add corresponding UMA for video decoding.

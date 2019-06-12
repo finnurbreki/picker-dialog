@@ -173,6 +173,7 @@
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
+        <item name="verticalInset">@dimen/button_bg_vertical_inset</item>
     </style>
 
     <style name="ButtonCompatBorderless" parent="ButtonCompat">
