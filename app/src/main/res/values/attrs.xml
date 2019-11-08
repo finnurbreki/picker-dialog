@@ -22,4 +22,8 @@
         <attr name="chromeDrawableTint" format="color"/>
     </declare-styleable>
 
+    <declare-styleable name="TextViewWithLeading">
+        <attr name="leading" format="reference|dimension"/>
+    </declare-styleable>
+
 </resources>

@@ -63,12 +63,12 @@ public class PickerCategoryView extends RelativeLayout
      * A container class for keeping track of the data we need to show a photo/video tile in the
      * photo picker (the data we store in the cache).
      */
-    static public class Thumbnail {
-        public Bitmap bitmap;
+    public static class Thumbnail {
+        public List<Bitmap> bitmaps;
         public String videoDuration;
 
-        Thumbnail(Bitmap bitmap, String videoDuration) {
-            this.bitmap = bitmap;
+        Thumbnail(List<Bitmap> bitmaps, String videoDuration) {
+            this.bitmaps = bitmaps;
             this.videoDuration = videoDuration;
         }
     }
@@ -162,13 +162,14 @@ public class PickerCategoryView extends RelativeLayout
      * @param multiSelectionAllowed Whether to allow the user to select more than one image.
      */
     @SuppressWarnings("unchecked") // mSelectableListLayout
-    public PickerCategoryView(Context context, boolean multiSelectionAllowed) {
+    public PickerCategoryView(Context context, boolean multiSelectionAllowed,
+            PhotoPickerToolbar.PhotoPickerToolbarDelegate delegate) {
         super(context);
         mActivity = /*(ChromeActivity)*/ (Activity) context;
         mMultiSelectionAllowed = multiSelectionAllowed;
 
-        mDecoderServiceHost = new DecoderServiceHost(this, mActivity);
-        mDecoderServiceHost.bind(mActivity);
+        mDecoderServiceHost = new DecoderServiceHost(this, context);
+        mDecoderServiceHost.bind(context);
 
         mSelectionDelegate = new SelectionDelegate<PickerBitmap>();
         if (!multiSelectionAllowed) mSelectionDelegate.setSingleSelectionMode();
@@ -185,6 +186,7 @@ public class PickerCategoryView extends RelativeLayout
                 R.layout.photo_picker_toolbar, mSelectionDelegate, titleId, 0, 0, null, false,
                 false);
         toolbar.setNavigationOnClickListener(this);
+        toolbar.setDelegate(delegate);
         Button doneButton = (Button) toolbar.findViewById(R.id.done);
         doneButton.setOnClickListener(this);
         mVideoView = findViewById(R.id.video_player);
@@ -206,13 +208,13 @@ public class PickerCategoryView extends RelativeLayout
         mLowResThumbnails = new LruCache<String, Thumbnail>(mCacheSizeSmall) {
             @Override
             protected int sizeOf(String key, Thumbnail thumbnail) {
-                return (int) ConversionUtils.bytesToKilobytes(thumbnail.bitmap.getByteCount());
+                return (int) ConversionUtils.bytesToKilobytes(thumbnail.bitmaps.get(0).getByteCount());
             }
         };
         mHighResThumbnails = new LruCache<String, Thumbnail>(mCacheSizeLarge) {
             @Override
             protected int sizeOf(String key, Thumbnail thumbnail) {
-                return (int) ConversionUtils.bytesToKilobytes(thumbnail.bitmap.getByteCount());
+                 return (int) ConversionUtils.bytesToKilobytes(thumbnail.bitmaps.get(0).getByteCount());
             }
         };
     }
@@ -476,8 +478,9 @@ public class PickerCategoryView extends RelativeLayout
         */
 
         mEnumStartTime = SystemClock.elapsedRealtime();
-        // Android Studio project does not use WindowAndroid class.
-        mWorkerTask = new FileEnumWorkerTask(this, new MimeTypeFilter(mMimeTypes, true), mMimeTypes, mActivity.getContentResolver());
+        // Android Studio project does not use WindowAndroid parameter.
+        mWorkerTask = new FileEnumWorkerTask(this,
+                new MimeTypeFilter(mMimeTypes, true), mMimeTypes, mActivity.getContentResolver());
         mWorkerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 

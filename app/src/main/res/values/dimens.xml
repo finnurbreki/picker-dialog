@@ -6,6 +6,7 @@
     <dimen name="autofill_assistant_button_bg_vertical_inset">4dp</dimen>
     <dimen name="button_bg_vertical_inset">6dp</dimen>
     <dimen name="button_compat_corner_radius">4dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
     <dimen name="chrome_home_empty_view_top_padding">16dp</dimen>
     <dimen name="clear_text_button_end_padding">8dp</dimen>
     <item name="default_disabled_alpha" format="float" type="dimen">0.38</item>
@@ -14,6 +15,7 @@
     <item name="default_focused_alpha" format="float" type="dimen">0.06</item>
     <item name="default_hovered_alpha" format="float" type="dimen">0.04</item>
     <dimen name="default_ripple_background_border_size">0dp</dimen>
+    <dimen name="default_rounded_corner_radius">8dp</dimen>
     <item name="disabled_text_alpha" format="float" type="dimen">0.38</item>
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="headline_size">22sp</dimen>
@@ -35,11 +37,13 @@
     <dimen name="search_toolbar_modern_bg_lateral_inset">8dp</dimen>
     <dimen name="search_toolbar_modern_bg_top_bottom_inset">10dp</dimen>
     <dimen name="selectable_list_action_bar_end_padding">6dp</dimen>
+    <dimen name="selectable_list_layout_row_padding">16dp</dimen>
     <dimen name="selectable_list_search_icon_end_padding">4dp</dimen>
     <dimen name="selectable_list_toolbar_nav_button_start_offset">4dp</dimen>
     <dimen name="tab_strip_height">0dp</dimen>
     <dimen name="text_size_medium">14sp</dimen>
     <dimen name="text_size_medium_dense">13sp</dimen>
+    <dimen name="text_size_medium_leading">20sp</dimen>
     <dimen name="text_size_large">16sp</dimen>
     <dimen name="text_size_small">12sp</dimen>
     <dimen name="toolbar_height_no_shadow">56dp</dimen>

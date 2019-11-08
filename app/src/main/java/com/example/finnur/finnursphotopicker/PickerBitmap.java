@@ -5,7 +5,8 @@
 package com.example.finnur.finnursphotopicker;
 
 import android.net.Uri;
-import android.support.annotation.IntDef;
+
+import androidx.annotation.IntDef;
 
 import org.chromium.base.ApiCompatibilityUtils;
 

@@ -137,6 +137,8 @@ public class MainActivity extends AppCompatActivity {
                 mDialog.show();
             }
         });
+
+        fab.callOnClick();
     }
 
     @Override
