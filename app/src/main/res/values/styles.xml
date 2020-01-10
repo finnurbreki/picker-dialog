@@ -263,4 +263,16 @@
     <style name="FilledButtonThemeOverlay">
         <item name="android:buttonStyle">@style/FilledButton</item>
     </style>
+
+    <style name="MediaButton"></style>
+    <style name="MediaButton.Play">
+        <item name="android:layout_width">128dp</item>
+    </style>
+
+    <style name="PhotoPicker"></style>
+    <style name="PhotoPicker.SeekBar" parent="Widget.AppCompat.SeekBar">
+        <item name="android:progressBackgroundTint">@color/google_grey_500</item>
+        <item name="android:progressTint">@color/default_primary_color</item>
+        <item name="android:thumbTint">@color/default_primary_color</item>
+    </style>
 </resources>

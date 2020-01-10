@@ -7,17 +7,18 @@ package org.chromium.chrome.browser.widget.selection;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
 import android.support.v7.content.res.AppCompatResources;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+
 import org.chromium.base.ApiCompatibilityUtils;
 import com.example.finnur.finnursphotopicker.R;
-import org.chromium.chrome.browser.widget.TintedDrawable;
+import org.chromium.chrome.browser.ui.widget.TintedDrawable;
 
 /**
  * Default implementation of SelectableItemViewBase.
@@ -69,7 +70,7 @@ public abstract class SelectableItemView<E> extends SelectableItemViewBase<E> {
      */
     protected void setIconDrawable(Drawable iconDrawable) {
         mIconDrawable = iconDrawable;
-        updateView();
+        updateView(false);
     }
 
     /**
@@ -83,7 +84,7 @@ public abstract class SelectableItemView<E> extends SelectableItemViewBase<E> {
      * Update icon image and background based on whether this item is selected.
      */
     @Override
-    protected void updateView() {
+    protected void updateView(boolean animate) {
         // TODO(huayinz): Refactor this method so that mIconView is not exposed to subclass.
         if (mIconView == null) return;
 
@@ -91,7 +92,7 @@ public abstract class SelectableItemView<E> extends SelectableItemViewBase<E> {
             mIconView.getBackground().setLevel(mSelectedLevel);
             mIconView.setImageDrawable(mCheckDrawable);
             ApiCompatibilityUtils.setImageTintList(mIconView, mIconColorList);
-            mCheckDrawable.start();
+            if (animate) mCheckDrawable.start();
         } else {
             mIconView.getBackground().setLevel(mDefaultLevel);
             mIconView.setImageDrawable(mIconDrawable);

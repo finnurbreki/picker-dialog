@@ -9,11 +9,12 @@ import android.content.Context;
 import android.net.Uri;
 import android.support.v7.app.AlertDialog;
 
+import androidx.annotation.VisibleForTesting;
+
 //import org.chromium.base.ActivityState;
 //import org.chromium.base.ApplicationStatus;
 //import org.chromium.base.ApplicationStatus.ActivityStateListener;
 //import org.chromium.base.ContextUtils;
-import org.chromium.base.VisibleForTesting;
 //import org.chromium.chrome.R;
 import org.chromium.ui.PhotoPickerListener;
 
@@ -93,6 +94,17 @@ public class PhotoPickerDialog
         mCategoryView = new PickerCategoryView(context, multiSelectionAllowed, this);
         mCategoryView.initialize(this, mListenerWrapper, mimeTypes);
         setView(mCategoryView);
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Pressing Back when a video is playing, should only end the video playback.
+        boolean videoWasStopped = mCategoryView.closeVideoPlayer();
+        if (videoWasStopped) {
+            return;
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override

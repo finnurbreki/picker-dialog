@@ -83,6 +83,7 @@ public class BuildInfo {
                 buildInfo.resourcesVersion,
                 buildInfo.extractedFileSuffix,
                 isAtLeastQ() ? "1" : "0",
+                isDebugAndroid() ? "1" : "0",
         };
     }
 
@@ -91,6 +92,7 @@ public class BuildInfo {
     }
 
     private static long packageVersionCode(PackageInfo pi) {
+        // Not needed for Android Studio project.
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
         //    return ApiHelperForP.getLongVersionCode(pi);
         //} else {
@@ -136,7 +138,7 @@ public class BuildInfo {
             try {
                 gmsPackageInfo = pm.getPackageInfo("com.google.android.gms", 0);
             } catch (NameNotFoundException e) {
-                Log.d(TAG, "GMS package is not found.", e);
+                Log.d(TAG, "GMS package is not found.");
             }
             gmsVersionCode = gmsPackageInfo != null
                     ? String.valueOf(packageVersionCode(gmsPackageInfo))
@@ -156,7 +158,7 @@ public class BuildInfo {
 
             String currentResourcesVersion = "Not Enabled";
             // Controlled by target specific build flags.
-            /* Not needed in Android Studio project.
+            /* Not needed for Android Studio project.
             if (BuildConfig.R_STRING_PRODUCT_VERSION != 0) {
                 try {
                     // This value can be compared with the actual product version to determine if

@@ -5,12 +5,14 @@
 package org.chromium.base.task;
 
 import android.os.Process;
-import android.support.annotation.Nullable;
 import android.util.Pair;
+
+import androidx.annotation.Nullable;
 
 import org.chromium.base.LifetimeAssert;
 import org.chromium.base.TraceEvent;
 import org.chromium.base.annotations.JNINamespace;
+import org.chromium.base.annotations.NativeMethods;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -49,7 +51,7 @@ public class TaskRunnerImpl implements TaskRunner {
 
     /**
      * @param traits The TaskTraits associated with this TaskRunnerImpl.
-     * @param traceCategory Specifies which subclass is this instance for logging purposes.
+     * @param traceCategory Specifies the name of this instance's subclass for logging purposes.
      * @param taskRunnerType Specifies which subclass is this instance for initialising the correct
      *         native scheduler.
      */
@@ -72,7 +74,11 @@ public class TaskRunnerImpl implements TaskRunner {
 
     @GuardedBy("mLock")
     protected void destroyInternal() {
-        if (mNativeTaskRunnerAndroid != 0) nativeDestroy(mNativeTaskRunnerAndroid);
+        /* Not needed for Android Studio project.
+        if (mNativeTaskRunnerAndroid != 0) {
+            TaskRunnerImplJni.get().destroy(mNativeTaskRunnerAndroid);
+        }
+        */
         mNativeTaskRunnerAndroid = 0;
     }
 
@@ -119,6 +125,8 @@ public class TaskRunnerImpl implements TaskRunner {
     /**
      * Runs a single task and returns when its finished.
      */
+    // The trace event name is derived from string literals.
+    @SuppressWarnings("NoDynamicStringsInTraceEventCheck")
     protected void runPreNativeTask() {
         try (TraceEvent te = TraceEvent.scoped(mTraceEvent)) {
             Runnable task;
@@ -156,10 +164,13 @@ public class TaskRunnerImpl implements TaskRunner {
     @GuardedBy("mLock")
     protected void initNativeTaskRunnerInternal() {
         if (mNativeTaskRunnerAndroid == 0) {
-            mNativeTaskRunnerAndroid = nativeInit(mTaskRunnerType,
+            /* Not needed for Android Studio project.
+            mNativeTaskRunnerAndroid = TaskRunnerImplJni.get().init(mTaskRunnerType,
                     mTaskTraits.mPrioritySetExplicitly, mTaskTraits.mPriority,
-                    mTaskTraits.mMayBlock, mTaskTraits.mUseThreadPool, mTaskTraits.mExtensionId,
+                    mTaskTraits.mMayBlock, mTaskTraits.mUseThreadPool,
+                    mTaskTraits.mUseCurrentThread, mTaskTraits.mExtensionId,
                     mTaskTraits.mExtensionData);
+            */
         }
     }
 
@@ -179,15 +190,18 @@ public class TaskRunnerImpl implements TaskRunner {
 
     @GuardedBy("mLock")
     protected void postDelayedTaskToNative(Runnable r, long delay) {
-        nativePostDelayedTask(mNativeTaskRunnerAndroid, r, delay);
+        //TaskRunnerImplJni.get().postDelayedTask(mNativeTaskRunnerAndroid, r, delay);
     }
 
-    // NB due to Proguard obfuscation it's easiest to pass the traits via arguments.
-    private native long nativeInit(@TaskRunnerType int taskRunnerType,
-            boolean prioritySetExplicitly, int priority, boolean mayBlock, boolean useThreadPool,
-            byte extensionId, byte[] extensionData);
-    private native void nativeDestroy(long nativeTaskRunnerAndroid);
-    private native void nativePostDelayedTask(
-            long nativeTaskRunnerAndroid, Runnable task, long delay);
-    protected native boolean nativeBelongsToCurrentThread(long nativeTaskRunnerAndroid);
+    @NativeMethods
+    interface Natives {
+        // NB due to Proguard obfuscation it's easiest to pass the traits via arguments.
+        long init(@TaskRunnerType int taskRunnerType, boolean prioritySetExplicitly, int priority,
+                boolean mayBlock, boolean useThreadPool, boolean useCurrentThread, byte extensionId,
+                byte[] extensionData);
+
+        void destroy(long nativeTaskRunnerAndroid);
+        void postDelayedTask(long nativeTaskRunnerAndroid, Runnable task, long delay);
+        boolean belongsToCurrentThread(long nativeTaskRunnerAndroid);
+    }
 }

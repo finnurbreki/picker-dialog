@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package org.chromium.chrome.browser.widget.displaystyle;
+package org.chromium.components.browser_ui.widget.displaystyle;
 
 import android.content.Context;
 import android.view.View;
 
+import androidx.annotation.VisibleForTesting;
+
 import org.chromium.base.Log;
-import org.chromium.base.VisibleForTesting;
 import org.chromium.ui.widget.Toast;
 
 import java.util.ArrayList;

@@ -33,7 +33,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:visibility="gone" />
+            android:visibility="gone"
+            android:scrollbars="vertical" />
 
 
         <FrameLayout
@@ -59,14 +60,14 @@
 
         </FrameLayout>
 
-        <org.chromium.chrome.browser.widget.LoadingView
+        <org.chromium.chrome.browser.ui.widget.LoadingView
             android:id="@+id/loading_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center" />
     </FrameLayout>
 
-    <org.chromium.chrome.browser.widget.FadingShadowView
+    <org.chromium.chrome.browser.ui.widget.FadingShadowView
         android:id="@+id/shadow"
         android:layout_width="match_parent"
         android:layout_height="@dimen/action_bar_shadow_height"

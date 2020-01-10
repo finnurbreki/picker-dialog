@@ -4,7 +4,8 @@
 
 package com.example.finnur.finnursphotopicker;
 
-import android.Manifest;
+//import android.Manifest;
+import android.animation.Animator;
 import android.app.Activity;  // Android Studio only.
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,26 +14,34 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.SystemClock;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.transition.ChangeBounds;
+import android.transition.Transition;
+import android.transition.TransitionManager;
 import android.util.DisplayMetrics;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.MediaController;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.VideoView;
 
+import androidx.annotation.VisibleForTesting;
+
 //import org.chromium.base.DiscardableReferencePool.DiscardableReference;
-import org.chromium.base.VisibleForTesting;
+import org.chromium.base.ThreadUtils;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.base.task.AsyncTask;
-// import org.chromium.chrome.R;
-// import org.chromium.chrome.browser.ChromeActivity;
+//import org.chromium.chrome.R;
+//import org.chromium.chrome.browser.ChromeActivity;
+//import org.chromium.chrome.browser.ChromeFeatureList;
 import org.chromium.chrome.browser.util.ConversionUtils;
 import org.chromium.chrome.browser.widget.selection.SelectableListLayout;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
@@ -42,6 +51,7 @@ import org.chromium.ui.UiUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -50,7 +60,9 @@ import java.util.List;
  */
 public class PickerCategoryView extends RelativeLayout
         implements FileEnumWorkerTask.FilesEnumeratedCallback, RecyclerView.RecyclerListener,
-                   DecoderServiceHost.ServiceReadyCallback, View.OnClickListener {
+                   DecoderServiceHost.ServiceReadyCallback, View.OnClickListener,
+                   SeekBar.OnSeekBarChangeListener,
+                   SelectionDelegate.SelectionObserver<PickerBitmap> {
     // These values are written to logs.  New enum values can be added, but existing
     // enums must never be renumbered or deleted and reused.
     private static final int ACTION_CANCEL = 0;
@@ -65,11 +77,20 @@ public class PickerCategoryView extends RelativeLayout
      */
     public static class Thumbnail {
         public List<Bitmap> bitmaps;
+        public Boolean fullWidth;
         public String videoDuration;
 
-        Thumbnail(List<Bitmap> bitmaps, String videoDuration) {
+        // TODO(finnur): Rename: ratioOriginal.
+        // The calculated ratio of the originals for the bitmaps above, were they to be shown
+        // un-cropped. NOTE: The |bitmaps| above may already have been cropped and as such might
+        // have a different ratio.
+        public float ratio;
+
+        Thumbnail(List<Bitmap> bitmaps, String videoDuration, Boolean fullWidth, float ratio) {
             this.bitmaps = bitmaps;
             this.videoDuration = videoDuration;
+            this.fullWidth = fullWidth;
+            this.ratio = ratio;
         }
     }
 
@@ -117,11 +138,23 @@ public class PickerCategoryView extends RelativeLayout
     // A high-resolution cache for thumbnails, lazily created.
     private /*DiscardableReference<*/ LruCache<String, Thumbnail> /*>*/ mHighResThumbnails;
 
+    // A cache for full-screen versions of images, lazily created.
+    private /*DiscardableReference<*/ LruCache<String, Thumbnail> /*>*/ mFullScreenBitmaps;
+
     // The size of the low-res cache.
     private int mCacheSizeLarge;
 
     // The size of the high-res cache.
     private int mCacheSizeSmall;
+
+    // The size of the full-screen cache.
+    private int mCacheSizeFullScreen;
+
+    // Whether we are in magnifying mode (one image per column).
+    private boolean mMagnifyingMode;
+
+    // Whether we are in the middle of animating between magnifying modes.
+    private boolean mZoomSwitchingInEffect;
 
     /**
      * The number of columns to show. Note: mColumns and mPadding (see below) should both be even
@@ -133,8 +166,14 @@ public class PickerCategoryView extends RelativeLayout
     // The padding between columns. See also comment for mColumns.
     private int mPadding;
 
-    // The size of the bitmaps (equal length for width and height).
-    private int mImageSize;
+    // The width of the bitmaps.
+    private int mImageWidth;
+
+    // The height of the bitmaps.
+    private int mImageHeight;
+
+    // The height of the special tiles.
+    private int mSpecialTileHeight;
 
     // A worker task for asynchronously enumerating files off the main thread.
     private FileEnumWorkerTask mWorkerTask;
@@ -154,8 +193,32 @@ public class PickerCategoryView extends RelativeLayout
     // The video preview view.
     private VideoView mVideoView;
 
-    // The media controls to show with the video (play/pause, etc).
-    private MediaController mMediaController;
+    // The MediaPlayer object used to control the VideoView.
+    private MediaPlayer mMediaPlayer;
+
+    // The container view for all the UI elements overlaid on top of the video.
+    private View mVideoOverlayContainer;
+
+    // The container view for the UI video controls within the overlaid window.
+    private View mVideoControls;
+
+    // The large Play button overlaid on top of the video.
+    private ImageView mLargePlayButton;
+
+    // The Mute button for the video.
+    private ImageView mMuteButton;
+
+    // Keeps track of whether audio track is enabled or not.
+    private boolean mAudioOn = true;
+
+    // The SeekBar showing the video playback progress (allows user seeking).
+    private SeekBar mSeekBar;
+
+    // A thread for periodically updating the progress of video playback to the user.
+    private Thread mPlaybackPositionMonitorThread;
+
+    // The Zoom (floating action) button.
+    private ImageView mZoom;
 
     /**
      * @param context The context to use.
@@ -172,6 +235,9 @@ public class PickerCategoryView extends RelativeLayout
         mDecoderServiceHost.bind(context);
 
         mSelectionDelegate = new SelectionDelegate<PickerBitmap>();
+        if (true /*ChromeFeatureList.isEnabled(ChromeFeatureList.PHOTO_PICKER_ZOOM)*/) {
+            mSelectionDelegate.addObserver(this);
+        }
         if (!multiSelectionAllowed) mSelectionDelegate.setSingleSelectionMode();
 
         View root = LayoutInflater.from(context).inflate(R.layout.photo_picker_dialog, this);
@@ -190,6 +256,17 @@ public class PickerCategoryView extends RelativeLayout
         Button doneButton = (Button) toolbar.findViewById(R.id.done);
         doneButton.setOnClickListener(this);
         mVideoView = findViewById(R.id.video_player);
+        mVideoOverlayContainer = findViewById(R.id.video_overlay_container);
+        mVideoOverlayContainer.setOnClickListener(this);
+        mVideoControls = findViewById(R.id.video_controls);
+        mLargePlayButton = findViewById(R.id.video_player_play_button);
+        mLargePlayButton.setOnClickListener(this);
+        mMuteButton = findViewById(R.id.mute);
+        mMuteButton.setImageResource(R.drawable.volume_on);
+        mMuteButton.setOnClickListener(this);
+        mSeekBar = findViewById(R.id.seek_bar);
+        mSeekBar.setOnSeekBarChangeListener(this);
+        mZoom = findViewById(R.id.zoom);
 
         calculateGridMetrics();
 
@@ -201,7 +278,13 @@ public class PickerCategoryView extends RelativeLayout
         mRecyclerView.setRecyclerListener(this);
 
         final long maxMemory = ConversionUtils.bytesToKilobytes(Runtime.getRuntime().maxMemory());
-        mCacheSizeLarge = (int) (maxMemory / 2); // 1/2 of the available memory.
+        if (true /* ChromeFeatureList.isEnabled(ChromeFeatureList.PHOTO_PICKER_ZOOM) */) {
+            mCacheSizeFullScreen = (int) (maxMemory / 4); // 1/4 of the available memory.
+            mCacheSizeLarge = (int) (maxMemory / 4); // 1/4 of the available memory.
+        } else {
+            mCacheSizeFullScreen = 0;
+            mCacheSizeLarge = (int) (maxMemory / 2); // 1/2 of the available memory.
+        }
         mCacheSizeSmall = (int) (maxMemory / 8); // 1/8th of the available memory.
 
         // Android Studio project only:
@@ -215,6 +298,12 @@ public class PickerCategoryView extends RelativeLayout
             @Override
             protected int sizeOf(String key, Thumbnail thumbnail) {
                  return (int) ConversionUtils.bytesToKilobytes(thumbnail.bitmaps.get(0).getByteCount());
+            }
+        };
+        mFullScreenBitmaps = new LruCache<String, Thumbnail>(mCacheSizeFullScreen) {
+            @Override
+            protected int sizeOf(String key, Thumbnail thumbnail) {
+                return (int) ConversionUtils.bytesToKilobytes(thumbnail.bitmaps.get(0).getByteCount());
             }
         };
     }
@@ -233,7 +322,10 @@ public class PickerCategoryView extends RelativeLayout
         // enumerated (when mPickerBitmaps is null, causing: https://crbug.com/947657). There's no
         // need to call notifyDataSetChanged in that case because it will be called once the photo
         // list becomes ready.
-        if (mPickerBitmaps != null) mPickerAdapter.notifyDataSetChanged();
+        if (mPickerBitmaps != null) {
+            mPickerAdapter.notifyDataSetChanged();
+            mRecyclerView.requestLayout();
+        }
     }
 
     /**
@@ -255,46 +347,173 @@ public class PickerCategoryView extends RelativeLayout
      * Start playback of a video in an overlay above the photo picker.
      * @param uri The uri of the video to start playing.
      */
-    public void playVideo(Uri uri) {
-        findViewById(R.id.playback_container).setVisibility(View.VISIBLE);
-        findViewById(R.id.close).setOnClickListener(this);
+    public void startVideoPlaybackAsync(Uri uri) {
+        View playbackContainer = findViewById(R.id.playback_container);
+        playbackContainer.setVisibility(View.VISIBLE);
 
-        mMediaController = new MediaController(mActivity, false) {
-            @Override
-            public void hide() {
-                // Making sure the controls never hide prevents the seekbar from no longer updating
-                // in the middle of playing a video.
-                this.show();
-            }
-        };
-        mVideoView.setMediaController(mMediaController);
         mVideoView.setVisibility(View.VISIBLE);
         mVideoView.setVideoURI(uri);
 
-        mVideoView.setOnPreparedListener((MediaPlayer mp) -> {
-            mp.setOnVideoSizeChangedListener((MediaPlayer player, int width, int height) -> {
-                // To get the media controls to show up in a dialog, the view needs to be
-                // re-parented.
-                ((ViewGroup) mMediaController.getParent()).removeView(mMediaController);
-                ((FrameLayout) findViewById(R.id.controls_wrapper)).addView(mMediaController);
-                mMediaController.setVisibility(View.VISIBLE);
+        mVideoView.setOnPreparedListener((MediaPlayer mediaPlayer) -> {
+            mMediaPlayer = mediaPlayer;
+            startVideoPlayback();
 
-                mMediaController.setAnchorView(mVideoView);
-                mMediaController.setEnabled(true);
-                mMediaController.show(0);
-            });
+            mMediaPlayer.setOnVideoSizeChangedListener(
+                    (MediaPlayer player, int width, int height) -> {
+                        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                                mVideoView.getMeasuredWidth(), mVideoView.getMeasuredHeight());
+                        mVideoControls.setLayoutParams(params);
+                    });
+        });
 
-            mVideoView.start();
+        mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                mLargePlayButton.setImageResource(R.drawable.ic_play_circle_24dp_white);
+                showOverlayControls(/*animateAway=*/false);
+            }
         });
     }
 
-    private void stopVideo() {
-        findViewById(R.id.playback_container).setVisibility(View.GONE);
+    private void monitorPlaybackPosition() {
+        if (mPlaybackPositionMonitorThread != null) {
+            mPlaybackPositionMonitorThread.interrupt();
+        }
+
+        mPlaybackPositionMonitorThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                do {
+                    try {
+                        Thread.sleep(100);
+                        updateProgress();
+                    } catch (InterruptedException exception) {
+                        break;
+                    }
+                } while (true);
+            }
+        });
+        mPlaybackPositionMonitorThread.start();
+    }
+
+    private void showOverlayControls(boolean animateAway) {
+        cancelFadeAwayAnimation();
+
+        if (animateAway && mVideoView.isPlaying()) {
+            fadeAwayVideoControls();
+        }
+    }
+
+    private void fadeAwayVideoControls() {
+        mVideoOverlayContainer.animate()
+                .alpha(0.0f)
+                .setStartDelay(3000)
+                .setDuration(1000)
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {}
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        enableClickableButtons(false);
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {}
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {}
+                });
+    }
+
+    private void cancelFadeAwayAnimation() {
+        mVideoOverlayContainer.animate().cancel();
+        mVideoOverlayContainer.setAlpha(1.0f);
+        enableClickableButtons(true);
+    }
+
+    private void enableClickableButtons(boolean enable) {
+        mLargePlayButton.setClickable(enable);
+        mMuteButton.setClickable(enable);
+    }
+
+    private void updateProgress() {
+        String current;
+        String total;
+        try {
+            current = DecodeVideoTask.formatDuration(Long.valueOf(mVideoView.getCurrentPosition()));
+            total = DecodeVideoTask.formatDuration(Long.valueOf(mVideoView.getDuration()));
+        } catch (IllegalStateException exception) {
+            // VideoView#getCurrentPosition throws this error if the dialog has been dismissed while
+            // waiting to update the status.
+            return;
+        }
+
+        SeekBar seekBar = findViewById(R.id.seek_bar);
+        if (seekBar == null) {
+            return;
+        }
+
+        ThreadUtils.postOnUiThread(() -> {
+            TextView remainingTime = findViewById(R.id.remaining_time);
+            String formattedProgress = current + " / " + total;
+            remainingTime.setText(formattedProgress);
+            int progress = mVideoView.getDuration() == 0
+                    ? 0
+                    : mVideoView.getCurrentPosition() * 100 / mVideoView.getDuration();
+            seekBar.setProgress(progress);
+        });
+    }
+
+    private void startVideoPlayback() {
+        mMediaPlayer.start();
+        mLargePlayButton.setImageResource(R.drawable.pause_circle_24dp);
+        monitorPlaybackPosition();
+        showOverlayControls(/*animateAway=*/true);
+    }
+
+    private void stopVideoPlayback() {
+        mMediaPlayer.pause();
+        mLargePlayButton.setImageResource(R.drawable.ic_play_circle_24dp_white);
+        showOverlayControls(/*animateAway=*/false);
+    }
+
+    private void toggleVideoPlayback() {
+        if (mVideoView.isPlaying()) {
+            stopVideoPlayback();
+        } else {
+            startVideoPlayback();
+        }
+    }
+
+    private void toggleMute() {
+        mAudioOn = !mAudioOn;
+        if (mAudioOn) {
+            mMediaPlayer.setVolume(1f, 1f);
+            mMuteButton.setImageResource(R.drawable.volume_on);
+        } else {
+            mMediaPlayer.setVolume(0f, 0f);
+            mMuteButton.setImageResource(R.drawable.volume_off);
+        }
+    }
+
+    /**
+     * Ends video playback (if a video is playing) and closes the video player. Aborts if the video
+     * playback container is not showing.
+     * @return true if a video container was showing, false otherwise.
+     */
+    public boolean closeVideoPlayer() {
+        View playbackContainer = findViewById(R.id.playback_container);
+        if (playbackContainer.getVisibility() != View.VISIBLE) {
+            return false;
+        }
+
+        playbackContainer.setVisibility(View.GONE);
+        mPlaybackPositionMonitorThread.interrupt();
         mVideoView.stopPlayback();
         mVideoView.setMediaController(null);
-        // The MediaController needs a little bit of time to go away fully. Hide it in the meantime.
-        mMediaController.setVisibility(View.GONE);
-        mMediaController = null;
+        mMuteButton.setImageResource(R.drawable.volume_on);
+        return true;
     }
 
     /**
@@ -354,6 +573,20 @@ public class PickerCategoryView extends RelativeLayout
         }
     }
 
+    // SelectionDelegate.SelectionObserver:
+
+    @Override
+    public void onSelectionStateChange(List<PickerBitmap> selectedItems) {
+        if (false /*!ChromeFeatureList.isEnabled(ChromeFeatureList.PHOTO_PICKER_ZOOM)*/) {
+            return;
+        }
+
+        if (mZoom.getVisibility() != View.VISIBLE) {
+            mZoom.setVisibility(View.VISIBLE);
+            mZoom.setOnClickListener(this);
+        }
+    }
+
     // OnClickListener:
 
     @Override
@@ -361,11 +594,56 @@ public class PickerCategoryView extends RelativeLayout
         int id = view.getId();
         if (id == R.id.done) {
             notifyPhotosSelected();
-        } else if (id == R.id.close) {
-            stopVideo();
+        } else if (id == R.id.zoom) {
+            if (!mZoomSwitchingInEffect) {
+                flipZoomMode();
+            }
+        } else if (id == R.id.video_overlay_container) {
+            showOverlayControls(/*animateAway=*/true);
+        } else if (id == R.id.video_player_play_button) {
+            toggleVideoPlayback();
+        } else if (id == R.id.mute) {
+            toggleMute();
         } else {
             executeAction(PhotoPickerListener.PhotoPickerAction.CANCEL, null, ACTION_CANCEL);
         }
+    }
+
+    // SeekBar.OnSeekBarChangeListener:
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        if (fromUser) {
+            final boolean seekDuringPlay = mVideoView.isPlaying();
+            mMediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+                @Override
+                public void onSeekComplete(MediaPlayer mp) {
+                    mMediaPlayer.setOnSeekCompleteListener(null);
+                    if (seekDuringPlay) {
+                        startVideoPlayback();
+                    }
+                }
+            });
+
+            float percentage = progress / 100f;
+            int seekTo = Math.round(percentage * mVideoView.getDuration());
+            if (Build.VERSION.SDK_INT >= 26) {
+                mMediaPlayer.seekTo(seekTo, MediaPlayer.SEEK_CLOSEST);
+            } else {
+                // On older versions, sync to nearest previous key frame.
+                mVideoView.seekTo(seekTo);
+            }
+        }
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        cancelFadeAwayAnimation();
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        fadeAwayVideoControls();
     }
 
     /**
@@ -378,10 +656,82 @@ public class PickerCategoryView extends RelativeLayout
         }
     }
 
+    private void flipZoomMode() {
+        // Bitmap scaling is cumulative, so if an image is selected when we switch modes, it will
+        // become skewed when switching between full size and square modes because dimensions of the
+        // picture also change (from square to full width). We therefore un-select all items before
+        // starting the animation and then reselect them once animation has ended.
+        final HashSet<PickerBitmap> selectedItems =
+                new HashSet<>(mSelectionDelegate.getSelectedItems());
+        mSelectionDelegate.clearSelection();
+
+        mMagnifyingMode = !mMagnifyingMode;
+
+        if (mMagnifyingMode) {
+            mZoom.setImageResource(R.drawable.zoom_out);
+        } else {
+            mZoom.setImageResource(R.drawable.zoom_in);
+        }
+
+        calculateGridMetrics();
+
+        if (!mMagnifyingMode) {
+            getFullScreenBitmaps().evictAll();
+        }
+
+        mZoomSwitchingInEffect = true;
+
+        ChangeBounds transition = new ChangeBounds();
+        transition.addListener(new Transition.TransitionListener() {
+            @Override
+            public void onTransitionStart(Transition transition) {}
+
+            @Override
+            public void onTransitionEnd(Transition transition) {
+                mZoomSwitchingInEffect = false;
+
+                // Redo selection when switching between modes to make it obvious what got selected.
+                mSelectionDelegate.setSelectedItems(selectedItems);
+            }
+
+            @Override
+            public void onTransitionCancel(Transition transition) {}
+
+            @Override
+            public void onTransitionPause(Transition transition) {}
+
+            @Override
+            public void onTransitionResume(Transition transition) {}
+        });
+
+        TransitionManager.beginDelayedTransition(mRecyclerView, transition);
+
+        mLayoutManager.setSpanCount(mColumns);
+        mPickerAdapter.notifyDataSetChanged();
+        mRecyclerView.requestLayout();
+    }
+
     // Simple accessors:
 
-    public int getImageSize() {
-        return mImageSize;
+    public int getImageWidth() {
+        return mImageWidth;
+    }
+
+    // TODO(finnur): Remove.
+    public int getImageHeight() {
+        return mImageHeight;
+    }
+
+    public int getSpecialTileHeight() {
+        return mSpecialTileHeight;
+    }
+
+    public boolean isInMagnifyingMode() {
+        return mMagnifyingMode;
+    }
+
+    public boolean isZoomSwitchingInEffect() {
+        return mZoomSwitchingInEffect;
     }
 
     public SelectionDelegate<PickerBitmap> getSelectionDelegate() {
@@ -418,6 +768,17 @@ public class PickerCategoryView extends RelativeLayout
         return mHighResThumbnails;
     }
 
+    public LruCache<String, Thumbnail> getFullScreenBitmaps() {
+        /* Not used for the Android project, but used in Chrome.
+        if (mFullScreenBitmaps == null || mFullScreenBitmaps.get() == null) {
+            mFullScreenBitmaps = mActivity.getReferencePool().put(
+                    new LruCache<String, Thumbnail>(mCacheSizeFullScreen));
+        }
+        return mFullScreenBitmaps.get();
+        */
+        return mFullScreenBitmaps;
+    }
+
     public boolean isMultiSelectAllowed() {
         return mMultiSelectionAllowed;
     }
@@ -446,12 +807,18 @@ public class PickerCategoryView extends RelativeLayout
         int width = displayMetrics.widthPixels;
         int minSize =
                 mActivity.getResources().getDimensionPixelSize(R.dimen.photo_picker_tile_min_size);
-        mPadding = mActivity.getResources().getDimensionPixelSize(R.dimen.photo_picker_tile_gap);
-        mColumns = Math.max(1, (width - mPadding) / (minSize + mPadding));
-        mImageSize = (width - mPadding * (mColumns + 1)) / (mColumns);
+        mPadding = mMagnifyingMode
+                ? 0
+                : mActivity.getResources().getDimensionPixelSize(R.dimen.photo_picker_tile_gap);
+        mColumns = mMagnifyingMode ? 1 : Math.max(1, (width - mPadding) / (minSize + mPadding));
+        mImageWidth = (width - mPadding * (mColumns + 1)) / (mColumns);
+        mImageHeight = mMagnifyingMode
+                ? displayMetrics.heightPixels - findViewById(R.id.action_bar_bg).getHeight()
+                : mImageWidth;
+        if (!mMagnifyingMode) mSpecialTileHeight = mImageWidth;
 
         // Make sure columns and padding are either both even or both odd.
-        if (((mColumns % 2) == 0) != ((mPadding % 2) == 0)) {
+        if (!mMagnifyingMode && ((mColumns % 2) == 0) != ((mPadding % 2) == 0)) {
             mPadding++;
         }
     }
@@ -469,6 +836,7 @@ public class PickerCategoryView extends RelativeLayout
             mWorkerTask.cancel(true);
         }
 
+        // TODOf: I think we can remove this now.
         // TODO(finnur): Remove once we figure out the cause of crbug.com/950024.
         /*
         if (!mActivity.getWindowAndroid().hasPermission(
@@ -518,7 +886,15 @@ public class PickerCategoryView extends RelativeLayout
         @Override
         public void getItemOffsets(
                 Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-            int left = 0, right = 0, top = 0, bottom = 0;
+            if (mMagnifyingMode) {
+                outRect.set(0, 0, 0, mSpacing);
+                return;
+            }
+
+            int left = 0;
+            int right = 0;
+            int top = 0;
+            int bottom = 0;
             int position = parent.getChildAdapterPosition(view);
 
             if (position >= 0) {

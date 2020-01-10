@@ -4,29 +4,64 @@
 
 package org.chromium.ui;
 
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
+
+//import org.chromium.blink.mojom.ContactIconBlob;
+//import org.chromium.payments.mojom.PaymentAddress;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The callback used to indicate what action the user took in the picker.
  */
 public interface ContactsPickerListener {
+    // Android Studio project only (to avoid mojom dependencies).
+    public static class PaymentAddress {}
+    public static class ContactIconBlob {}
+
     /**
-     * A container class for exhcanging contact details.
+     * A container class for exchanging contact details.
      */
-    public class Contact {
+    public static class Contact {
         public final List<String> names;
         public final List<String> emails;
         public final List<String> tel;
+        public final List<ByteBuffer> serializedAddresses;
+        public final List<ByteBuffer> serializedIcons;
 
-        public Contact(
-                List<String> contactNames, List<String> contactEmails, List<String> contactTel) {
+        public Contact(List<String> contactNames, List<String> contactEmails,
+                List<String> contactTel, List<PaymentAddress> contactAddresses,
+                List<ContactIconBlob> contactIcons) {
             names = contactNames;
             emails = contactEmails;
             tel = contactTel;
+
+            // Mojo serialization is not supported for Android Studio project.
+            serializedAddresses = null;
+            serializedIcons = null;
+            /*
+            if (contactAddresses != null) {
+                serializedAddresses = new ArrayList<ByteBuffer>();
+                for (PaymentAddress address : contactAddresses) {
+                    serializedAddresses.add(address.serialize());
+                }
+            } else {
+                serializedAddresses = null;
+            }
+
+            if (contactIcons != null) {
+                serializedIcons = new ArrayList<ByteBuffer>();
+                for (ContactIconBlob icon : contactIcons) {
+                    serializedIcons.add(icon.serialize());
+                }
+            } else {
+                serializedIcons = null;
+            }
+            */
         }
     }
 
@@ -48,6 +83,11 @@ public interface ContactsPickerListener {
      * Called when the user has selected an action. For possible actions see above.
      *
      * @param contacts The list of contacts selected.
+     * @param percentageShared How big a percentage of the full contact list was shared (for metrics
+     *         purposes).
+     * @param propertiesRequested The properties requested by the website (names, emails,
+     *         telephones).
      */
-    void onContactsPickerUserAction(@ContactsPickerAction int action, List<Contact> contacts);
+    void onContactsPickerUserAction(@ContactsPickerAction int action, List<Contact> contacts,
+            int percentageShared, int propertiesRequested);
 }
