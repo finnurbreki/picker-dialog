@@ -57,7 +57,7 @@ public class TaskRunnerImpl implements TaskRunner {
      */
     protected TaskRunnerImpl(
             TaskTraits traits, String traceCategory, @TaskRunnerType int taskRunnerType) {
-        mTaskTraits = traits;
+        mTaskTraits = traits.withExplicitDestination();
         mTraceEvent = traceCategory + ".PreNativeTask.run";
         mTaskRunnerType = taskRunnerType;
         if (!PostTask.registerPreNativeTaskRunnerLocked(this)) initNativeTaskRunner();
@@ -167,8 +167,7 @@ public class TaskRunnerImpl implements TaskRunner {
             /* Not needed for Android Studio project.
             mNativeTaskRunnerAndroid = TaskRunnerImplJni.get().init(mTaskRunnerType,
                     mTaskTraits.mPrioritySetExplicitly, mTaskTraits.mPriority,
-                    mTaskTraits.mMayBlock, mTaskTraits.mUseThreadPool,
-                    mTaskTraits.mUseCurrentThread, mTaskTraits.mExtensionId,
+                    mTaskTraits.mMayBlock, mTaskTraits.mUseThreadPool, mTaskTraits.mExtensionId,
                     mTaskTraits.mExtensionData);
             */
         }
@@ -197,8 +196,7 @@ public class TaskRunnerImpl implements TaskRunner {
     interface Natives {
         // NB due to Proguard obfuscation it's easiest to pass the traits via arguments.
         long init(@TaskRunnerType int taskRunnerType, boolean prioritySetExplicitly, int priority,
-                boolean mayBlock, boolean useThreadPool, boolean useCurrentThread, byte extensionId,
-                byte[] extensionData);
+                boolean mayBlock, boolean useThreadPool, byte extensionId, byte[] extensionData);
 
         void destroy(long nativeTaskRunnerAndroid);
         void postDelayedTask(long nativeTaskRunnerAndroid, Runnable task, long delay);
