@@ -4,7 +4,6 @@
 
 package com.example.finnur.finnursphotopicker;
 
-//import android.Manifest;
 import android.animation.Animator;
 import android.app.Activity;  // Android Studio only.
 import android.content.Context;
@@ -36,15 +35,17 @@ import android.widget.VideoView;
 import androidx.annotation.VisibleForTesting;
 
 //import org.chromium.base.DiscardableReferencePool.DiscardableReference;
-import org.chromium.base.ThreadUtils;
+import org.chromium.base.ThreadUtils;  // Android Studio Project only.
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.base.task.AsyncTask;
+import org.chromium.base.task.PostTask;
 //import org.chromium.chrome.R;
 //import org.chromium.chrome.browser.ChromeActivity;
 //import org.chromium.chrome.browser.flags.ChromeFeatureList;
 import org.chromium.chrome.browser.util.ConversionUtils;
 import org.chromium.chrome.browser.widget.selection.SelectableListLayout;
 import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
+import org.chromium.content_public.browser.UiThreadTaskTraits;
 import org.chromium.net.MimeTypeFilter;
 import org.chromium.ui.PhotoPickerListener;
 import org.chromium.ui.UiUtils;
@@ -53,8 +54,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Timer;  // Android Studio Project only.
+import java.util.TimerTask;  // Android Studio Project only.
 
 /**
  * A class for keeping track of common data associated with showing photos in
@@ -82,17 +83,16 @@ public class PickerCategoryView extends RelativeLayout
         public Boolean fullWidth;
         public String videoDuration;
 
-        // TODO(finnur): Rename: ratioOriginal.
         // The calculated ratio of the originals for the bitmaps above, were they to be shown
         // un-cropped. NOTE: The |bitmaps| above may already have been cropped and as such might
         // have a different ratio.
-        public float ratio;
+        public float ratioOriginal;
 
         Thumbnail(List<Bitmap> bitmaps, String videoDuration, Boolean fullWidth, float ratio) {
             this.bitmaps = bitmaps;
             this.videoDuration = videoDuration;
             this.fullWidth = fullWidth;
-            this.ratio = ratio;
+            this.ratioOriginal = ratio;
         }
     }
 
@@ -230,8 +230,12 @@ public class PickerCategoryView extends RelativeLayout
     // The SeekBar showing the video playback progress (allows user seeking).
     private SeekBar mSeekBar;
 
+    // Android Studio project only.
     // A timer for periodically updating the progress of video playback to the user.
     private Timer mPlaybackUpdateTimer;
+
+    // A flag to control when the playback monitor schedules new tasks.
+    private boolean mRunPlaybackMonitoringTask;
 
     // The Zoom (floating action) button.
     private ImageView mZoom;
@@ -400,6 +404,7 @@ public class PickerCategoryView extends RelativeLayout
                 // break before reaching the end). This also allows the user to restart playback
                 // from the start, by pressing Play.
                 mLargePlayButton.setImageResource(R.drawable.ic_play_circle_filled_white_24dp);
+                updateProgress();
                 showOverlayControls(/*animateAway=*/false);
                 if (sProgressCallback != null) {
                     sProgressCallback.onVideoEnded();
@@ -625,11 +630,6 @@ public class PickerCategoryView extends RelativeLayout
         return mImageWidth;
     }
 
-    // TODO(finnur): Remove.
-    public int getImageHeight() {
-        return mImageHeight;
-    }
-
     public int getSpecialTileHeight() {
         return mSpecialTileHeight;
     }
@@ -744,15 +744,6 @@ public class PickerCategoryView extends RelativeLayout
             mWorkerTask.cancel(true);
         }
 
-        // TODOf: I think we can remove this now.
-        // TODO(finnur): Remove once we figure out the cause of crbug.com/950024.
-        /*
-        if (!mActivity.getWindowAndroid().hasPermission(
-                    Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            throw new RuntimeException("Bitmap enumeration without storage read permission");
-        }
-        */
-
         mEnumStartTime = SystemClock.elapsedRealtime();
         // Android Studio project does not use WindowAndroid parameter.
         mWorkerTask = new FileEnumWorkerTask(this,
@@ -853,6 +844,7 @@ public class PickerCategoryView extends RelativeLayout
 
         if (animateAway && mVideoView.isPlaying()) {
             fadeAwayVideoControls();
+            startPlaybackMonitor();
         }
     }
 
@@ -868,6 +860,7 @@ public class PickerCategoryView extends RelativeLayout
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         enableClickableButtons(false);
+                        stopPlaybackMonitor();
                     }
 
                     @Override
@@ -917,29 +910,22 @@ public class PickerCategoryView extends RelativeLayout
                     : mVideoView.getCurrentPosition() * 100 / mVideoView.getDuration();
             seekBar.setProgress(percentage);
         });
+
+        /* Not needed for Android Studio project
+        if (mVideoView.isPlaying() && !mInterruptPlaybackMonitor) {
+            startPlaybackMonitor();
+        }
+        */
     }
 
     private void startVideoPlayback() {
         mMediaPlayer.start();
         mLargePlayButton.setImageResource(R.drawable.ic_pause_circle_outline_white_24dp);
         showOverlayControls(/*animateAway=*/true);
-
-        if (mPlaybackUpdateTimer == null) {
-            mPlaybackUpdateTimer = new Timer();
-            final TimerTask tickTask = new TimerTask() {
-                @Override
-                public void run() {
-                    updateProgress();
-                }
-            };
-
-            mPlaybackUpdateTimer.schedule(tickTask, 0, 250);
-        }
     }
 
     private void stopVideoPlayback() {
-        mPlaybackUpdateTimer.cancel();
-        mPlaybackUpdateTimer = null;
+        stopPlaybackMonitor();
 
         mMediaPlayer.pause();
         mLargePlayButton.setImageResource(R.drawable.ic_play_circle_filled_white_24dp);
@@ -962,6 +948,38 @@ public class PickerCategoryView extends RelativeLayout
         } else {
             mMediaPlayer.setVolume(0f, 0f);
             mMuteButton.setImageResource(R.drawable.ic_volume_off_white_24dp);
+        }
+    }
+
+    private void startPlaybackMonitor() {
+        mRunPlaybackMonitoringTask = true;
+        startPlaybackMonitorTask();
+    }
+
+    private void startPlaybackMonitorTask() {
+        //PostTask.postDelayedTask(UiThreadTaskTraits.DEFAULT, () -> updateProgress(), 250);
+
+        // Android-Studio uses a Timer instead of PostTask.
+        if (mPlaybackUpdateTimer == null) {
+            mPlaybackUpdateTimer = new Timer();
+            final TimerTask tickTask = new TimerTask() {
+                @Override
+                public void run() {
+                    updateProgress();
+                }
+            };
+
+            mPlaybackUpdateTimer.schedule(tickTask, 0, 250);
+        }
+    }
+
+    private void stopPlaybackMonitor() {
+        mRunPlaybackMonitoringTask = false;
+
+        // Android-Studio uses a Timer instead of PostTask.
+        if (mPlaybackUpdateTimer != null) {
+            mPlaybackUpdateTimer.cancel();
+            mPlaybackUpdateTimer = null;
         }
     }
 

@@ -167,6 +167,7 @@ class DecodeVideoTask extends AsyncTask<List<Bitmap>> {
             return null;
         } finally {
             try {
+                if (retriever != null) retriever.release();
                 if (afd != null) afd.close();
                 mDecodingResult = DecodingResult.SUCCESS;
             } catch (IOException exception) {

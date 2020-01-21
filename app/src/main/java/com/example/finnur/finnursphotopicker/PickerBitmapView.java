@@ -77,7 +77,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
     // For video tiles, this lists the duration of the video. Blank for other types.
     private TextView mVideoDuration;
 
-    // The Play button in the top right corner. Only shown for video thumbnails.
+    // The Play button in the top right corner. Only shown for videos.
     private ImageView mPlayButton;
 
     // The large Play button (in the middle when in full-screen mode). Only shown for videos.
@@ -411,11 +411,9 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
      */
     public boolean setThumbnailBitmap(List<Bitmap> thumbnails, String videoDuration, float ratio) {
         assert thumbnails == null || thumbnails.size() > 0;
-        // TODO(finnur): Use setImageBitmap if only one frame.
-        if (videoDuration == null) {
+        if (videoDuration == null || thumbnails.size() == 1) {
             mIconView.setImageBitmap(thumbnails == null ? null : thumbnails.get(0));
         } else {
-            mVideoDuration.setText(videoDuration);
             final AnimationDrawable animationDrawable = new AnimationDrawable();
             for (int i = 0; i < thumbnails.size(); ++i) {
                 animationDrawable.addFrame(
@@ -426,6 +424,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
             mIconView.setImageDrawable(animationDrawable);
             animationDrawable.start();
         }
+        mVideoDuration.setText(videoDuration);
 
         if (thumbnails != null && thumbnails.size() > 0) {
             mRatio = ratio;
