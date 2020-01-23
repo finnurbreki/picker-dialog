@@ -411,6 +411,13 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
      */
     public boolean setThumbnailBitmap(List<Bitmap> thumbnails, String videoDuration, float ratio) {
         assert thumbnails == null || thumbnails.size() > 0;
+
+        // There are four cases to consider:
+        // 1) When placeholders are assigned, thumbnails=null and videoDuration=null.
+        // 2) When images are shown, videoDuration is null and thumbnail size is 1.
+        // 3) Videos: one thumbnail is shown first (videoDuration non-null, thumbnail.size() = 1).
+        // 4) Then, as more video frames are decoded (thumbnail.size() > 1).
+        // Only the last case needs to branch into the AnimationDrawable part.
         if (videoDuration == null || thumbnails.size() == 1) {
             mIconView.setImageBitmap(thumbnails == null ? null : thumbnails.get(0));
         } else {

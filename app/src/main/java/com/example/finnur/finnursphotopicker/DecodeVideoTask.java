@@ -139,10 +139,11 @@ class DecodeVideoTask extends AsyncTask<List<Bitmap>> {
 
         if (isCancelled()) return null;
 
+        MediaMetadataRetriever retriever = null;
         AssetFileDescriptor afd = null;
         try {
             afd = mContentResolver.openAssetFileDescriptor(mUri, "r");
-            MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+            retriever = new MediaMetadataRetriever();
             retriever.setDataSource(afd.getFileDescriptor());
             String duration =
                     retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);

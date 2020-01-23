@@ -57,11 +57,19 @@
                 android:paddingBottom="24dp"
                 style="@style/TextAppearance.WhiteBody" />
             <ImageView
-                android:id="@+id/mute"
+                android:id="@+id/fullscreen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
                 android:layout_marginEnd="14dp"
+                android:paddingBottom="24dp"
+                app:srcCompat="@drawable/ic_full_screen_white_24dp" />
+            <ImageView
+                android:id="@+id/mute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="42dp"
                 android:paddingBottom="24dp"
                 app:srcCompat="@drawable/ic_volume_on_white_24dp" />
             <SeekBar

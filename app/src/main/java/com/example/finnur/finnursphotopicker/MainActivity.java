@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
@@ -54,6 +55,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        /* Enable for tracking down StrictMode violations.
+        StrictMode.setThreadPolicy(
+                new StrictMode.ThreadPolicy.Builder().detectAll().penaltyDeath().build());
+        StrictMode.setVmPolicy(
+                new StrictMode.VmPolicy.Builder().detectAll().build());
+        */
         super.onCreate(savedInstanceState);
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);

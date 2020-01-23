@@ -227,6 +227,12 @@ public class PickerCategoryView extends RelativeLayout
     // Keeps track of whether audio track is enabled or not.
     private boolean mAudioOn = true;
 
+    // The Fullscreen button.
+    private ImageView mFullscreenButton;
+
+    // Keeps track of whether full screen is enabled or not.
+    private boolean mFullScreen;
+
     // The SeekBar showing the video playback progress (allows user seeking).
     private SeekBar mSeekBar;
 
@@ -284,6 +290,8 @@ public class PickerCategoryView extends RelativeLayout
         mMuteButton = findViewById(R.id.mute);
         mMuteButton.setImageResource(R.drawable.ic_volume_on_white_24dp);
         mMuteButton.setOnClickListener(this);
+        mFullscreenButton = findViewById(R.id.fullscreen);
+        mFullscreenButton.setOnClickListener(this);
         mSeekBar = findViewById(R.id.seek_bar);
         mSeekBar.setOnSeekBarChangeListener(this);
         mZoom = findViewById(R.id.zoom);
@@ -346,6 +354,13 @@ public class PickerCategoryView extends RelativeLayout
             mPickerAdapter.notifyDataSetChanged();
             mRecyclerView.requestLayout();
         }
+
+        if (mVideoControls.getVisibility() != View.GONE) {
+            // When configuration changes, the video overlay controls need to be synced to the new
+            // video size. Post a task, so that size adjustments happen after layout of the video
+            // controls has completed.
+            ThreadUtils.postOnUiThread(() -> { syncOverlayControlsSize(); });
+        }
     }
 
     /**
@@ -379,11 +394,7 @@ public class PickerCategoryView extends RelativeLayout
             startVideoPlayback();
 
             mMediaPlayer.setOnVideoSizeChangedListener(
-                    (MediaPlayer player, int width, int height) -> {
-                        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                                mVideoView.getMeasuredWidth(), mVideoView.getMeasuredHeight());
-                        mVideoControls.setLayoutParams(params);
-                    });
+                    (MediaPlayer player, int width, int height) -> { syncOverlayControlsSize(); });
 
             if (sProgressCallback != null) {
                 mMediaPlayer.setOnInfoListener((MediaPlayer player, int what, int extra) -> {
@@ -519,6 +530,8 @@ public class PickerCategoryView extends RelativeLayout
             toggleVideoPlayback();
         } else if (id == R.id.mute) {
             toggleMute();
+        } else if (id == R.id.fullscreen) {
+            toggleFullscreen();
         } else {
             executeAction(PhotoPickerListener.PhotoPickerAction.CANCEL, null, ACTION_CANCEL);
         }
@@ -940,6 +953,12 @@ public class PickerCategoryView extends RelativeLayout
         }
     }
 
+    private void syncOverlayControlsSize() {
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                mVideoView.getMeasuredWidth(), mVideoView.getMeasuredHeight());
+        mVideoControls.setLayoutParams(params);
+    }
+
     private void toggleMute() {
         mAudioOn = !mAudioOn;
         if (mAudioOn) {
@@ -949,6 +968,17 @@ public class PickerCategoryView extends RelativeLayout
             mMediaPlayer.setVolume(0f, 0f);
             mMuteButton.setImageResource(R.drawable.ic_volume_off_white_24dp);
         }
+    }
+
+    private void toggleFullscreen() {
+        mFullScreen = !mFullScreen;
+        if (mFullScreen) {
+            mFullscreenButton.setImageResource(R.drawable.ic_full_screen_exit_white_24dp);
+        } else {
+            mFullscreenButton.setImageResource(R.drawable.ic_full_screen_white_24dp);
+        }
+
+        showOverlayControls(true);
     }
 
     private void startPlaybackMonitor() {
