@@ -3,15 +3,8 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file. -->
 
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/playback_container"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/black"
-    android:clickable="true"
-    android:visibility="gone">
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <VideoView
         android:id="@+id/video_player"
@@ -55,7 +48,7 @@
                 android:layout_gravity="bottom|start"
                 android:layout_marginStart="16dp"
                 android:paddingBottom="24dp"
-                style="@style/TextAppearance.WhiteBody" />
+                style="@style/TextAppearance.TextMedium.Primary.Light" />
             <ImageView
                 android:id="@+id/fullscreen"
                 android:layout_width="wrap_content"
@@ -80,4 +73,4 @@
                 style="@style/PhotoPicker.SeekBar" />
         </FrameLayout>
     </FrameLayout>
-</FrameLayout>
+</merge>

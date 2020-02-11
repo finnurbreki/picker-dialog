@@ -10,7 +10,7 @@
     android:layout_height="match_parent"
     android:background="@color/default_bg_color_elev_0" >
 
-    <org.chromium.chrome.browser.widget.selection.SelectableListLayout
+    <org.chromium.components.browser_ui.widget.selectable_list.SelectableListLayout
         android:id="@+id/selectable_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -28,5 +28,11 @@
         app:srcCompat="@drawable/zoom_in"
         android:visibility="gone" />
 
-    <include layout="@layout/video_player" />
+    <com.example.finnur.finnursphotopicker.PickerVideoPlayer
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/playback_container"
+        android:background="@android:color/black"
+        android:clickable="true"
+        android:visibility="gone" />
 </org.chromium.ui.widget.OptimizedFrameLayout>

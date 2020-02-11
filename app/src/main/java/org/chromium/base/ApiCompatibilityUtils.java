@@ -55,6 +55,7 @@ import org.chromium.base.annotations.VerifiesOnM;
 import org.chromium.base.annotations.VerifiesOnN;
 import org.chromium.base.annotations.VerifiesOnO;
 import org.chromium.base.annotations.VerifiesOnP;
+import org.chromium.base.annotations.VerifiesOnQ;
 
 import java.io.UnsupportedEncodingException;
 
@@ -69,6 +70,14 @@ public class ApiCompatibilityUtils {
     }
 
     /* Not needed for Android Studio project.
+    @VerifiesOnQ
+    @TargetApi(Build.VERSION_CODES.Q)
+    private static class ApisQ {
+        static boolean isRunningInUserTestHarness() {
+            return ActivityManager.isRunningInUserTestHarness();
+        }
+    }
+
     @VerifiesOnP
     @TargetApi(Build.VERSION_CODES.P)
     private static class ApisP {
@@ -692,6 +701,15 @@ public class ApiCompatibilityUtils {
             // https://chromium-review.googlesource.com/c/chromium/src/+/905563/1
             throw new RuntimeException(e);
         }
+    }
+
+    public static boolean isRunningInUserTestHarness() {
+        /* Not needed for Android Studio project.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return ApisQ.isRunningInUserTestHarness();
+        }
+        */
+        return false;
     }
 
     private static class LayerDrawableCompat extends LayerDrawable {

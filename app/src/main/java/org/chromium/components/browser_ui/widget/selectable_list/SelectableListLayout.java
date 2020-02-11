@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package org.chromium.chrome.browser.widget.selection;
+package org.chromium.components.browser_ui.widget.selectable_list;
 
 import android.content.Context;
 import android.content.res.Configuration;
@@ -25,15 +25,16 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import org.chromium.base.ApiCompatibilityUtils;
-import com.example.finnur.finnursphotopicker.R;
-import org.chromium.chrome.browser.widget.selection.SelectionDelegate.SelectionObserver;
 import org.chromium.components.browser_ui.widget.FadingShadow;
 import org.chromium.components.browser_ui.widget.FadingShadowView;
 import org.chromium.components.browser_ui.widget.LoadingView;
+import com.example.finnur.finnursphotopicker.R;
 import org.chromium.components.browser_ui.widget.displaystyle.DisplayStyleObserver;
 import org.chromium.components.browser_ui.widget.displaystyle.HorizontalDisplayStyle;
 import org.chromium.components.browser_ui.widget.displaystyle.UiConfig;
 import org.chromium.components.browser_ui.widget.displaystyle.UiConfig.DisplayStyle;
+import org.chromium.components.browser_ui.widget.selectable_list.SelectionDelegate.SelectionObserver;
+import org.chromium.ui.vr.VrModeProvider;
 
 import java.util.List;
 
@@ -48,7 +49,6 @@ import java.util.List;
  */
 public class SelectableListLayout<E>
         extends FrameLayout implements DisplayStyleObserver, SelectionObserver<E> {
-
     private static final int WIDE_DISPLAY_MIN_PADDING_DP = 16;
     private RecyclerView.Adapter mAdapter;
     private ViewStub mToolbarStub;
@@ -102,12 +102,12 @@ public class SelectableListLayout<E>
 
         LayoutInflater.from(getContext()).inflate(R.layout.selectable_list_layout, this);
 
-        mEmptyView = (TextView) findViewById(R.id.empty_view);
+        mEmptyView = findViewById(R.id.empty_view);
         mEmptyViewWrapper = findViewById(R.id.empty_view_wrapper);
-        mLoadingView = (LoadingView) findViewById(R.id.loading_view);
+        mLoadingView = findViewById(R.id.loading_view);
         mLoadingView.showLoadingUI();
 
-        mToolbarStub = (ViewStub) findViewById(R.id.action_bar_stub);
+        mToolbarStub = findViewById(R.id.action_bar_stub);
 
         setFocusable(true);
         setFocusableInTouchMode(true);
@@ -144,14 +144,14 @@ public class SelectableListLayout<E>
         mAdapter = adapter;
 
         if (recyclerView == null) {
-            mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+            mRecyclerView = findViewById(R.id.recycler_view);
             mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         } else {
             mRecyclerView = recyclerView;
 
             // Replace the inflated recycler view with the one supplied to this method.
-            FrameLayout contentView = (FrameLayout) findViewById(R.id.list_content);
-            RecyclerView existingView = (RecyclerView) contentView.findViewById(R.id.recycler_view);
+            FrameLayout contentView = findViewById(R.id.list_content);
+            RecyclerView existingView = contentView.findViewById(R.id.recycler_view);
             contentView.removeView(existingView);
             contentView.addView(mRecyclerView, 0);
         }
@@ -197,19 +197,20 @@ public class SelectableListLayout<E>
     public SelectableListToolbar<E> initializeToolbar(int toolbarLayoutId,
             SelectionDelegate<E> delegate, int titleResId, int normalGroupResId,
             int selectedGroupResId, @Nullable OnMenuItemClickListener listener,
-            boolean showShadowOnSelection, boolean updateStatusBarColor) {
+            boolean showShadowOnSelection, boolean updateStatusBarColor,
+            VrModeProvider vrModeProvider) {
         mToolbarStub.setLayoutResource(toolbarLayoutId);
         @SuppressWarnings("unchecked")
         SelectableListToolbar<E> toolbar = (SelectableListToolbar<E>) mToolbarStub.inflate();
         mToolbar = toolbar;
-        mToolbar.initialize(
-                delegate, titleResId, normalGroupResId, selectedGroupResId, updateStatusBarColor);
+        mToolbar.initialize(delegate, titleResId, normalGroupResId, selectedGroupResId,
+                updateStatusBarColor, vrModeProvider);
 
         if (listener != null) {
             mToolbar.setOnMenuItemClickListener(listener);
         }
 
-        mToolbarShadow = (FadingShadowView) findViewById(R.id.shadow);
+        mToolbarShadow = findViewById(R.id.shadow);
         mToolbarShadow.init(
                 ApiCompatibilityUtils.getColor(getResources(), R.color.toolbar_shadow_color),
                 FadingShadow.POSITION_TOP);

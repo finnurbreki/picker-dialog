@@ -32,8 +32,8 @@ import androidx.annotation.VisibleForTesting;
 
 import org.chromium.base.ApiCompatibilityUtils;
 // import org.chromium.chrome.R;
-import org.chromium.chrome.browser.widget.selection.SelectableItemView;
-import org.chromium.chrome.browser.widget.selection.SelectionDelegate;
+import org.chromium.components.browser_ui.widget.selectable_list.SelectableItemView;
+import org.chromium.components.browser_ui.widget.selectable_list.SelectionDelegate;
 
 import java.util.List;
 
@@ -391,7 +391,7 @@ public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
         mSpecialTileIcon.setImageDrawable(image);
         ApiCompatibilityUtils.setImageTintList(mSpecialTileIcon,
                 AppCompatResources.getColorStateList(
-                        mContext, R.color.default_icon_color_secondary_list));
+                        mContext, R.color.default_icon_color_secondary_tint_list));
         ImageViewCompat.setImageTintMode(mSpecialTileIcon, PorterDuff.Mode.SRC_IN);
         mSpecialTileLabel.setText(labelStringId);
 

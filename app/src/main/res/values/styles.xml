@@ -16,6 +16,20 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="ListItemContainer">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">@dimen/list_item_min_height</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:layout_marginStart">@dimen/list_item_default_margin</item>
+    </style>
+    <style name="ListItemEndIcon">
+        <item name="android:layout_width">@dimen/list_item_end_icon_width</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@null</item>
+        <item name="android:scaleType">center</item>
+    </style>
 
     <!-- Used by Chrome and Content -->
     <!-- TODO(huayinz): Update prefixes for text appearance styles in ui/android. -->
@@ -131,6 +145,44 @@
     <style name="TextAppearance.BlueButtonText2" parent="TextAppearance.AccentMediumStyle">
         <item name="android:textColor">@color/blue_when_enabled</item>
         <item name="android:textSize">@dimen/text_size_medium</item>
+    </style>
+
+    <style name="TextAppearance.Headline">
+        <item name="android:fontFamily">@font/accent_font</item>
+        <item name="android:textSize">@dimen/headline_size</item>
+    </style>
+    <style name="TextAppearance.Headline.Primary">
+        <item name="android:textColor">@color/default_text_color_list</item>
+    </style>
+    <style name="TextAppearance.Headline.Primary.Inverse">
+        <item name="android:textColor">@color/default_text_color_inverse</item>
+    </style>
+    <style name="TextAppearance.TextLarge">
+        <item name="android:textSize">@dimen/text_size_large</item>
+    </style>
+    <style name="TextAppearance.TextLarge.Secondary">
+        <item name="android:textColor">@color/default_text_color_secondary_list</item>
+    </style>
+    <style name="TextAppearance.TextMedium">
+        <item name="android:textSize">@dimen/text_size_medium</item>
+    </style>
+    <style name="TextAppearance.TextMedium.Secondary">
+        <item name="android:textColor">@color/default_text_color_secondary_list</item>
+    </style>
+    <style name="TextAppearance.TextLarge.Primary">
+        <item name="android:textColor">@color/default_text_color_list</item>
+    </style>
+    <style name="TextAppearance.TextMedium.Primary.Inverse">
+        <item name="android:textColor">@color/default_text_color_inverse</item>
+    </style>
+    <style name="TextAppearance.TextMedium.Primary.Light">
+        <item name="android:textColor">@color/default_text_color_light</item>
+    </style>
+    <style name="TextAppearance.TextMedium.Primary">
+        <item name="android:textColor">@color/default_text_color_list</item>
+    </style>
+    <style name="TextAppearance.TextMedium.Tertiary">
+        <item name="android:textColor">@color/default_text_color_tertiary</item>
     </style>
 
     <style name="TextButton" parent="ButtonCompatBase" tools:ignore="UnusedResources">

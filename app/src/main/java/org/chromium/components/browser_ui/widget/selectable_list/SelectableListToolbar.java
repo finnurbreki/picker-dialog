@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package org.chromium.chrome.browser.widget.selection;
+package org.chromium.components.browser_ui.widget.selectable_list;
 
 import android.app.Activity;
 import android.content.Context;
@@ -37,20 +37,18 @@ import androidx.annotation.StringRes;
 import androidx.annotation.VisibleForTesting;
 
 import org.chromium.base.ApiCompatibilityUtils;
+import org.chromium.components.browser_ui.widget.NumberRollView;
 import com.example.finnur.finnursphotopicker.R;
-import org.chromium.chrome.browser.toolbar.top.ActionModeController;
-import org.chromium.chrome.browser.toolbar.top.ToolbarActionModeCallback;
-import org.chromium.chrome.browser.util.ColorUtils;
-//import org.chromium.chrome.browser.vr.VrModeObserver;
-//import org.chromium.chrome.browser.vr.VrModuleProvider;
-import org.chromium.chrome.browser.widget.NumberRollView;
-import org.chromium.chrome.browser.widget.selection.SelectionDelegate.SelectionObserver;
 import org.chromium.components.browser_ui.widget.TintedDrawable;
 import org.chromium.components.browser_ui.widget.displaystyle.DisplayStyleObserver;
 import org.chromium.components.browser_ui.widget.displaystyle.HorizontalDisplayStyle;
 import org.chromium.components.browser_ui.widget.displaystyle.UiConfig;
+import org.chromium.components.browser_ui.widget.selectable_list.SelectionDelegate.SelectionObserver;
 import org.chromium.ui.KeyboardVisibilityDelegate;
 import org.chromium.ui.UiUtils;
+import org.chromium.ui.util.ColorUtils;
+//import org.chromium.ui.vr.VrModeObserver;
+import org.chromium.ui.vr.VrModeProvider;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -99,11 +97,11 @@ public class SelectableListToolbar<E>
 
     protected boolean mIsSelectionEnabled;
     protected SelectionDelegate<E> mSelectionDelegate;
+    protected VrModeProvider mVrModeProvider;
 
     private boolean mIsSearching;
     private boolean mHasSearchView;
     private LinearLayout mSearchView;
-    private EditText mSearchText;
     private EditText mSearchEditText;
     private ImageButton mClearTextButton;
     private SearchDelegate mSearchDelegate;
@@ -142,7 +140,6 @@ public class SelectableListToolbar<E>
     private boolean mShowInfoIcon;
     private int mShowInfoStringId;
     private int mHideInfoStringId;
-    private int mExtraMenuItemId;
 
     // current view type that SelectableListToolbar is showing
     private int mViewType;
@@ -163,7 +160,7 @@ public class SelectableListToolbar<E>
         if (mSelectionDelegate != null) mSelectionDelegate.removeObserver(this);
         hideKeyboard();
         // Not needed for Android Studio project.
-        // VrModuleProvider.unregisterVrModeObserver(this);
+        // if (mVrModeProvider != null) mVrModeProvider.unregisterVrModeObserver(this);
     }
 
     /**
@@ -179,9 +176,10 @@ public class SelectableListToolbar<E>
      * @param updateStatusBarColor Whether the status bar color should be updated to match the
      *                             toolbar color. If true, the status bar will only be updated if
      *                             the current device fully supports theming and is on Android M+.
+     * @param vrModeProvider Used to modify behavior based on VR state.
      */
     public void initialize(SelectionDelegate<E> delegate, int titleResId, int normalGroupResId,
-            int selectedGroupResId, boolean updateStatusBarColor) {
+            int selectedGroupResId, boolean updateStatusBarColor, VrModeProvider vrModeProvider) {
         mTitleResId = titleResId;
         mNormalGroupResId = normalGroupResId;
         mSelectedGroupResId = selectedGroupResId;
@@ -204,42 +202,34 @@ public class SelectableListToolbar<E>
                 ApiCompatibilityUtils.getColor(getResources(), R.color.modern_primary_color);
         setBackgroundColor(mNormalBackgroundColor);
 
-        mSelectionBackgroundColor = ApiCompatibilityUtils.getColor(
-                getResources(), R.color.light_active_color);
+        mSelectionBackgroundColor =
+                ApiCompatibilityUtils.getColor(getResources(), R.color.light_active_color);
 
-        mDarkIconColorList =
-                AppCompatResources.getColorStateList(getContext(), R.color.standard_mode_tint);
+        mDarkIconColorList = AppCompatResources.getColorStateList(
+                getContext(), R.color.default_icon_color_tint_list);
         mLightIconColorList = AppCompatResources.getColorStateList(
                 getContext(), R.color.default_icon_color_inverse);
 
-        setTitleTextAppearance(getContext(), R.style.TextAppearance_BlackHeadline);
+        setTitleTextAppearance(getContext(), R.style.TextAppearance_Headline_Primary);
         if (mTitleResId != 0) setTitle(mTitleResId);
 
         // TODO(twellington): add the concept of normal & selected tint to apply to all toolbar
         //                    buttons.
         mNormalMenuButton = UiUtils.getTintedDrawable(
-                getContext(), R.drawable.ic_more_vert_24dp_on_light_bg, R.color.standard_mode_tint);
+                getContext(), R.drawable.ic_more_vert_24dp, R.color.default_icon_color_tint_list);
         mSelectionMenuButton = UiUtils.getTintedDrawable(
-                getContext(), R.drawable.ic_more_vert_24dp_on_light_bg, R.color.default_icon_color_inverse);
-        mNavigationIconDrawable = UiUtils.getTintedDrawable(
-                getContext(), R.drawable.ic_arrow_back_white_24dp, R.color.standard_mode_tint);
+                getContext(), R.drawable.ic_more_vert_24dp, R.color.default_icon_color_inverse);
+        mNavigationIconDrawable = UiUtils.getTintedDrawable(getContext(),
+                R.drawable.ic_arrow_back_white_24dp, R.color.default_icon_color_tint_list);
 
         // Not needed for Android Studio project.
-        // VrModuleProvider.registerVrModeObserver(this);
-        // if (VrModuleProvider.getDelegate().isInVr()) onEnterVr();
+        // mVrModeProvider = vrModeProvider;
+        // mVrModeProvider.registerVrModeObserver(this);
+        // if (mVrModeProvider.isInVr()) onEnterVr();
 
         mShowInfoIcon = true;
         mShowInfoStringId = R.string.show_info;
         mHideInfoStringId = R.string.hide_info;
-
-        // Used only for the case of DownloadManagerToolbar.
-        // Will not be needed after a tint is applied to all toolbar buttons.
-        MenuItem extraMenuItem = getMenu().findItem(mExtraMenuItemId);
-        if (extraMenuItem != null) {
-            Drawable iconDrawable = UiUtils.getTintedDrawable(
-                    getContext(), R.drawable.ic_more_vert_24dp_on_light_bg, R.color.standard_mode_tint);
-            extraMenuItem.setIcon(iconDrawable);
-        }
     }
 
     /* Not needed for Android Studio project.
@@ -268,8 +258,8 @@ public class SelectableListToolbar<E>
      *                         hidden when selection is enabled or if the list of selectable items
      *                         associated with this toolbar is empty.
      */
-    public void initializeSearchView(SearchDelegate searchDelegate, int hintStringResId,
-            int searchMenuItemId) {
+    public void initializeSearchView(
+            SearchDelegate searchDelegate, int hintStringResId, int searchMenuItemId) {
         mHasSearchView = true;
         mSearchDelegate = searchDelegate;
         mSearchMenuItemId = searchMenuItemId;
@@ -277,10 +267,8 @@ public class SelectableListToolbar<E>
 
         LayoutInflater.from(getContext()).inflate(R.layout.search_toolbar, this);
 
-        mSearchView = (LinearLayout) findViewById(R.id.search_view);
-        mSearchText = (EditText) mSearchView.findViewById(R.id.search_text);
-
-        mSearchEditText = (EditText) findViewById(R.id.search_text);
+        mSearchView = findViewById(R.id.search_view);
+        mSearchEditText = mSearchView.findViewById(R.id.search_text);
         mSearchEditText.setHint(hintStringResId);
         mSearchEditText.setOnEditorActionListener(this);
         mSearchEditText.addTextChangedListener(new TextWatcher() {
@@ -299,12 +287,7 @@ public class SelectableListToolbar<E>
         });
 
         mClearTextButton = findViewById(R.id.clear_text_button);
-        mClearTextButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mSearchEditText.setText("");
-            }
-        });
+        mClearTextButton.setOnClickListener(v -> mSearchEditText.setText(""));
     }
 
     @Override
@@ -327,7 +310,7 @@ public class SelectableListToolbar<E>
         // If onSelectionStateChange() gets called before onFinishInflate(), mNumberRollView
         // will be uninitialized. See crbug.com/637948.
         if (mNumberRollView == null) {
-            mNumberRollView = (NumberRollView) findViewById(R.id.selection_mode_number);
+            mNumberRollView = findViewById(R.id.selection_mode_number);
         }
 
         if (mIsSelectionEnabled) {
@@ -424,16 +407,6 @@ public class SelectableListToolbar<E>
     }
 
     /**
-     * Set a custom delegate for when the action mode starts showing for the search view.
-     * @param delegate The delegate to use.
-     */
-    public void setActionBarDelegate(ActionModeController.ActionBarDelegate delegate) {
-        ToolbarActionModeCallback callback = new ToolbarActionModeCallback();
-        callback.setActionModeController(new ActionModeController(getContext(), delegate));
-        mSearchText.setCustomSelectionActionModeCallback(callback);
-    }
-
-    /**
      * Hides the search edit text box and related views.
      */
     public void hideSearchView() {
@@ -504,7 +477,7 @@ public class SelectableListToolbar<E>
 
         if (newDisplayStyle.horizontal == HorizontalDisplayStyle.WIDE
                 && !(mIsSearching || mIsSelectionEnabled
-                           || mNavigationButton != NAVIGATION_BUTTON_NONE)) {
+                        || mNavigationButton != NAVIGATION_BUTTON_NONE)) {
             // The title in the wide display should be aligned with the texts of the list elements.
             paddingStartOffset = mWideDisplayStartOffsetPx;
         }
@@ -631,42 +604,6 @@ public class SelectableListToolbar<E>
     }
 
     /**
-     * Set ID of menu item that is displayed to hold any extra actions.
-     * Needs to be called before {@link #initialize}.
-     *
-     * @param extraMenuItemId The menu item.
-     */
-    public void setExtraMenuItem(int extraMenuItemId) {
-        mExtraMenuItemId = extraMenuItemId;
-    }
-
-    /**
-     * Sets the parameter that determines whether to show the info icon.
-     * This is useful when the info menu option is being shown in a sub-menu, where only the text is
-     * necessary, versus being shown as an icon in the toolbar.
-     * Needs to be called before {@link #initialize}.
-     *
-     * @param shouldShow    Whether to show the icon for the info menu item. Defaults to true.
-     */
-    public void setShowInfoIcon(boolean shouldShow) {
-        mShowInfoIcon = shouldShow;
-    }
-
-    /**
-     * Set the IDs of the string resources to be shown for the info button text if different from
-     * the default "Show info"/"Hide info" text.
-     * Needs to be called before {@link #initialize}.
-     *
-     * @param showInfoStringId  Resource ID of string for the info button text that, when clicked,
-     *                          will show info.
-     * @param hideInfoStringId  Resource ID of the string that will hide the info.
-     */
-    public void setInfoButtonText(int showInfoStringId, int hideInfoStringId) {
-        mShowInfoStringId = showInfoStringId;
-        mHideInfoStringId = hideInfoStringId;
-    }
-
-    /**
      * Update icon, title, and visibility of info menu item.
      *  @param showItem          Whether or not info menu item should show.
      * @param infoShowing       Whether or not info header is currently showing.
@@ -680,7 +617,8 @@ public class SelectableListToolbar<E>
             if (mShowInfoIcon) {
                 Drawable iconDrawable =
                         TintedDrawable.constructTintedDrawable(getContext(), R.drawable.btn_info,
-                                infoShowing ? R.color.blue_mode_tint : R.color.standard_mode_tint);
+                                infoShowing ? R.color.blue_mode_tint
+                                            : R.color.default_icon_color_tint_list);
 
                 infoMenuItem.setIcon(iconDrawable);
             }
