@@ -6,6 +6,7 @@ package com.example.finnur.finnursphotopicker;
 
 import android.Manifest;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -16,16 +17,23 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
 import android.provider.MediaStore;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.FileProvider;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.AppCompatDelegate;
-import android.support.v7.widget.Toolbar;
+//import android.support.design.widget.FloatingActionButton;
+//import android.support.v4.content.FileProvider;
+//import android.support.v7.app.AppCompatActivity;
+//import android.support.v7.app.AppCompatDelegate;
+//import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.chromium.ui.PhotoPickerListener;
 
@@ -140,7 +148,8 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     mimeTypes = Arrays.asList("image/*");
                 }
-                mDialog = new PhotoPickerDialog(getWindow().getContext(), listener, mMultiSelect, mimeTypes);
+                Context context = getWindow().getContext();
+                mDialog = new PhotoPickerDialog(context, context.getContentResolver(), listener, mMultiSelect, mimeTypes);
                 mDialog.getWindow().getAttributes().windowAnimations = R.style.PhotoPickerDialogAnimation;
                 // This removes the padding around the dialog.
                 mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));

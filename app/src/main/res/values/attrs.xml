@@ -4,6 +4,8 @@
      found in the LICENSE file.
 -->
 <resources>
+    <attr name="verticalInset" format="reference|dimension"/>
+
     <declare-styleable name="TintedImage">
         <attr name="chrometint" format="reference|color" />
     </declare-styleable>

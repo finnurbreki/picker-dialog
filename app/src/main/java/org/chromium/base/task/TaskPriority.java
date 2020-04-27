@@ -45,7 +45,10 @@ public @interface TaskPriority {
   /**
    * This task affects UI immediately after a user interaction. Example: - Loading and rendering a
    * web page after the user clicks a link. - Sorting suggestions after the user types a character
-   * in the omnibox.
+   * in the omnibox. This is the default TaskPriority in order for tasks to run in order by default
+   * and avoid unintended consequences. The only way to get a task to run at a higher priority than
+   * USER_BLOCKING is to coordinate with a higher-level scheduler (contact scheduler-
+   * dev@chromium.org for such use cases).
    */
   int USER_BLOCKING = 2;
   /**

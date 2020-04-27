@@ -27,6 +27,7 @@
     <color name="modern_grey_100">#F1F3F4</color>
     <color name="modern_grey_200">#E8EAED</color>
     <color name="modern_grey_300">#DADCE0</color>
+    <color name="modern_grey_300_alpha_38">#61DADCE0</color>
     <color name="modern_grey_400">#BDC1C6</color>
     <color name="modern_grey_500">#9AA0A6</color>
     <color name="modern_grey_600">#80868B</color>
@@ -48,9 +49,12 @@
     <color name="appbar_background">@android:color/white</color>
     <color name="bottom_system_nav_color">@android:color/white</color>
     <color name="bottom_system_nav_divider_color">@color/black_alpha_12</color>
+    <color name="default_bg_color">@color/default_bg_color_light</color>
     <color name="default_bg_color_elev_0">@color/modern_grey_100</color>
     <color name="default_bg_color_elev_3">@color/default_bg_color_light</color>
     <color name="default_bg_color_light">@android:color/white</color>
+    <color name="default_bg_color_secondary">@color/default_bg_color_secondary_light</color>
+    <color name="default_bg_color_secondary_light">@color/modern_grey_100</color>
     <color name="default_icon_color">@color/modern_grey_800</color>
     <color name="default_icon_color_blue">@color/modern_blue_600</color>
     <color name="default_icon_color_dark">@color/modern_grey_800</color>
@@ -69,6 +73,8 @@
     <color name="default_text_color_inverse">@color/default_text_color_light</color>
     <color name="default_text_color_light">@android:color/white</color>
     <color name="default_text_color_link">@color/modern_blue_600</color>
+    <color name="default_text_color_link_disabled">@color/default_text_color_link_disabled_light</color>
+    <color name="default_text_color_link_disabled_light">@color/modern_grey_300_alpha_38</color>
     <color name="default_text_color_secondary">@color/modern_grey_700</color>
     <color name="default_text_color_tertiary">@color/default_text_color_tertiary_dark</color>
     <color name="default_text_color_tertiary_dark">@color/modern_grey_900_alpha_38</color>

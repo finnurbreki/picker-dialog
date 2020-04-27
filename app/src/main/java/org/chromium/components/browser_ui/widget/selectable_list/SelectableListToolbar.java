@@ -9,10 +9,6 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.content.res.AppCompatResources;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -35,6 +31,10 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.IntDef;
 import androidx.annotation.StringRes;
 import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.core.view.ViewCompat;
 
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.components.browser_ui.widget.NumberRollView;
@@ -158,7 +158,7 @@ public class SelectableListToolbar<E>
     public void destroy() {
         mIsDestroyed = true;
         if (mSelectionDelegate != null) mSelectionDelegate.removeObserver(this);
-        hideKeyboard();
+        if (mSearchEditText != null) hideKeyboard();
         // Not needed for Android Studio project.
         // if (mVrModeProvider != null) mVrModeProvider.unregisterVrModeObserver(this);
     }
@@ -199,7 +199,7 @@ public class SelectableListToolbar<E>
                 R.dimen.selectable_list_search_icon_end_padding);
 
         mNormalBackgroundColor =
-                ApiCompatibilityUtils.getColor(getResources(), R.color.modern_primary_color);
+                ApiCompatibilityUtils.getColor(getResources(), R.color.default_bg_color);
         setBackgroundColor(mNormalBackgroundColor);
 
         mSelectionBackgroundColor =
@@ -295,7 +295,7 @@ public class SelectableListToolbar<E>
         super.onFinishInflate();
 
         LayoutInflater.from(getContext()).inflate(R.layout.number_roll_view, this);
-        mNumberRollView = (NumberRollView) findViewById(R.id.selection_mode_number);
+        mNumberRollView = findViewById(R.id.selection_mode_number);
         // Commented out for Android Studio project.
         // mNumberRollView.setString(R.plurals.selected_items);
         // mNumberRollView.setStringForZero(R.string.select_items);

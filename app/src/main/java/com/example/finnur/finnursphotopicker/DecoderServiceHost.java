@@ -24,19 +24,18 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import org.chromium.base.Log;
+import org.chromium.base.ThreadUtils;
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.base.task.AsyncTask;
 import org.chromium.base.task.PostTask;
-import org.chromium.chrome.browser.util.ConversionUtils;
+import org.chromium.components.browser_ui.util.ConversionUtils;
 import org.chromium.content_public.browser.UiThreadTaskTraits;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.PriorityQueue;
 
@@ -78,16 +77,19 @@ public class DecoderServiceHost
     // A worker task for asynchronously handling video decode requests.
     private DecodeVideoTask mWorkerTask;
 
+    // Keeps track of the last decoding ordinal issued.
+    static int sLastDecodingOrdinal = 0;
+
     // A callback to use for testing to see if decoder is ready.
-    static ServiceReadyCallback sReadyCallbackForTesting;
+    static DecoderStatusCallback sStatusCallbackForTesting;
 
     IDecoderService mIRemoteService;
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
             mIRemoteService = IDecoderService.Stub.asInterface(service);
-            mBound = true;
-            for (ServiceReadyCallback callback : mCallbacks) {
+            assert mIRemoteService != null;
+            for (DecoderStatusCallback callback : mCallbacks) {
                 callback.serviceReady();
             }
         }
@@ -96,18 +98,22 @@ public class DecoderServiceHost
         public void onServiceDisconnected(ComponentName className) {
             Log.e(TAG, "Service has unexpectedly disconnected");
             mIRemoteService = null;
-            mBound = false;
         }
     };
 
     /**
-     * Interface for notifying clients of the service being ready.
+     * Interface for notifying clients of status of the decoder service.
      */
-    public interface ServiceReadyCallback {
+    public interface DecoderStatusCallback {
         /**
          * A function to define to receive a notification once the service is up and running.
          */
         void serviceReady();
+
+        /**
+         * Called when the decoder is idle.
+         */
+        void decoderIdle();
     }
 
     /**
@@ -129,7 +135,7 @@ public class DecoderServiceHost
     /**
      * Class for keeping track of the data involved with each request.
      */
-    private static class DecoderServiceParams {
+    protected static class DecoderServiceParams {
         // The URI for the file containing the bitmap to decode.
         final Uri mUri;
 
@@ -147,8 +153,9 @@ public class DecoderServiceHost
         // ignored for non-videos.
         final boolean mFirstFrame;
 
-        // When the request was added.
-        final Date mCreateTime;
+        // An ordinal used to enforce FIFO decoding, in the case where all other things are equal
+        // (when it comes to determining which record to decode first).
+        private int mRequestOrdinal;
 
         // The callback to use to communicate the results of the decoding.
         final ImagesDecodedCallback mCallback;
@@ -164,7 +171,7 @@ public class DecoderServiceHost
             mFullWidth = fullWidth;
             mFileType = fileType;
             mFirstFrame = firstFrame;
-            mCreateTime = new Date();
+            mRequestOrdinal = sLastDecodingOrdinal++;
             mCallback = callback;
         }
     }
@@ -173,7 +180,7 @@ public class DecoderServiceHost
     // Top priority: Still images (TileType.PICTURES).
     // Medium priority: Videos (decoding of first frame only).
     // Low priority: Videos (multiple frames for animating).
-    private Comparator<DecoderServiceParams> mRequestComparator = (r1, r2) -> {
+    protected Comparator<DecoderServiceParams> mRequestComparator = (r1, r2) -> {
         if (r1.mFileType != r2.mFileType) {
             return r1.mFileType - r2.mFileType;
         }
@@ -186,21 +193,18 @@ public class DecoderServiceHost
         // The two requests share the same file type, or are identical video requests (both
         // requesting first frame or both requesting additional frames) so they can be considered
         // equal. Go with first in first out.
-        return r1.mCreateTime.compareTo(r2.mCreateTime);
+        return r1.mRequestOrdinal - r2.mRequestOrdinal;
     };
 
     // A queue of pending requests.
     PriorityQueue<DecoderServiceParams> mPendingRequests =
             new PriorityQueue<>(/*initialCapacity=*/1, mRequestComparator);
 
-    // Map of file paths to processing decoding requests.
-    private LinkedHashMap<String, DecoderServiceParams> mProcessingRequests = new LinkedHashMap<>();
+    // The current processing request.
+    private DecoderServiceParams mProcessingRequest;
 
     // The callbacks used to notify the clients when the service is ready.
-    List<ServiceReadyCallback> mCallbacks = new ArrayList<ServiceReadyCallback>();
-
-    // Flag indicating whether we are bound to the service.
-    private boolean mBound;
+    private final List<DecoderStatusCallback> mCallbacks = new ArrayList<DecoderStatusCallback>();
 
     private final Context mContext;
 
@@ -208,10 +212,10 @@ public class DecoderServiceHost
      * The DecoderServiceHost constructor.
      * @param callback The callback to use when communicating back to the client.
      */
-    public DecoderServiceHost(ServiceReadyCallback callback, Context context) {
+    public DecoderServiceHost(DecoderStatusCallback callback, Context context) {
         mCallbacks.add(callback);
-        if (sReadyCallbackForTesting != null) {
-            mCallbacks.add(sReadyCallbackForTesting);
+        if (sStatusCallbackForTesting != null) {
+            mCallbacks.add(sStatusCallbackForTesting);
         }
         mContext = context;
         mContentResolver = mContext.getContentResolver();
@@ -232,9 +236,9 @@ public class DecoderServiceHost
      * @param context The context to use.
      */
     public void unbind(Context context) {
-        if (mBound) {
+        if (mIRemoteService != null) {
             context.unbindService(mConnection);
-            mBound = false;
+            mIRemoteService = null;
         }
     }
 
@@ -251,6 +255,8 @@ public class DecoderServiceHost
      */
     public void decodeImage(Uri uri, @PickerBitmap.TileTypes int fileType, int width,
             boolean fullWidth, ImagesDecodedCallback callback) {
+        ThreadUtils.assertOnUiThread();
+
         DecoderServiceParams params = new DecoderServiceParams(
                 uri, width, fullWidth, fileType, /*firstFrame=*/true, callback);
         mPendingRequests.add(params);
@@ -263,7 +269,7 @@ public class DecoderServiceHost
             mPendingRequests.add(lowPriorityRequest);
         }
 
-        if (mProcessingRequests.size() == 0) dispatchNextDecodeRequest();
+        if (mProcessingRequest == null) dispatchNextDecodeRequest();
     }
 
     /**
@@ -284,20 +290,18 @@ public class DecoderServiceHost
      * Dispatches the next image/video for decoding (from the queue).
      */
     private void dispatchNextDecodeRequest() {
-        DecoderServiceParams params = getNextPending();
-        if (params != null) {
-            mProcessingRequests.put(params.mUri.getPath(), params);
-
-            params.mTimestamp = SystemClock.elapsedRealtime();
-            if (params.mFileType != PickerBitmap.TileTypes.VIDEO) {
-                dispatchDecodeImageRequest(params);
+        // A new decoding request should not be dispatched while something is already in progress.
+        assert mProcessingRequest == null;
+        mProcessingRequest = getNextPending();
+        if (mProcessingRequest != null) {
+            mProcessingRequest.mTimestamp = SystemClock.elapsedRealtime();
+            if (mProcessingRequest.mFileType != PickerBitmap.TileTypes.VIDEO) {
+                dispatchDecodeImageRequest(mProcessingRequest);
             } else {
-                dispatchDecodeVideoRequest(params, params.mFirstFrame);
+                dispatchDecodeVideoRequest(mProcessingRequest, mProcessingRequest.mFirstFrame);
             }
             return;
         }
-
-        if (mProcessingRequests.entrySet().iterator().hasNext()) return;
 
         int totalImageRequests =
                 mSuccessfulImageDecodes + mFailedImageDecodesRuntime + mFailedImageDecodesMemory;
@@ -341,6 +345,10 @@ public class DecoderServiceHost
             mFailedVideoDecodesRuntime = 0;
             mFailedVideoDecodesIo = 0;
             mFailedVideoDecodesUnknown = 0;
+        }
+
+        for (DecoderStatusCallback callback : mCallbacks) {
+            callback.decoderIdle();
         }
     }
 
@@ -414,7 +422,8 @@ public class DecoderServiceHost
         });
     }
 
-    public void closeRequestWithError(String filePath) {
+    // TODOf: This should take DecoderServiceParam and pass isVideo correctly to closeRequest.
+    private void closeRequestWithError(String filePath) {
         closeRequest(filePath, false, false, null, null, -1, 1.0f);
     }
 
@@ -429,50 +438,50 @@ public class DecoderServiceHost
      * @param decodeTime The length of time it took to decode the bitmaps.
      * @param ratio The ratio of the images (>1.0=portrait, <1.0=landscape).
      */
-    public void closeRequest(String filePath, boolean isVideo, boolean fullWidth,
+    private void closeRequest(String filePath, boolean isVideo, boolean fullWidth,
             @Nullable List<Bitmap> bitmaps, String videoDuration, long decodeTime, float ratio) {
-        DecoderServiceParams params = mProcessingRequests.get(filePath);
-        if (params != null) {
-            long endRpcCall = SystemClock.elapsedRealtime();
-            if (isVideo && bitmaps != null) {
-                if (bitmaps != null && bitmaps.size() > 1) {
+        // If this assert triggers, it means that simultaneous requests have been sent for
+        // decoding, which should not happen.
+        assert mProcessingRequest.mUri.getPath().equals(filePath);
+        long endRpcCall = SystemClock.elapsedRealtime();
+        if (isVideo && bitmaps != null) {
+            if (bitmaps != null && bitmaps.size() > 1) {
+                RecordHistogram.recordTimesHistogram(
+                        "Android.PhotoPicker.RequestProcessTimeAnimation",
+                        endRpcCall - mProcessingRequest.mTimestamp);
+            } else {
+                RecordHistogram.recordTimesHistogram(
+                        "Android.PhotoPicker.RequestProcessTimeThumbnail",
+                        endRpcCall - mProcessingRequest.mTimestamp);
+            }
+        } else {
+            RecordHistogram.recordTimesHistogram("Android.PhotoPicker.RequestProcessTime",
+                    endRpcCall - mProcessingRequest.mTimestamp);
+        }
+
+        mProcessingRequest.mCallback.imagesDecodedCallback(
+                filePath, isVideo, fullWidth, bitmaps, videoDuration, ratio);
+
+        if (decodeTime != -1 && bitmaps != null && bitmaps.get(0) != null) {
+            int sizeInKB = bitmaps.get(0).getByteCount() / ConversionUtils.BYTES_PER_KILOBYTE;
+            if (isVideo) {
+                if (bitmaps.size() > 1) {
                     RecordHistogram.recordTimesHistogram(
-                            "Android.PhotoPicker.RequestProcessTimeAnimation",
-                            endRpcCall - params.mTimestamp);
+                            "Android.PhotoPicker.VideoDecodeTimeAnimation", decodeTime);
                 } else {
                     RecordHistogram.recordTimesHistogram(
-                            "Android.PhotoPicker.RequestProcessTimeThumbnail",
-                            endRpcCall - params.mTimestamp);
+                            "Android.PhotoPicker.VideoDecodeTimeThumbnail", decodeTime);
+                    RecordHistogram.recordCustomCountHistogram(
+                            "Android.PhotoPicker.VideoByteCount", sizeInKB, 1, 100000, 50);
                 }
             } else {
                 RecordHistogram.recordTimesHistogram(
-                        "Android.PhotoPicker.RequestProcessTime", endRpcCall - params.mTimestamp);
+                        "Android.PhotoPicker.ImageDecodeTime", decodeTime);
+                RecordHistogram.recordCustomCountHistogram(
+                        "Android.PhotoPicker.ImageByteCount", sizeInKB, 1, 100000, 50);
             }
-
-            params.mCallback.imagesDecodedCallback(
-                    filePath, isVideo, fullWidth, bitmaps, videoDuration, ratio);
-
-            if (decodeTime != -1 && bitmaps != null && bitmaps.get(0) != null) {
-                int sizeInKB = bitmaps.get(0).getByteCount() / ConversionUtils.BYTES_PER_KILOBYTE;
-                if (isVideo) {
-                    if (bitmaps.size() > 1) {
-                        RecordHistogram.recordTimesHistogram(
-                                "Android.PhotoPicker.VideoDecodeTimeAnimation", decodeTime);
-                    } else {
-                        RecordHistogram.recordTimesHistogram(
-                                "Android.PhotoPicker.VideoDecodeTimeThumbnail", decodeTime);
-                        RecordHistogram.recordCustomCountHistogram(
-                                "Android.PhotoPicker.VideoByteCount", sizeInKB, 1, 100000, 50);
-                    }
-                } else {
-                    RecordHistogram.recordTimesHistogram(
-                            "Android.PhotoPicker.ImageDecodeTime", decodeTime);
-                    RecordHistogram.recordCustomCountHistogram(
-                            "Android.PhotoPicker.ImageByteCount", sizeInKB, 1, 100000, 50);
-                }
-            }
-            mProcessingRequests.remove(filePath);
         }
+        mProcessingRequest = null;
 
         dispatchNextDecodeRequest();
     }
@@ -499,6 +508,15 @@ public class DecoderServiceHost
      * @param params The information about the decoding request.
      */
     private void dispatchDecodeImageRequest(DecoderServiceParams params) {
+        if (mIRemoteService == null) {
+            // If the connection is lost, ignore the request and continue. Further still image
+            // decoding requests will likely be dropped but note that there may be video requests
+            // remaining (which don't require this connection to be open).
+            Log.e(TAG, "Connection to decoder service unexpectedly terminated.");
+            closeRequestWithError(mProcessingRequest.mUri.getPath());
+            return;
+        }
+
         // Obtain a file descriptor to send over to the sandboxed process.
         ParcelFileDescriptor pfd = null;
         Bundle bundle = new Bundle();
@@ -512,6 +530,10 @@ public class DecoderServiceHost
                 afd = mContentResolver.openAssetFileDescriptor(params.mUri, "r");
             } catch (FileNotFoundException e) {
                 Log.e(TAG, "Unable to obtain FileDescriptor: " + e);
+                closeRequestWithError(params.mUri.getPath());
+                return;
+            } catch (IllegalStateException e) {
+                Log.e(TAG, "Invalid ContentResolver state: " + e);
                 closeRequestWithError(params.mUri.getPath());
                 return;
             }
@@ -546,17 +568,20 @@ public class DecoderServiceHost
      * @param filePath The path to the image to cancel decoding.
      */
     public void cancelDecodeImage(String filePath) {
+        ThreadUtils.assertOnUiThread();
+
+        // It is important not to null out only pending requests and not mProcessingRequest, because
+        // it is used as a signal to see if the decoder is busy.
         Iterator it = mPendingRequests.iterator();
         while (it.hasNext()) {
             DecoderServiceParams param = (DecoderServiceParams) it.next();
             if (param.mUri.getPath().equals(filePath)) it.remove();
         }
-        mProcessingRequests.remove(filePath);
     }
 
     /** Sets a callback to use when the service is ready. For testing use only. */
     @VisibleForTesting
-    public static void setReadyCallback(ServiceReadyCallback callback) {
-        sReadyCallbackForTesting = callback;
+    public static void setStatusCallback(DecoderStatusCallback callback) {
+        sStatusCallbackForTesting = callback;
     }
 }

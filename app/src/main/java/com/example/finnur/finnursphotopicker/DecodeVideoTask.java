@@ -139,10 +139,10 @@ class DecodeVideoTask extends AsyncTask<List<Bitmap>> {
 
         if (isCancelled()) return null;
 
+        // TODO(finnur): Apply try-with-resources to MediaMetadataRetriever once Chrome no longer
+        //               supports versions below Build.VERSION_CODES.N.
         MediaMetadataRetriever retriever = null;
-        AssetFileDescriptor afd = null;
-        try {
-            afd = mContentResolver.openAssetFileDescriptor(mUri, "r");
+        try (AssetFileDescriptor afd = mContentResolver.openAssetFileDescriptor(mUri, "r")) {
             retriever = new MediaMetadataRetriever();
             retriever.setDataSource(afd.getFileDescriptor());
             String duration =
@@ -159,6 +159,7 @@ class DecodeVideoTask extends AsyncTask<List<Bitmap>> {
                     retriever, afd.getFileDescriptor(), mSize, mFrames, mFullWidth, mIntervalMs);
             mDuration = duration;
             mRatio = bitmaps.second;
+            mDecodingResult = DecodingResult.SUCCESS;
             return bitmaps.first;
         } catch (FileNotFoundException exception) {
             mDecodingResult = DecodingResult.FILE_ERROR;
@@ -166,15 +167,11 @@ class DecodeVideoTask extends AsyncTask<List<Bitmap>> {
         } catch (RuntimeException exception) {
             mDecodingResult = DecodingResult.RUNTIME_ERROR;
             return null;
+        } catch (IOException exception) {
+            mDecodingResult = DecodingResult.IO_ERROR;
+            return null;
         } finally {
-            try {
-                if (retriever != null) retriever.release();
-                if (afd != null) afd.close();
-                mDecodingResult = DecodingResult.SUCCESS;
-            } catch (IOException exception) {
-                mDecodingResult = DecodingResult.IO_ERROR;
-                return null;
-            }
+            if (retriever != null) retriever.release();
         }
     }
 

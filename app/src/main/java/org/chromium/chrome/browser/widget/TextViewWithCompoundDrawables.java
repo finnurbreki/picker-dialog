@@ -10,9 +10,11 @@ import android.content.res.TypedArray;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.support.v7.widget.AppCompatTextView;
+//import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 import android.widget.TextView;
+
+import androidx.appcompat.widget.AppCompatTextView;
 
 import com.example.finnur.finnursphotopicker.R;
 

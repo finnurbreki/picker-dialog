@@ -20,7 +20,7 @@ import org.chromium.base.annotations.CalledByNative;
 import org.chromium.base.annotations.JNINamespace;
 import org.chromium.base.annotations.MainDex;
 import org.chromium.base.annotations.NativeMethods;
-//import org.chromium.base.metrics.CachedMetrics;
+import org.chromium.base.metrics.RecordHistogram;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -47,11 +47,6 @@ public class SysUtils {
     private static Integer sAmountOfPhysicalMemoryKB;
 
     private static Boolean sHighEndDiskDevice;
-
-    /* Not needed for Android Studio project.
-    private static CachedMetrics.BooleanHistogramSample sLowEndMatches =
-            new CachedMetrics.BooleanHistogramSample("Android.SysUtilsLowEndMatches");
-    */
 
     private SysUtils() { }
 
@@ -199,8 +194,8 @@ public class SysUtils {
                                 Context.ACTIVITY_SERVICE))
                                .isLowRamDevice();
         }
-        // Not needed for Android Studio project.
-        // sLowEndMatches.record(isLowEnd == isLowRam);
+        RecordHistogram.recordBooleanHistogram(
+                "Android.SysUtilsLowEndMatches", isLowEnd == isLowRam);
 
         return isLowEnd;
     }
@@ -241,6 +236,14 @@ public class SysUtils {
     @VisibleForTesting
     public static void setAmountOfPhysicalMemoryKBForTesting(int physicalMemoryKB) {
         sAmountOfPhysicalMemoryKB = physicalMemoryKB;
+    }
+
+    /**
+     * @return Whether this device is running Android Go. This is assumed when we're running Android
+     * O or later and we're on a low-end device.
+     */
+    public static boolean isAndroidGo() {
+        return isLowEndDevice() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 
     @NativeMethods

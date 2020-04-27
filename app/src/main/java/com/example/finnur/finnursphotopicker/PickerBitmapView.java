@@ -14,9 +14,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.graphics.drawable.VectorDrawableCompat;
-import android.support.v4.widget.ImageViewCompat;
-import android.support.v7.content.res.AppCompatResources;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,10 +26,13 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.widget.ImageViewCompat;
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import org.chromium.base.ApiCompatibilityUtils;
 // import org.chromium.chrome.R;
-import org.chromium.components.browser_ui.widget.selectable_list.SelectableItemView;
+import org.chromium.components.browser_ui.widget.selectable_list.SelectableItemViewBase;
 import org.chromium.components.browser_ui.widget.selectable_list.SelectionDelegate;
 
 import java.util.List;
@@ -40,7 +40,7 @@ import java.util.List;
 /**
  * A container class for a view showing a photo in the Photo Picker.
  */
-public class PickerBitmapView extends SelectableItemView<PickerBitmap> {
+public class PickerBitmapView extends SelectableItemViewBase<PickerBitmap> {
     // The length of the image selection animation (in ms).
     private static final int ANIMATION_DURATION = 100;
 

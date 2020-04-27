@@ -14,6 +14,7 @@
     <item name="default_focused_hovered_alpha" format="float" type="dimen">0.10</item>
     <item name="default_focused_alpha" format="float" type="dimen">0.06</item>
     <item name="default_hovered_alpha" format="float" type="dimen">0.04</item>
+    <dimen name="default_list_row_padding">16dp</dimen>
     <dimen name="default_ripple_background_border_size">0dp</dimen>
     <dimen name="default_rounded_corner_radius">8dp</dimen>
     <item name="disabled_text_alpha" format="float" type="dimen">0.38</item>
