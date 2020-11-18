@@ -33,6 +33,10 @@
     <dimen name="modern_toolbar_background_lateral_inset">2dp</dimen>
     <dimen name="photo_picker_grainy_thumbnail_size">12dp</dimen>
     <dimen name="photo_picker_label_gap">10dp</dimen>
+    <dimen name="photo_picker_play_button_size">84dp</dimen>
+    <dimen name="photo_picker_seek_bar_thickness">4dp</dimen>
+    <dimen name="photo_picker_seek_bar_edge_radius">2dp</dimen>
+    <dimen name="photo_picker_seek_bar_thumb_size">12dp</dimen>
     <dimen name="photo_picker_special_icon_size">48dp</dimen>
     <dimen name="photo_picker_tile_gap">4dp</dimen>
     <dimen name="photo_picker_tile_min_size">100dp</dimen>

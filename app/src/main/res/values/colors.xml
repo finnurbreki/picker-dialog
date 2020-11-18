@@ -55,6 +55,8 @@
     <color name="default_bg_color_light">@android:color/white</color>
     <color name="default_bg_color_secondary">@color/default_bg_color_secondary_light</color>
     <color name="default_bg_color_secondary_light">@color/modern_grey_100</color>
+    <color name="default_control_color_active">@color/default_control_color_active_light</color>
+    <color name="default_control_color_active_light">@color/modern_blue_600</color>
     <color name="default_icon_color">@color/modern_grey_800</color>
     <color name="default_icon_color_blue">@color/modern_blue_600</color>
     <color name="default_icon_color_dark">@color/modern_grey_800</color>
@@ -86,10 +88,10 @@
     <color name="modern_primary_color">@android:color/white</color>
     <color name="modern_secondary_color">@color/modern_grey_100</color>
     <color name="ntp_bg">@color/default_primary_color</color>
-    <color name="photo_picker_tile_bg_color">@color/modern_grey_200</color>
     <color name="photo_picker_special_tile_bg_color">@color/modern_grey_300</color>
     <color name="photo_picker_special_tile_color">@color/black_alpha_40</color>
     <color name="photo_picker_special_tile_disabled_color">@color/modern_grey_400</color>
+    <color name="photo_picker_tile_bg_color">@color/modern_grey_200</color>
     <color name="pref_accent_color">@color/light_active_color</color>
     <color name="ripple_color_blue">@color/modern_blue_600</color>
     <color name="search_box_hint">@color/black_alpha_54</color>

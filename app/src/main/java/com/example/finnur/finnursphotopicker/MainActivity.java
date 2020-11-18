@@ -5,9 +5,11 @@
 package com.example.finnur.finnursphotopicker;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -31,6 +33,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -55,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
     // An ID for the system intent to show the camera intent.
     static final int TAKE_PHOTO_REQUEST = 2;
 
+    // The id of the permission request for permission Storage.
+    static final int PERMISSIONS_REQUEST_STORAGE = 1;
+
     // Whether multi-select should be enabled.
     static final boolean mMultiSelect = true;
 
@@ -78,86 +85,98 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final Activity self = this;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                PhotoPickerListener listener = new PhotoPickerListener() {
-                    @Override
-                    public void onPhotoPickerUserAction(
-                            @PhotoPickerAction int action, Uri[] photos) {
-                        switch (action) {
-                            case PhotoPickerAction.PHOTOS_SELECTED:
-                                if (photos != null) {
-                                    for (Uri mediaUri : photos) {
-                                        Log.e("***** ", "**** Media selected: " + mediaUri.getPath());
-                                    }
-                                }
-                                break;
-                            case PhotoPickerAction.LAUNCH_GALLERY:
-                                Intent intent = new Intent();
-                                intent.setType("image/*");
-                                if (mMultiSelect) {
-                                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                                }
-                                intent.setAction(Intent.ACTION_GET_CONTENT);
-                                startActivityForResult(
-                                        Intent.createChooser(intent, "Select Picture"),
-                                        PICK_IMAGE_REQUEST);
-
-                                mDialog.dismiss();
-                                break;
-                            case PhotoPickerAction.LAUNCH_CAMERA:
-                                Intent takePictureIntent = new Intent(
-                                        MediaStore.ACTION_IMAGE_CAPTURE);
-                                if (takePictureIntent.resolveActivity(
-                                        getPackageManager()) != null) {
-                                    // Create the File where the photo should go
-                                    File photoFile = null;
-                                    try {
-                                        photoFile = createImageFile();
-                                        mCurrentPhotoPath = photoFile.getAbsolutePath();
-                                    } catch (IOException ex) {
-                                        // Error occurred while creating the File.
-                                        Toast.makeText(getWindow().getContext(),
-                                                R.string.failed_to_launch_photo_activity,
-                                                Toast.LENGTH_SHORT).show();
-                                    }
-
-                                    if (photoFile != null) {
-                                        Uri photoURI = FileProvider.getUriForFile(
-                                                getWindow().getContext(),
-                                                "com.example.finnur.finnursphotopicker",
-                                                photoFile);
-                                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                                        startActivityForResult(
-                                                takePictureIntent, TAKE_PHOTO_REQUEST);
-                                    }
-                                }
-                                mDialog.dismiss();
-                                break;
-                            case PhotoPickerAction.CANCEL:
-                                Log.e("***** ", "**** Cancelled");
-                                break;
-                        }
-                    }
-                };
-
-                List<String> mimeTypes = null;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    mimeTypes = Arrays.asList("video/*", "image/*");
-                } else {
-                    mimeTypes = Arrays.asList("image/*");
+                if (ContextCompat.checkSelfPermission(self, Manifest.permission.READ_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(self,
+                            new String[]{ Manifest.permission.READ_EXTERNAL_STORAGE },
+                            PERMISSIONS_REQUEST_STORAGE);
+                    return;
                 }
-                Context context = getWindow().getContext();
-                mDialog = new PhotoPickerDialog(context, context.getContentResolver(), listener, mMultiSelect, mimeTypes);
-                mDialog.getWindow().getAttributes().windowAnimations = R.style.PhotoPickerDialogAnimation;
-                // This removes the padding around the dialog.
-                mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
-                mDialog.show();
+                showDialog();
             }
         });
 
         fab.callOnClick();
+    }
+
+    private void showDialog() {
+        PhotoPickerListener listener = new PhotoPickerListener() {
+            @Override
+            public void onPhotoPickerUserAction(
+                    @PhotoPickerAction int action, Uri[] photos) {
+                switch (action) {
+                    case PhotoPickerAction.PHOTOS_SELECTED:
+                        if (photos != null) {
+                            for (Uri mediaUri : photos) {
+                                Log.e("***** ", "**** Media selected: " + mediaUri.getPath());
+                            }
+                        }
+                        break;
+                    case PhotoPickerAction.LAUNCH_GALLERY:
+                        Intent intent = new Intent();
+                        intent.setType("image/*");
+                        if (mMultiSelect) {
+                            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                        }
+                        intent.setAction(Intent.ACTION_GET_CONTENT);
+                        startActivityForResult(
+                                Intent.createChooser(intent, "Select Picture"),
+                                PICK_IMAGE_REQUEST);
+
+                        mDialog.dismiss();
+                        break;
+                    case PhotoPickerAction.LAUNCH_CAMERA:
+                        Intent takePictureIntent = new Intent(
+                                MediaStore.ACTION_IMAGE_CAPTURE);
+                        if (takePictureIntent.resolveActivity(
+                                getPackageManager()) != null) {
+                            // Create the File where the photo should go
+                            File photoFile = null;
+                            try {
+                                photoFile = createImageFile();
+                                mCurrentPhotoPath = photoFile.getAbsolutePath();
+                            } catch (IOException ex) {
+                                // Error occurred while creating the File.
+                                Toast.makeText(getWindow().getContext(),
+                                        R.string.failed_to_launch_photo_activity,
+                                        Toast.LENGTH_SHORT).show();
+                            }
+
+                            if (photoFile != null) {
+                                Uri photoURI = FileProvider.getUriForFile(
+                                        getWindow().getContext(),
+                                        "com.example.finnur.finnursphotopicker",
+                                        photoFile);
+                                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                                startActivityForResult(
+                                        takePictureIntent, TAKE_PHOTO_REQUEST);
+                            }
+                        }
+                        mDialog.dismiss();
+                        break;
+                    case PhotoPickerAction.CANCEL:
+                        Log.e("***** ", "**** Cancelled");
+                        break;
+                }
+            }
+        };
+
+        List<String> mimeTypes = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            mimeTypes = Arrays.asList("video/*", "image/*");
+        } else {
+            mimeTypes = Arrays.asList("image/*");
+        }
+        Context context = getWindow().getContext();
+        mDialog = new PhotoPickerDialog(context, context.getContentResolver(), listener, mMultiSelect, mimeTypes);
+        mDialog.getWindow().getAttributes().windowAnimations = R.style.PhotoPickerDialogAnimation;
+        // This removes the padding around the dialog.
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+        mDialog.show();
     }
 
     @Override
@@ -166,6 +185,19 @@ public class MainActivity extends AppCompatActivity {
             processGalleryIntentResults(data);
         } else if (requestCode == TAKE_PHOTO_REQUEST && resultCode == RESULT_OK) {
             processCameraIntentResults(data);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_STORAGE: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    showDialog();
+                }
+            }
         }
     }
 

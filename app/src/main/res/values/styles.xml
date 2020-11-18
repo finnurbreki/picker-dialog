@@ -139,7 +139,7 @@
     </style>
 
     <style name="TextAppearance.PhotoPickerSpecialTile" parent="TextAppearance.BlackTitle2">
-        <item name="android:textColor">@color/photo_picker_special_tile_color</item>
+        <item name="android:textColor">@color/default_text_color_secondary</item>
     </style>
 
     <style name="TextAppearance.BlueButtonText2" parent="TextAppearance.AccentMediumStyle">
@@ -172,11 +172,14 @@
     <style name="TextAppearance.TextLarge.Primary">
         <item name="android:textColor">@color/default_text_color_list</item>
     </style>
+    <style name="TextAppearance.TextLarge.Primary.Light">
+        <item name="android:textColor">@color/default_text_color_light_list</item>
+    </style>
     <style name="TextAppearance.TextMedium.Primary.Inverse">
         <item name="android:textColor">@color/default_text_color_inverse</item>
     </style>
     <style name="TextAppearance.TextMedium.Primary.Light">
-        <item name="android:textColor">@color/default_text_color_light</item>
+        <item name="android:textColor">@color/default_text_color_light_list</item>
     </style>
     <style name="TextAppearance.TextMedium.Primary">
         <item name="android:textColor">@color/default_text_color_list</item>
@@ -319,12 +322,5 @@
     <style name="MediaButton"></style>
     <style name="MediaButton.Play">
         <item name="android:layout_width">128dp</item>
-    </style>
-
-    <style name="PhotoPicker"></style>
-    <style name="PhotoPicker.SeekBar" parent="Widget.AppCompat.SeekBar">
-        <item name="android:progressBackgroundTint">@color/google_grey_500</item>
-        <item name="android:progressTint">@color/default_primary_color</item>
-        <item name="android:thumbTint">@color/default_primary_color</item>
     </style>
 </resources>

@@ -126,7 +126,6 @@ public abstract class CommandLine {
     }
 
     // Equivalent to CommandLine::ForCurrentProcess in C++.
-    @VisibleForTesting
     public static CommandLine getInstance() {
         CommandLine commandLine = sCommandLine.get();
         assert commandLine != null;

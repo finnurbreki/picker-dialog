@@ -5,7 +5,6 @@
 package com.example.finnur.finnursphotopicker;
 
 import android.app.Activity;  // Android Studio only.
-import android.app.Dialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -230,7 +229,6 @@ public class PickerCategoryView extends RelativeLayout
         Button doneButton = (Button) toolbar.findViewById(R.id.done);
         doneButton.setOnClickListener(this);
         mVideoPlayer = findViewById(R.id.playback_container);
-        mVideoPlayer.setOwnerDialog((Dialog) delegate);
         mZoom = findViewById(R.id.zoom);
 
         calculateGridMetrics();
@@ -313,7 +311,7 @@ public class PickerCategoryView extends RelativeLayout
      * @param uri The uri of the video to start playing.
      */
     public void startVideoPlaybackAsync(Uri uri) {
-        mVideoPlayer.startVideoPlaybackAsync(uri);
+        mVideoPlayer.startVideoPlaybackAsync(uri, mDialog.getWindow().getDecorView());
     }
 
     /**
@@ -607,7 +605,7 @@ public class PickerCategoryView extends RelativeLayout
         mEnumStartTime = SystemClock.elapsedRealtime();
         // Android Studio project does not use WindowAndroid parameter.
         mWorkerTask = new FileEnumWorkerTask(this,
-                new MimeTypeFilter(mMimeTypes, true), mMimeTypes, mActivity.getContentResolver());
+                new MimeTypeFilter(mMimeTypes, true), mMimeTypes, mContentResolver);
         mWorkerTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 

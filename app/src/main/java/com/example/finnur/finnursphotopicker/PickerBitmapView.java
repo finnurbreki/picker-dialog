@@ -296,8 +296,7 @@ public class PickerBitmapView extends SelectableItemViewBase<PickerBitmap> {
             videoDurationOffsetY = 0;
         }
 
-        Animation animation = new ScaleAnimation(
-                startX, endX, // Values for x axis.
+        Animation animation = new ScaleAnimation(startX, endX, // Values for x axis.
                 startY, endY, // Values for y axis.
                 Animation.RELATIVE_TO_SELF, 0.5f, // Pivot X-axis type and value.
                 Animation.RELATIVE_TO_SELF, 0.5f); // Pivot Y-axis type and value.
@@ -499,7 +498,8 @@ public class PickerBitmapView extends SelectableItemViewBase<PickerBitmap> {
         // because we don't want to show it when nothing is selected and also not on a blank canvas.
         boolean isSelected = mSelectionDelegate.isItemSelected(mBitmapDetails);
         mSelectedView.setVisibility(!special && isSelected ? View.VISIBLE : View.GONE);
-        boolean showUnselectedToggle = !special && !isSelected && anySelection && mImageLoaded
+        boolean showUnselectedToggle = !special && !isSelected && mImageLoaded
+                && (anySelection || mCategoryView.isInMagnifyingMode())
                 && mCategoryView.isMultiSelectAllowed();
         mUnselectedView.setVisibility(showUnselectedToggle ? View.VISIBLE : View.GONE);
         mScrim.setVisibility(showUnselectedToggle ? View.VISIBLE : View.GONE);

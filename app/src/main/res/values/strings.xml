@@ -3,6 +3,8 @@
     <string name="accessibility_cancel_selection">Cancel selection</string>
     <string name="accessibility_drawer_toggle_btn_close">Close navigation drawer</string>
     <string name="accessibility_drawer_toggle_btn_open">Open navigation drawer</string>
+    <string name="accessibility_exit_full_screen">Exit full screen</string>
+    <string name="accessibility_full_screen">Full screen</string>
     <string name="accessibility_mute_video">Mute video</string>
     <string name="accessibility_play_video">Play video</string>
     <string name="accessibility_playback_time">Elapsed time 1 of 1.</string>
@@ -21,6 +23,7 @@
     <string name="color_picker_button_cancel">Cancel</string>
     <string name="decoder_description">Image decoder</string>
     <string name="done">Done</string>
+    <string name="fast_forward_hint">Double tap video left or right to skip 10s</string>
     <string name="failed_to_launch_photo_activity">Error launching photo activity</string>
     <string name="hide_info">Hide Info</string>
     <string name="menu_picker">Photo picker</string>
