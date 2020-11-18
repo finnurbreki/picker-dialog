@@ -1,5 +1,3 @@
-// This file is auto-generated in Chromium (created manually here).
-
 package org.chromium.base;
 public class BuildConfig {
     public static boolean IS_MULTIDEX_ENABLED ;
@@ -10,4 +8,5 @@ public class BuildConfig {
     public static int MIN_SDK_VERSION = 1;
     public static boolean BUNDLES_SUPPORTED ;
     public static boolean IS_INCREMENTAL_INSTALL ;
+    public static boolean IS_CHROMECAST_BRANDING_INTERNAL ;
 }

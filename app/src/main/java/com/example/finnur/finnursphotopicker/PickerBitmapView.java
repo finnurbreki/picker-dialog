@@ -31,7 +31,6 @@ import androidx.core.widget.ImageViewCompat;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import org.chromium.base.ApiCompatibilityUtils;
-// import org.chromium.chrome.R;
 import org.chromium.components.browser_ui.widget.selectable_list.SelectableItemViewBase;
 import org.chromium.components.browser_ui.widget.selectable_list.SelectionDelegate;
 
@@ -494,10 +493,11 @@ public class PickerBitmapView extends SelectableItemViewBase<PickerBitmap> {
         setBackgroundColor(mCategoryView.isZoomSwitchingInEffect() && !special ? Color.TRANSPARENT
                                                                                : mBackgroundColor);
 
-        // The visibility of the unselected toggle for multi-selection mode is a little more complex
-        // because we don't want to show it when nothing is selected and also not on a blank canvas.
         boolean isSelected = mSelectionDelegate.isItemSelected(mBitmapDetails);
         mSelectedView.setVisibility(!special && isSelected ? View.VISIBLE : View.GONE);
+        // The visibility of the unselected toggle for multi-selection mode is a little more complex
+        // because we don't want to show it when nothing is selected (unless in magnifying mode) and
+        // also not on a blank canvas.
         boolean showUnselectedToggle = !special && !isSelected && mImageLoaded
                 && (anySelection || mCategoryView.isInMagnifyingMode())
                 && mCategoryView.isMultiSelectAllowed();

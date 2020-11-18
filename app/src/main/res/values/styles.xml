@@ -166,6 +166,9 @@
     <style name="TextAppearance.TextMedium">
         <item name="android:textSize">@dimen/text_size_medium</item>
     </style>
+    <style name="TextAppearance.TextMedium.Disabled">
+        <item name="android:textColor">@color/default_text_color_disabled</item>
+    </style>
     <style name="TextAppearance.TextMedium.Secondary">
         <item name="android:textColor">@color/default_text_color_secondary_list</item>
     </style>
@@ -186,6 +189,15 @@
     </style>
     <style name="TextAppearance.TextMedium.Tertiary">
         <item name="android:textColor">@color/default_text_color_tertiary</item>
+    </style>
+    <style name="TextAppearance.TextSmall">
+        <item name="android:textSize">@dimen/text_size_small</item>
+    </style>
+    <style name="TextAppearance.TextSmall.Primary">
+        <item name="android:textColor">@color/default_text_color_list</item>
+    </style>
+    <style name="TextAppearance.TextSmall.Primary.Dark" tools:ignore="UnusedResources">
+        <item name="android:textColor">@color/default_text_color_dark</item>
     </style>
 
     <style name="TextButton" parent="ButtonCompatBase" tools:ignore="UnusedResources">

@@ -12,7 +12,6 @@ import org.chromium.base.ApiCompatibilityUtils;
 // import org.chromium.chrome.R;
 import org.chromium.components.browser_ui.widget.selectable_list.SelectableListToolbar;
 import org.chromium.components.browser_ui.widget.selectable_list.SelectionDelegate;
-import org.chromium.ui.vr.VrModeProvider;
 
 import java.util.List;
 
@@ -65,10 +64,9 @@ public class PhotoPickerToolbar extends SelectableListToolbar<PickerBitmap> {
 
     @Override
     public void initialize(SelectionDelegate<PickerBitmap> delegate, int titleResId,
-            int normalGroupResId, int selectedGroupResId, boolean updateStatusBarColor,
-            VrModeProvider vrModeProvider) {
-        super.initialize(delegate, titleResId, normalGroupResId, selectedGroupResId,
-                updateStatusBarColor, vrModeProvider);
+            int normalGroupResId, int selectedGroupResId, boolean updateStatusBarColor) {
+        super.initialize(
+                delegate, titleResId, normalGroupResId, selectedGroupResId, updateStatusBarColor);
 
         showBackArrow();
     }
@@ -86,7 +84,7 @@ public class PhotoPickerToolbar extends SelectableListToolbar<PickerBitmap> {
                     done, R.style.TextAppearance_TextMedium_Primary_Inverse);
         } else {
             ApiCompatibilityUtils.setTextAppearance(
-                    done, R.style.TextAppearance_TextMedium_Tertiary);
+                    done, R.style.TextAppearance_TextMedium_Disabled);
 
             showBackArrow();
         }

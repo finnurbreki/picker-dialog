@@ -4,20 +4,16 @@
 
 package com.example.finnur.finnursphotopicker;
 
-//import android.app.Activity;
 import android.content.ContentResolver;
-import android.content.Context;
+import android.content.Context; // Android Studio only.
 import android.net.Uri;
 
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AlertDialog;
 
-//import org.chromium.base.ActivityState;
-//import org.chromium.base.ApplicationStatus;
-//import org.chromium.base.ApplicationStatus.ActivityStateListener;
-//import org.chromium.base.ContextUtils;
-//import org.chromium.chrome.R;
-import org.chromium.ui.PhotoPickerListener;
+import org.chromium.ui.base.PhotoPicker;
+import org.chromium.ui.base.PhotoPickerListener;
+//import org.chromium.ui.base.WindowAndroid;
 
 import java.util.List;
 
@@ -26,9 +22,9 @@ import java.util.List;
  * &lt;input type=file accept=image &gt; form element.
  */
 public class PhotoPickerDialog
-        extends AlertDialog implements PhotoPickerToolbar.PhotoPickerToolbarDelegate {
-    // Our context.
-    private Context mContext;
+        extends AlertDialog implements PhotoPickerToolbar.PhotoPickerToolbarDelegate, PhotoPicker {
+    // Our window.
+    // private WindowAndroid mWindowAndroid;
 
     // The category we're showing photos for.
     private PickerCategoryView mCategoryView;
@@ -37,7 +33,7 @@ public class PhotoPickerDialog
     private PhotoPickerListenerWrapper mListenerWrapper;
 
     // Whether the wait for an external intent launch is over.
-    private boolean mDoneWaitingForExternalIntent = true;  // Not needed for Android Studio project.
+    private boolean mDoneWaitingForExternalIntent;
 
     /**
      * A wrapper around {@link PhotoPickerListener} that listens for external intents being
@@ -69,6 +65,11 @@ public class PhotoPickerDialog
             mListener.onPhotoPickerUserAction(action, photos);
         }
 
+        @Override
+        public void onPhotoPickerDismissed() {
+            mListener.onPhotoPickerDismissed();
+        }
+
         /**
          * Returns whether the user picked an external intent to launch.
          */
@@ -79,7 +80,7 @@ public class PhotoPickerDialog
 
     /**
      * The PhotoPickerDialog constructor.
-     * @param context The context to use.
+     * @param windowAndroid The window of the hosting Activity.
      * @param contentResolver The ContentResolver to use to retrieve image metadata from disk.
      * @param listener The listener object that gets notified when an action is taken.
      * @param multiSelectionAllowed Whether the photo picker should allow multiple items to be
@@ -87,9 +88,10 @@ public class PhotoPickerDialog
      * @param mimeTypes A list of mime types to show in the dialog.
      */
     public PhotoPickerDialog(Context context, ContentResolver contentResolver,
-            PhotoPickerListener listener, boolean multiSelectionAllowed, List<String> mimeTypes) {
+                             PhotoPickerListener listener, boolean multiSelectionAllowed, List<String> mimeTypes) {
         super(context, R.style.Theme_Chromium_Fullscreen);
-        mContext = context;
+
+        // mWindowAndroid = windowAndroid;
         mListenerWrapper = new PhotoPickerListenerWrapper(listener);
 
         // Initialize the main content view.
@@ -115,25 +117,7 @@ public class PhotoPickerDialog
         if (!mListenerWrapper.externalIntentSelected() || mDoneWaitingForExternalIntent) {
             super.dismiss();
             mCategoryView.onDialogDismissed();
-        } else {
-            /* Not required for Android studio project.
-            ApplicationStatus.registerStateListenerForActivity(new ActivityStateListener() {
-                @Override
-                public void onActivityStateChange(Activity activity, int newState) {
-                    // When an external intent, such as the Camera intent, is launched, this
-                    // listener will first receive the PAUSED event. Normally, STOPPED is the next
-                    // event, as the Camera intent appears. But if the user presses Back quickly
-                    // after the PAUSED event, the STOPPED event will not arrive, and this listener
-                    // gets RESUMED instead. However, we are already in teardown mode, so the
-                    // safe thing to do is to close the dialog.
-                    if (newState == ActivityState.STOPPED || newState == ActivityState.RESUMED) {
-                        mDoneWaitingForExternalIntent = true;
-                        ApplicationStatus.unregisterActivityStateListener(this);
-                        dismiss();
-                    }
-                }
-            }, ContextUtils.activityFromContext(mContext));
-            */
+            mListenerWrapper.onPhotoPickerDismissed();
         }
     }
 
@@ -143,6 +127,14 @@ public class PhotoPickerDialog
     @Override
     public void onNavigationBackCallback() {
         cancel();
+    }
+
+    // PhotoPicker:
+
+    @Override
+    public void onExternalIntentCompleted() {
+        mDoneWaitingForExternalIntent = true;
+        dismiss();
     }
 
     @VisibleForTesting

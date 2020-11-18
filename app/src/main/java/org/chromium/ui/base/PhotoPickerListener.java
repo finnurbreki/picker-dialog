@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package org.chromium.ui;
+package org.chromium.ui.base;
 
 import android.net.Uri;
 
@@ -41,4 +41,7 @@ public interface PhotoPickerListener {
      * @param photos The photos that were selected.
      */
     void onPhotoPickerUserAction(@PhotoPickerAction int action, Uri[] photos);
+
+    /** Called when the dialog has been dismissed. */
+    void onPhotoPickerDismissed();
 }

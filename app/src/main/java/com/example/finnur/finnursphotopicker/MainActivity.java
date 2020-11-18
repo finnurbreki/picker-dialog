@@ -39,7 +39,7 @@ import androidx.core.content.FileProvider;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import org.chromium.ui.PhotoPickerListener;
+import org.chromium.ui.base.PhotoPickerListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -162,6 +162,11 @@ public class MainActivity extends AppCompatActivity {
                         Log.e("***** ", "**** Cancelled");
                         break;
                 }
+            }
+
+            @Override
+            public void onPhotoPickerDismissed() {
+                // TODOf figure out if needed in Android Studio.
             }
         };
 

@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
 import org.chromium.base.metrics.RecordHistogram;
 import org.chromium.base.task.AsyncTask;
-//import org.chromium.chrome.R;
 
 import java.util.ArrayList;
 import java.util.List;

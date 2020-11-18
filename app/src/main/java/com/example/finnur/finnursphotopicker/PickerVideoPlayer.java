@@ -30,8 +30,9 @@ import androidx.annotation.VisibleForTesting;
 import androidx.core.math.MathUtils;
 import androidx.core.view.GestureDetectorCompat;
 
-import org.chromium.base.Log;
 import org.chromium.base.ThreadUtils;
+import org.chromium.base.task.PostTask;
+import org.chromium.content_public.browser.UiThreadTaskTraits;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -91,25 +92,23 @@ public class PickerVideoPlayer
     // The amount of time (in milliseconds) to skip when fast forwarding/rewinding.
     private static final int SKIP_LENGTH_IN_MS = 10000;
 
-    private static final int DURATION_DELAY_REMOVE_THIS = 000;
-
     // The time (in milliseconds) to wait before animating controls away.
     private static final int OVERLAY_FADE_OUT_DELAY_MS = 2500;
-    private static final int PLAY_BUTTON_FADE_OUT_DELAY_MS = 250 + DURATION_DELAY_REMOVE_THIS;
+    private static final int PLAY_BUTTON_FADE_OUT_DELAY_MS = 250;
 
     // Durations for fade-out animations (in milliseconds).
-    private static final int PLAY_BUTTON_FADE_OUT_DURATION_MS = 750 + DURATION_DELAY_REMOVE_THIS;
-    private static final int OVERLAY_CONTROLS_FADE_OUT_DURATION_MS = 750 + DURATION_DELAY_REMOVE_THIS;
-    private static final int OVERLAY_SCRIM_FADE_OUT_DURATION_MS = 1000 + DURATION_DELAY_REMOVE_THIS;
+    private static final int PLAY_BUTTON_FADE_OUT_DURATION_MS = 750;
+    private static final int OVERLAY_CONTROLS_FADE_OUT_DURATION_MS = 750;
+    private static final int OVERLAY_SCRIM_FADE_OUT_DURATION_MS = 1000;
 
     // Durations for fade-in animation (in milliseconds).
-    private static final int PLAY_BUTTON_FADE_IN_DURATION_MS = 250 + DURATION_DELAY_REMOVE_THIS;
-    private static final int OVERLAY_CONTROLS_FADE_IN_DURATION_MS = 500 + DURATION_DELAY_REMOVE_THIS;
-    private static final int OVERLAY_SCRIM_FADE_IN_DURATION_MS = 250 + DURATION_DELAY_REMOVE_THIS;
+    private static final int PLAY_BUTTON_FADE_IN_DURATION_MS = 250;
+    private static final int OVERLAY_CONTROLS_FADE_IN_DURATION_MS = 500;
+    private static final int OVERLAY_SCRIM_FADE_IN_DURATION_MS = 250;
 
     // Whether to turn on shorter animation timings and delays. When |true| all delays and
     // durations are 1/10th of normal length.
-    private static boolean sShortAnimationTimesForTesting = false;
+    private static boolean sShortAnimationTimesForTesting;
 
     // The DecorView for the dialog the player is shown in.
     private View mDecorView;
@@ -398,13 +397,6 @@ public class PickerVideoPlayer
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         if (fromUser) {
-            final boolean seekDuringPlay = mVideoView.isPlaying();
-            mMediaPlayer.setOnSeekCompleteListener(mp -> {
-                mMediaPlayer.setOnSeekCompleteListener(null);
-                if (seekDuringPlay) {
-                    startVideoPlayback();
-                }
-            });
             float percentage = progress / 100f;
             int position = Math.round(percentage * mVideoView.getDuration());
             videoSeekTo(position);
@@ -415,7 +407,10 @@ public class PickerVideoPlayer
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
         showAndMaybeHideVideoControls(/* animateIn= */ false, FadeOut.NO_FADE_OUT);
-        mSeekDuringPlayback = mVideoView.isPlaying();
+        if (mVideoView.isPlaying()) {
+            stopVideoPlayback();
+            mSeekDuringPlayback = true;
+        }
         mFastForwardMessage.setVisibility(View.VISIBLE);
         mLargePlayButton.setVisibility(View.GONE);
     }
@@ -424,6 +419,10 @@ public class PickerVideoPlayer
     public void onStopTrackingTouch(SeekBar seekBar) {
         fadeAwayVideoControls(
                 mSeekDuringPlayback ? FadeOut.FADE_OUT_PLAY_QUICKLY : FadeOut.FADE_OUT_ALL_SLOWLY);
+        if (mSeekDuringPlayback) {
+            startVideoPlayback();
+            mSeekDuringPlayback = false;
+        }
         mFastForwardMessage.setVisibility(View.GONE);
         mLargePlayButton.setVisibility(View.VISIBLE);
     }
@@ -627,8 +626,8 @@ public class PickerVideoPlayer
 
         String formattedProgress = current + " / " + total;
         mRemainingTime.setText(formattedProgress);
-        mRemainingTime.setContentDescription(
-                mContext.getResources().getString(R.string.accessibility_playback_time, current, total));
+        mRemainingTime.setContentDescription(mContext.getResources().getString(
+                R.string.accessibility_playback_time, current, total));
         int percentage = mVideoView.getDuration() == 0
                 ? 0
                 : mVideoView.getCurrentPosition() * 100 / mVideoView.getDuration();
@@ -731,6 +730,10 @@ public class PickerVideoPlayer
 
     private void startPlaybackMonitor() {
         mRunPlaybackMonitoringTask = true;
+        startPlaybackMonitorTask();
+    }
+
+    private void startPlaybackMonitorTask() {
         getHandler().postDelayed(() -> updateProgress(), 250);
     }
 

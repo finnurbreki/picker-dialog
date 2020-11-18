@@ -34,6 +34,7 @@
     <color name="modern_grey_700">#5F6368</color>
     <color name="modern_grey_800">#3C4043</color>
     <color name="modern_grey_800_alpha_38">#613C4043</color>
+    <color name="modern_grey_900">#202124</color>
     <color name="modern_grey_900_alpha_38">#61202124</color>
     <color name="modern_light_grey">#F1F3F4</color>
     <color name="modern_toolbar_bg">#E6FFFFFF</color>
@@ -62,6 +63,7 @@
     <color name="default_icon_color_dark">@color/modern_grey_800</color>
     <color name="default_icon_color_dark_disabled">@color/modern_grey_800_alpha_38</color>
     <color name="default_icon_color_disabled">@color/default_icon_color_dark_disabled</color>
+    <color name="default_icon_color_disabled_light">@color/white_alpha_38</color>
     <color name="default_icon_color_light">@color/modern_white</color>
     <color name="default_icon_color_inverse">@color/default_icon_color_white</color>
     <color name="default_icon_color_secondary">@color/default_icon_color_secondary_dark</color>
@@ -71,7 +73,9 @@
     <color name="default_icon_color_white_disabled">@color/white_alpha_20</color>
     <color name="default_icon_color_white_pressed">@color/white_alpha_50</color>
     <color name="default_text_color">#333</color>
-    <color name="default_icon_color_disabled_light">@color/white_alpha_38</color>
+    <color name="default_text_color_dark">@color/modern_grey_900</color>
+    <color name="default_text_color_disabled">@color/default_text_color_disabled_light</color>
+    <color name="default_text_color_disabled_light">@color/white_alpha_50</color>
     <color name="default_text_color_inverse">@color/default_text_color_light</color>
     <color name="default_text_color_light">@android:color/white</color>
     <color name="default_text_color_link">@color/modern_blue_600</color>
