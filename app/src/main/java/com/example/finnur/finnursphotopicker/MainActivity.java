@@ -28,6 +28,8 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -69,6 +71,11 @@ public class MainActivity extends AppCompatActivity {
     // The path to the photo captured from the camera.
     private String mCurrentPhotoPath;
 
+    static public int mStartingFrame = -1;
+    static public int mInterval = -1;
+    static public int mTotalFrames = -1;
+    static public boolean mAlignOnKeyFrames = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         /* Enable for tracking down StrictMode violations.
@@ -102,10 +109,25 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 showDialog();
+
+                EditText startingFrame = findViewById(R.id.starting_frame);
+                EditText interval = findViewById(R.id.interval);
+                EditText numFrames = findViewById(R.id.total_frames);
+                CheckBox alignOnKeyFrames = findViewById(R.id.align);
+                if (startingFrame.getText().length() > 0) {
+                    mStartingFrame = Integer.parseInt(startingFrame.getText().toString());
+                }
+                if (interval.getText().length() > 0) {
+                    mInterval = Integer.parseInt(interval.getText().toString());
+                }
+                if (numFrames.getText().length() > 0) {
+                    mTotalFrames = Integer.parseInt(numFrames.getText().toString());
+                }
+                mAlignOnKeyFrames = alignOnKeyFrames.isChecked();
             }
         });
 
-        fab.callOnClick();
+        // fab.callOnClick();
     }
 
     private void showDialog() {

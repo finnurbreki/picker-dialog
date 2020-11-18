@@ -20,7 +20,60 @@
     tools:showIn="@layout/activity_main">
 
     <TextView
+        android:id="@+id/hello"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:layout_marginBottom="20dp"
+        android:text="Configuration parameters (leave blank for default)!" />
+
+    <TextView
+        android:id="@+id/label_startingframe"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/hello"
+        android:text="Starting frame" />
+    <EditText
+        android:id="@+id/starting_frame"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_below="@id/label_startingframe"
+        android:inputType="text"
+        android:text="0" />
+
+    <TextView
+        android:id="@+id/label_interval"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/starting_frame"
+        android:text="Interval between frames (milliseconds)" />
+    <EditText
+        android:id="@+id/interval"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_below="@id/label_interval"
+        android:inputType="text"
+        android:text="2000" />
+
+    <TextView
+        android:id="@+id/label_totalframes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/interval"
+        android:text="Total frames returned" />
+    <EditText
+        android:id="@+id/total_frames"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_below="@id/label_totalframes"
+        android:inputType="text"
+        android:text="10" />
+
+    <CheckBox
+        android:id="@+id/align"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/total_frames"
+        android:layout_marginTop="10dp"
+        android:checked="true"
+        android:text="Align on keyframes" />
 </RelativeLayout>

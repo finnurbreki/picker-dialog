@@ -12,6 +12,7 @@ import android.media.MediaMetadataRetriever;
 import android.os.Build;
 import android.util.Pair;
 
+import org.chromium.base.Log;
 import org.chromium.base.metrics.RecordHistogram;
 
 import java.io.FileDescriptor;
@@ -110,9 +111,22 @@ class BitmapUtils {
         List<Bitmap> bitmaps = new ArrayList<Bitmap>();
         Bitmap bitmap = null;
         Float ratio = null;
-        for (int frame = 0; frame < frames; ++frame) {
+        int frame = (MainActivity.mStartingFrame != -1) ? MainActivity.mStartingFrame : 0;
+        if (MainActivity.mTotalFrames != -1 && frames > 1) {
+            frames = MainActivity.mTotalFrames;
+        }
+        if (MainActivity.mInterval != -1) {
+            intervalMs = MainActivity.mInterval;
+        }
+        Log.e("PhotoPicker", "Starting frame: " + frame  + ", intervalMs " + intervalMs + ", create frame count " + frames + (frames == 1 ? " (thumbnail)" : " (animation)") + ", align on key frames " + MainActivity.mAlignOnKeyFrames);
+        for (; frame < frames; ++frame) {
             // TODO(finnur): Find a way to use OPTION_CLOSEST in a performant way.
-            bitmap = retriever.getFrameAtTime(frame * intervalMs * 1000);
+            if (!MainActivity.mAlignOnKeyFrames) {
+                bitmap = retriever.getFrameAtTime(frame * intervalMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
+            } else {
+                bitmap = retriever.getFrameAtTime(frame * intervalMs * 1000);
+            }
+
             if (bitmap == null) continue;
             if (ratio == null) ratio = (float) bitmap.getHeight() / bitmap.getWidth();
 
