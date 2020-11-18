@@ -39,6 +39,7 @@ import androidx.core.content.FileProvider;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.chromium.base.ContextUtils;
 import org.chromium.ui.base.PhotoPickerListener;
 
 import java.io.File;
@@ -83,6 +84,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        DecoderServiceHost.setIntentSupplier(() -> {
+            return new Intent(getApplicationContext(), DecoderService.class);
+        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         final Activity self = this;
